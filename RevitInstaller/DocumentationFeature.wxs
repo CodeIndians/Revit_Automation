@@ -4,7 +4,7 @@
 		<ComponentGroup Id="DocumentationComponents">
 			<!-- Install the help file -->
 			<Component Id="HelpFileComponent" Guid="{2C9FF783-2E6F-459B-8CC9-B981A972F336}" Directory="INSTALLFOLDER">
-				<File Id="HelpFile" Source="..\Revit_Automation\License.rtf" Checksum="yes" />
+				<File Id="HelpFile" Source="..\Revit_Automation\RevitHelp.pdf" Checksum="yes" />
 			</Component>
 		</ComponentGroup>
 	</Fragment>
