@@ -71,6 +71,7 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\Revit.png" />
+    <Content Include="Resources\CodeIndians.ico" />
     <Content Include="Resources\Title Bar.png" />
     <Content Include="Revit_Automation.addin" />
   </ItemGroup>
@@ -82,6 +83,10 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="License.rtf" />
+    <None Include="RevitHelp.pdf" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+	<Product Id="*" 
+			 Name="Revit Automation Toolkit" 
+			 Language="1033" 
+			 Version="1.0.0.0" 
+			 Manufacturer="Code Indian Technologies" 
+			 UpgradeCode="95b77557-3a50-4a35-994a-370ef6b395d1">
+		<Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
+
+		<MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+		<MediaTemplate />
+
+		<!-- Select the UI for the installer -->
+		<UIRef Id="CustomUI"/>
+		
+		<Feature Id="ProductFeature" Title="Revit Automation Toolkit" Level="1">
+			<ComponentGroupRef Id="ProductComponents" />
+			<ComponentGroupRef Id="RegistryEntries" />
+		</Feature>
+
+		<Feature Id="DocumentationFeature" Title="Documentation" Level="1" Description="Installs the optional documentation.">
+			<ComponentGroupRef Id="DocumentationComponents" />
+		</Feature>
+		
+		<WixVariable Id="WixUILicenseRtf" Value="..\Revit_Automation\License.rtf" />
+
+		<Icon Id="AppIcon" SourceFile="..\Revit_Automation\Resources\CodeIndians.ico"/>
+		<Property Id="ARPPRODUCTICON" Value="AppIcon" />
+
+		<Property Id="USERNAME"    Secure="yes" />
+		<Property Id="COMPANYNAME" Secure="yes" />
+
+		<Property Id="ARPURLINFOABOUT"      Value="http://www.codeindians.com" />
+		
+	</Product>
+
+	<Fragment>
+		<Directory Id="TARGETDIR" Name="SourceDir">
+			<Directory Id="ProgramFilesFolder">
+				<Directory Id="MANUFACTURERFOLDER" Name="!(bind.property.Manufacturer)">
+					<Directory Id="INSTALLFOLDER" Name="!(bind.property.ProductName)" />
+				</Directory>
+			</Directory>
+		</Directory>
+	</Fragment>
+
+	<Fragment>
+		<ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+			<Component Id="RevitADDINComponent" Guid="{2873BC1F-3DAB-40FD-9C37-AB426888780F}" >
+				<File Id="RevitADDIN" KeyPath="yes" Source="..\Revit_Automation\Revit_Automation.addin" Checksum="yes"/>
+			</Component>
+			<Component Id="RevitDLLComponent" Guid="{D44F8558-8D09-49BA-87C8-3807FFB4D9C6}">
+				<File Id="RevitDll" KeyPath="yes" Source="..\Revit_Automation\bin\Release\Revit_Automation.dll" Checksum="yes"/>
+			</Component>
+		</ComponentGroup>
+	</Fragment>
+</Wix>
