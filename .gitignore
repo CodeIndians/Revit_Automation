@@ -33,3 +33,7 @@
 /.vs/Revit_Automation
 /Revit_Automation/bin/Debug
 /Revit_Automation/obj/Debug
+/RevitInstaller/bin
+/RevitInstaller/obj
+/Revit_Automation/bin/Release
+/Revit_Automation/obj/Release
