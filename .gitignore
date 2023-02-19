@@ -30,3 +30,6 @@
 *.exe
 *.out
 *.app
+/.vs/Revit_Automation
+/Revit_Automation/bin/Debug
+/Revit_Automation/obj/Debug
