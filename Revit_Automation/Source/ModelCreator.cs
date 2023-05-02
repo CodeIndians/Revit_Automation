@@ -20,6 +20,7 @@ using System.Threading.Tasks;
 using static Revit_Automation.Command;
 using System.Windows.Forms;
 using Revit_Automation.Source;
+using Revit_Automation.CustomTypes;
 
 namespace Revit_Automation
 {
@@ -62,13 +63,51 @@ namespace Revit_Automation
             SymbolCollector.CollectColumnSymbols(doc);
 
             // 3. Input Lines to be collected
-            InputLineUtility.ProcessInputLines(doc);
+            InputLineUtility.GatherInputLines(doc);
             
             // 4. Process Each Input Line
+            ProcessInputLines (InputLineUtility.colInputLines, levels);
+
 
             form.Visible = false;
             form.UpdateCompleted();
             form.ShowDialog();
+        }
+
+        public static void ProcessInputLines(List<InputLine> inputLinesCollection, IOrderedEnumerable<Level> levels)
+        {
+            foreach (InputLine inputLine in inputLinesCollection)
+            {
+                if (!string.IsNullOrEmpty(inputLine.strT62Guage) && !string.IsNullOrEmpty(inputLine.strStudGuage))
+                {
+                    ProcessT62AndStudLine(inputLine, levels);
+                }
+                else if (!string.IsNullOrEmpty(inputLine.strT62Guage))
+                {
+                    ProcessT62InputLine(inputLine, levels);
+                }
+                else if (!string.IsNullOrEmpty(inputLine.strStudGuage))
+                {
+                    ProcessStudInputLine(inputLine, levels);
+                }
+            }
+        }
+
+        private static void ProcessStudInputLine(InputLine inputLine, IOrderedEnumerable<Level> levels)
+        {
+            // Identify the level of the line - To obtain the bottom and top level
+
+
+        }
+
+        private static void ProcessT62InputLine(InputLine inputLine, IOrderedEnumerable<Level> levels)
+        {
+            
+        }
+
+        private static void ProcessT62AndStudLine(InputLine inputLine, IOrderedEnumerable<Level> levels)
+        {
+            
         }
 
         public static IOrderedEnumerable<Level> FindAndSortLevels(Document doc)

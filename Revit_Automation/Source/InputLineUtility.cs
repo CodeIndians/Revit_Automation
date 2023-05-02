@@ -20,9 +20,8 @@ namespace Revit_Automation.Source
     /// <summary>
     /// Class that holds all the data required for placement of the structure - Input Lines
     /// </summary>
-    internal class InputLineUtility
+    public class InputLineUtility
     {
-
         /// <summary>
         /// The collection of input lines
         /// </summary>
@@ -32,7 +31,7 @@ namespace Revit_Automation.Source
         /// This function is used to collect all input lines in the model
         /// </summary>
         /// <param name="doc"> Pointer to the Active document</param>
-        public static void ProcessInputLines(Document doc)
+        public static void GatherInputLines(Document doc)
         {
             FilteredElementCollector locationCurvedCol
               = new FilteredElementCollector(doc)
@@ -115,8 +114,13 @@ namespace Revit_Automation.Source
                 GridCollector GridCollectionHelper = new GridCollector(doc);
                 var locationCurve = (LocationCurve)locCurve.Location;
                 var linecoords = Tuple.Create(locationCurve.Curve.GetEndPoint(0), locationCurve.Curve.GetEndPoint(1));
+                
+                // Compute Grid Intersections for T62 Placement
                 iLine.gridIntersectionPoints = GridCollectionHelper.computeIntersectionPoints(linecoords);
 
+                // Compute Main intesection points for Stud placement offset
+                iLine.mainGridIntersectionPoints = GridCollectionHelper.computeIntersectionPoints(linecoords, true);
+                
                 //Add the line to the collection 
                 AddInputLine(iLine);
             }

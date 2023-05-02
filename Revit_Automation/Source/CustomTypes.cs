@@ -11,7 +11,7 @@ namespace Revit_Automation.CustomTypes
     /// <summary>
     /// Input line structure to parse all the required properties
     /// </summary>
-    struct InputLine
+    public struct InputLine
     {
         public LocationCurve locationCurve;
         public string strT62Guage;
@@ -26,6 +26,7 @@ namespace Revit_Automation.CustomTypes
         public double dFlangeOfset;
         public double dOnCenter;
         public List<XYZ> gridIntersectionPoints;
+        public List<XYZ> mainGridIntersectionPoints;
     }
 }
 

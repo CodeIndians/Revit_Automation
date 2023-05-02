@@ -6,6 +6,7 @@
 /* -----------------------Revision History------------------------------------------
 */
 
+using Autodesk.Revit.DB;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -51,6 +52,15 @@ namespace Revit_Automation.Source
             }
 
             return false;
+        }
+
+        public static bool ApproximatelyEqual(double d1, double d2)
+        {
+            double precision = 0.0001;
+
+            return (Math.Abs(d1 - d2) <= precision);
+                
+            
         }
     }
 }
