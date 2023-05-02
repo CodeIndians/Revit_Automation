@@ -1,7 +1,17 @@
-﻿using Autodesk.Revit.Creation;
+﻿/* Copyright (C) 2023 - CodeIndian Technologies  - All Rights Reserved
+ * No part of this file should be copied, distributed or modified without
+ * Proper appovals from the owner(s)
+ * 
+ */
+/* -----------------------Revision History------------------------------------------
+*/
+
+using Autodesk.Revit.Creation;
 using Autodesk.Revit.DB;
+using Revit_Automation.Source;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -104,6 +114,33 @@ namespace Revit_Automation
             }
 
             return isEquidistant;
+        }
+
+        internal List<XYZ> computeIntersectionPoints(Tuple<XYZ, XYZ> linecoords)
+        {
+
+            List<XYZ> colintesectPoints = new List<XYZ>();
+
+            XYZ lineStart = linecoords.Item1;
+            XYZ lineEnd = linecoords.Item2;
+
+            if (lineStart.X.Equals(lineEnd.X))
+            {
+                foreach (Tuple<XYZ, XYZ> verticalGridLine in mVerticalLines)
+                {
+                    PointF ptIntesectionPoint;
+                    bool bInsersects = MathUtils.GetIntersectionPoint(new PointF((float)(lineStart.X), (float)(lineStart.Y)),
+                                                                        new PointF((float)(lineEnd.X), (float)(lineEnd.Y)),
+                                                                        new PointF((float)(verticalGridLine.Item1.X), (float)(verticalGridLine.Item1.Y)),
+                                                                        new PointF((float)(verticalGridLine.Item2.X), (float)(verticalGridLine.Item2.Y)),
+                                                                        out ptIntesectionPoint);
+
+                    if (bInsersects) {
+                        XYZ intesectPoint = new XYZ(ptIntesectionPoint.X, ptIntesectionPoint.Y, linecoords.Item1.Z);
+                        colintesectPoints.Add(intesectPoint); }
+                }
+            }
+            return colintesectPoints;
         }
     }
 }

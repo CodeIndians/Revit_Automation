@@ -1,3 +1,12 @@
+
+/* Copyright (C) 2023 - CodeIndian Technologies  - All Rights Reserved
+ * No part of this file should be copied, distributed or modified without
+ * Proper appovals from the owner(s)
+ * 
+ */
+/* -----------------------Revision History------------------------------------------
+*/
+
 #region Namespaces
 using Autodesk.Revit.ApplicationServices;
 using Autodesk.Revit.Attributes;

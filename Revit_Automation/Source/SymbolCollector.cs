@@ -1,4 +1,13 @@
-﻿using Autodesk.Revit.DB;
+﻿
+/* Copyright (C) 2023 - CodeIndian Technologies  - All Rights Reserved
+ * No part of this file should be copied, distributed or modified without
+ * Proper appovals from the owner(s)
+ * 
+ */
+/* -----------------------Revision History------------------------------------------
+*/
+
+using Autodesk.Revit.DB;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -8,6 +17,9 @@ using System.Threading.Tasks;
 
 namespace Revit_Automation
 {
+    ///<summary>
+    /// This Class is used to read the in-built symbol families and select those necessary for placement in the model
+    ///</summary>
     internal class SymbolCollector
     {
         static public FamilySymbol T62columnType = null;
@@ -16,7 +28,11 @@ namespace Revit_Automation
         static public FamilySymbol T62FemaleTopMaleBottom = null;
         static public FamilySymbol T62FlushTopMaleBottom = null;
 
-        static public void CollectColumns(Document doc)
+        /// <summary>
+        /// This method is used to collect and store the required symbols from the in-built families
+        /// </summary>
+        /// <param name="doc"> The pointer to the active document that is opened in Revit</param>
+        static public void CollectColumnSymbols(Document doc)
         {
             string filePath = "C:\\temp\\example.txt"; // Path to the file to be created
 

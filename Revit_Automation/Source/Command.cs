@@ -1,3 +1,11 @@
+/* Copyright (C) 2023 - CodeIndian Technologies  - All Rights Reserved
+ * No part of this file should be copied, distributed or modified without
+ * Proper appovals from the owner(s)
+ * 
+ */
+/* -----------------------Revision History------------------------------------------
+*/
+
 #region Namespaces
 using Autodesk.Revit.ApplicationServices;
 using Autodesk.Revit.Attributes;
@@ -28,16 +36,6 @@ namespace Revit_Automation
     [Transaction(TransactionMode.Manual)]
     public class Command : IExternalCommand
     {
-        public static IOrderedEnumerable<Level> FindAndSortLevels(Document
-
-            doc)
-        {
-            return new FilteredElementCollector(doc)
-                            .WherePasses(new ElementClassFilter(typeof(Level), false))
-                            .Cast<Level>()
-                            .OrderBy(e => e.Elevation);
-        }
-
         public Result Execute(
           ExternalCommandData commandData,
           ref string message,

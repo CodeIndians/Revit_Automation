@@ -62,7 +62,10 @@
     <Compile Include="Dialogs\Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
+    <Compile Include="Source\CustomTypes.cs" />
     <Compile Include="Source\GridCollector.cs" />
+    <Compile Include="Source\InputLineUtility.cs" />
+    <Compile Include="Source\MathUtils.cs" />
     <Compile Include="Source\ModelCreator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
@@ -76,7 +79,7 @@
     <Resource Include="Resources\Revit.png" />
     <Content Include="Resources\CodeIndians.ico" />
     <Content Include="Resources\Title Bar.png" />
-    <Content Include="Artefacts\Revit_Automation.addin" />
+    <Content Include="Artifacts\Revit_Automation.addin" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Dialogs\Form1.resx">
