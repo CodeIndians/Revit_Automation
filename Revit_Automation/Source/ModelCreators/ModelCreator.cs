@@ -21,6 +21,7 @@ using static Revit_Automation.Command;
 using System.Windows.Forms;
 using Revit_Automation.Source;
 using Revit_Automation.CustomTypes;
+using Revit_Automation.Source.ModelCreators;
 
 namespace Revit_Automation
 {
@@ -46,27 +47,28 @@ namespace Revit_Automation
             Autodesk.Revit.ApplicationServices.Application app = uiapp.Application;
             Document doc = uidoc.Document;
 
-            // 0. Identify the main Grids in the model
+            // 1. Identify the main Grids in the model
             GridCollector gridCollection = new GridCollector(doc);
 
-            // 1. Validate if the grids are equidistant
+            // 1.1 Validate if the grids are equidistant
             if(gridCollection.Validate())
             {
                 MessageBox.Show("Grid Validation Failed");
                 return;
             }
 
-            // 1. Find the levels in the project
+            // 2. Find the levels in the project
             IOrderedEnumerable<Level> levels = FindAndSortLevels(doc);
 
-            // 2. Collect the necessary symbols
+            // 3. Collect the necessary symbols
             SymbolCollector.CollectColumnSymbols(doc);
 
-            // 3. Input Lines to be collected
+            // 4. Input Lines to be collected
             InputLineUtility.GatherInputLines(doc);
             
-            // 4. Process Each Input Line
-            ProcessInputLines (InputLineUtility.colInputLines, levels);
+            // 5. Place Columns
+            ColumnCreator columnCreator = new ColumnCreator();
+            columnCreator.CreateModel(InputLineUtility.colInputLines, levels);
 
 
             form.Visible = false;
@@ -74,41 +76,6 @@ namespace Revit_Automation
             form.ShowDialog();
         }
 
-        public static void ProcessInputLines(List<InputLine> inputLinesCollection, IOrderedEnumerable<Level> levels)
-        {
-            foreach (InputLine inputLine in inputLinesCollection)
-            {
-                if (!string.IsNullOrEmpty(inputLine.strT62Guage) && !string.IsNullOrEmpty(inputLine.strStudGuage))
-                {
-                    ProcessT62AndStudLine(inputLine, levels);
-                }
-                else if (!string.IsNullOrEmpty(inputLine.strT62Guage))
-                {
-                    ProcessT62InputLine(inputLine, levels);
-                }
-                else if (!string.IsNullOrEmpty(inputLine.strStudGuage))
-                {
-                    ProcessStudInputLine(inputLine, levels);
-                }
-            }
-        }
-
-        private static void ProcessStudInputLine(InputLine inputLine, IOrderedEnumerable<Level> levels)
-        {
-            // Identify the level of the line - To obtain the bottom and top level
-
-
-        }
-
-        private static void ProcessT62InputLine(InputLine inputLine, IOrderedEnumerable<Level> levels)
-        {
-            
-        }
-
-        private static void ProcessT62AndStudLine(InputLine inputLine, IOrderedEnumerable<Level> levels)
-        {
-            
-        }
 
         public static IOrderedEnumerable<Level> FindAndSortLevels(Document doc)
         {

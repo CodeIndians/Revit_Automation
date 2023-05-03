@@ -112,6 +112,7 @@ namespace Revit_Automation.Source
 
                 // Compute Intersection Points with Grids. 
                 GridCollector GridCollectionHelper = new GridCollector(doc);
+
                 var locationCurve = (LocationCurve)locCurve.Location;
                 var linecoords = Tuple.Create(locationCurve.Curve.GetEndPoint(0), locationCurve.Curve.GetEndPoint(1));
                 

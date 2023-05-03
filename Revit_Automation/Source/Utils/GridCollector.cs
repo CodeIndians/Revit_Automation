@@ -36,7 +36,9 @@ namespace Revit_Automation
         public GridCollector(Document doc) 
         {
             mDocument = doc;
-            Initialize();
+
+            if (mHorizontalLines == null && mVerticalLines == null)
+                Initialize();
         }
 
         /// <summary>
