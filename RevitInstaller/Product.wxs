@@ -23,7 +23,7 @@
 			<ComponentGroupRef Id="DocumentationComponents" />
 		</Feature>
 		
-		<WixVariable Id="WixUILicenseRtf" Value="..\Revit_Automation\License.rtf" />
+		<WixVariable Id="WixUILicenseRtf" Value="..\Revit_Automation\Docs\License.rtf" />
 
 		<Icon Id="AppIcon" SourceFile="..\Revit_Automation\Resources\CodeIndians.ico"/>
 		<Property Id="ARPPRODUCTICON" Value="AppIcon" />
@@ -32,6 +32,13 @@
 		<Property Id="COMPANYNAME" Secure="yes" />
 
 		<Property Id="ARPURLINFOABOUT"      Value="http://www.codeindians.com" />
+
+		<CustomAction Id="RunBatchFile" Directory="INSTALLFOLDER" ExeCommand="cmd.exe /c copyfiles.bat" Execute="deferred" Return="ignore" />
+		<CustomAction Id="RemoveAddinFiles" Directory="INSTALLFOLDER" ExeCommand="cmd.exe /c removefiles.bat" Execute="deferred" Return="ignore" />
+		<InstallExecuteSequence>
+			<Custom Action="RemoveAddinFiles" Before="RemoveFiles">REMOVE="ALL" AND NOT UPGRADINGPRODUCTCODE</Custom>
+			<Custom Action="RunBatchFile" After="InstallFiles" />
+		</InstallExecuteSequence>
 		
 	</Product>
 
@@ -52,6 +59,12 @@
 			</Component>
 			<Component Id="RevitDLLComponent" Guid="{D44F8558-8D09-49BA-87C8-3807FFB4D9C6}">
 				<File Id="RevitDll" KeyPath="yes" Source="..\Revit_Automation\bin\Release\Revit_Automation.dll" Checksum="yes"/>
+			</Component>
+			<Component Id="RevitBatchFileComponent" Guid="{8E374386-B5E2-4CA6-B7B6-67F9C9CCB9BA}">
+				<File Id="CopyFiles" KeyPath="yes" Source="..\Revit_Automation\copyfiles.bat" Checksum="yes"/>
+			</Component>
+			<Component Id="RevitBatchFileRemoveComponent" Guid="{7AB7DA5C-B1F1-4EBF-B702-928B86DCC566}">
+				<File Id="RemoveFiles" KeyPath="yes" Source="..\Revit_Automation\removefiles.bat" Checksum="yes"/>
 			</Component>
 		</ComponentGroup>
 	</Fragment>
