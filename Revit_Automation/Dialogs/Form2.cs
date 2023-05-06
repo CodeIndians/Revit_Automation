@@ -15,6 +15,7 @@ namespace Revit_Automation.Dialogs
     {
         public Form2()
         {
+            this.ValidLicense = false;
             InitializeComponent();
             string hostName = Dns.GetHostName();
 
