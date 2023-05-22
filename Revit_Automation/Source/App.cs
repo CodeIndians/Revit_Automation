@@ -30,6 +30,7 @@ namespace Revit_Automation
 
             Form2 form = new Form2();
             form.StartPosition = FormStartPosition.CenterScreen;
+            form.TopMost = true;
             form.ShowDialog();
 
             if (form.ValidLicense)

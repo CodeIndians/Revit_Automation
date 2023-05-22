@@ -14,6 +14,8 @@ namespace Revit_Automation.CustomTypes
     public struct InputLine
     {
         public LocationCurve locationCurve;
+        public XYZ startpoint;
+        public XYZ endpoint;    
         public string strT62Guage;
         public string strT62Type;
         public string strStudGuage;
@@ -23,8 +25,10 @@ namespace Revit_Automation.CustomTypes
         public string strTopTrackSize;
         public string strBottomTrackGuage;
         public string strBottomTrackSize;
+        public string strBuildingName;
         public double dFlangeOfset;
         public double dOnCenter;
+
         public List<XYZ> gridIntersectionPoints;
         public List<XYZ> mainGridIntersectionPoints;
     }

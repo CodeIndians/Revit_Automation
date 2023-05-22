@@ -19,7 +19,8 @@ namespace Revit_Automation.Dialogs
             InitializeComponent();
             string hostName = Dns.GetHostName();
 
-            this.textBox1.Text = Dns.GetHostEntry(hostName).AddressList[1].ToString(); 
+            this.textBox1.Text = Dns.GetHostEntry(hostName).AddressList[1].ToString();
+            this.textBox3.Text = hostName;
         }
 
         public bool ValidLicense { get; internal set; }

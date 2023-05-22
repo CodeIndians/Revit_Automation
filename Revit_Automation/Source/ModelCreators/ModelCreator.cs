@@ -67,7 +67,7 @@ namespace Revit_Automation
             InputLineUtility.GatherInputLines(doc);
             
             // 5. Place Columns
-            ColumnCreator columnCreator = new ColumnCreator();
+            ColumnCreator columnCreator = new ColumnCreator(doc, form);
             columnCreator.CreateModel(InputLineUtility.colInputLines, levels);
 
 

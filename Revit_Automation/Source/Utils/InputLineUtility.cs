@@ -44,6 +44,10 @@ namespace Revit_Automation.Source
 
                 iLine.locationCurve = (LocationCurve)locCurve.Location;
 
+                iLine.startpoint = iLine.locationCurve.Curve.GetEndPoint(0);
+                iLine.endpoint = iLine.locationCurve.Curve.GetEndPoint(1);
+
+
                 Parameter studGuageParam = locCurve.LookupParameter("Stud Gauge");
                 if (studGuageParam != null)
                 {
@@ -84,6 +88,12 @@ namespace Revit_Automation.Source
                 if (TopTrackSizeParam != null)
                 {
                     iLine.strTopTrackSize = TopTrackSizeParam.AsString();
+                }
+
+                Parameter BuildingNameParam = locCurve.LookupParameter("Building Name");
+                if (BuildingNameParam != null)
+                {
+                    iLine.strBuildingName = BuildingNameParam.AsString();
                 }
 
                 Parameter BottomTrackGaugeParam = locCurve.LookupParameter("Bottom Track Gauge");

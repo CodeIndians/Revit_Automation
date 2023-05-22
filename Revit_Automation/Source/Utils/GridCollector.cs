@@ -25,8 +25,8 @@ namespace Revit_Automation
         private ICollection<Element> mGridCollection;
         private List<Tuple<XYZ, XYZ>> mHorizontalLines;
         private List<Tuple<XYZ, XYZ>> mVerticalLines;
-        private List<Tuple<XYZ, XYZ>> mHorizontalMainLines;
-        private List<Tuple<XYZ, XYZ>> mVerticalMainLines;
+        public static List<Tuple<XYZ, XYZ>> mHorizontalMainLines;
+        public static List<Tuple<XYZ, XYZ>> mVerticalMainLines;
 
         public ICollection<Element> GridCollection { get { return mGridCollection; } }
         public List<Tuple<XYZ, XYZ>> HorizontalLines { get { return mHorizontalLines; } }
