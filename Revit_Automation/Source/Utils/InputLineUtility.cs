@@ -33,6 +33,9 @@ namespace Revit_Automation.Source
         /// <param name="doc"> Pointer to the Active document</param>
         public static void GatherInputLines(Document doc)
         {
+            if (colInputLines != null)
+                colInputLines.Clear();
+
             FilteredElementCollector locationCurvedCol
               = new FilteredElementCollector(doc)
                 .WhereElementIsNotElementType()

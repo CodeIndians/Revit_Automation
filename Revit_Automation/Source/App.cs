@@ -31,9 +31,9 @@ namespace Revit_Automation
             Form2 form = new Form2();
             form.StartPosition = FormStartPosition.CenterScreen;
             form.TopMost = true;
-            form.ShowDialog();
+            //form.ShowDialog();
 
-            if (form.ValidLicense)
+            //if (form.ValidLicense)
             {
                 // Create a custom ribbon tab
                 String tabName = "Automation Toolkit";
@@ -58,10 +58,10 @@ namespace Revit_Automation
                 pb1.LargeImage = pb1Image;
                 return Result.Succeeded;
             }
-            else
-            {
-                return Result.Failed;
-            }
+            //else
+            //{
+            //    return Result.Failed;
+            //}
         }
 
         public Result OnShutdown(UIControlledApplication a)

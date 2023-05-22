@@ -246,7 +246,7 @@ namespace Revit_Automation.Source.ModelCreators
 
                 XYZ LineOrientation = pt1.X > pt2.X ? (pt1 - pt2) : (pt2 - pt1);
 
-                if ((ColumnOrientation.X == 0 && LineOrientation.X != 0) || (ColumnOrientation.Y == 0 && LineOrientation.Y != 0))
+                if ((ColumnOrientation.X == 0 && !MathUtils.ApproximatelyEqual(LineOrientation.X, 0)) || (ColumnOrientation.Y == 0 && LineOrientation.Y != 0))
                     dAngle = (Math.PI * 90) / 180;
 
                 if (bRotate && dAngle != 0)
