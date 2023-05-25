@@ -74,6 +74,7 @@
     <Compile Include="Source\CustomTypes.cs" />
     <Compile Include="Source\ModelCreators\ColumnCreator.cs" />
     <Compile Include="Source\ModelCreators\T62Valiations.cs" />
+    <Compile Include="Source\Utils\FloorHelper.cs" />
     <Compile Include="Source\Utils\GridCollector.cs" />
     <Compile Include="Source\Utils\InputLineUtility.cs" />
     <Compile Include="Source\Interfaces\CreationInterfaces.cs" />
@@ -85,6 +86,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="Source\Utils\RoofUtility.cs" />
     <Compile Include="Source\Utils\SymbolCollector.cs" />
     <Compile Include="Source\Interfaces\ValidationInterface.cs" />
   </ItemGroup>

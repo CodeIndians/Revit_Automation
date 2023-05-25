@@ -62,5 +62,11 @@ namespace Revit_Automation.Source
                 
             
         }
+
+        public static bool IsWithInRange (double reference, double high, double Low)
+        {
+
+            return (reference >= Low && reference <= high);
+        }
     }
 }

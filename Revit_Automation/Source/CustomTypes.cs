@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -31,6 +32,13 @@ namespace Revit_Automation.CustomTypes
 
         public List<XYZ> gridIntersectionPoints;
         public List<XYZ> mainGridIntersectionPoints;
+    }
+
+    public struct FloorObject
+    {
+        public ElementId levelID;
+        public ElementId elemID;
+        public string strBuildingName;
     }
 }
 

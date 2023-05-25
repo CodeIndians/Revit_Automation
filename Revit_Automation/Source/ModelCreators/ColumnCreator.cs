@@ -2,6 +2,7 @@
 using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Structure;
 using Revit_Automation.CustomTypes;
+using Revit_Automation.Source.Utils;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -93,6 +94,10 @@ namespace Revit_Automation.Source.ModelCreators
                     }
                 }
 
+                // Compute the top Attachment Object
+                Element topAttachElement = GetNearestFloor(toplevel);
+
+
                 inputLine.strStudType = inputLine.strStudType.ToString() + string.Format(" x {0}ga", inputLine.strStudGuage);
 
                 FamilySymbol columnType = SymbolCollector.GetSymbol(inputLine.strStudType, "Post");
@@ -110,6 +115,10 @@ namespace Revit_Automation.Source.ModelCreators
                     FamilyInstance startcolumn = m_Document.Create.NewFamilyInstance(pt1, columnType, baseLevel, StructuralType.Column);
                     startcolumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(toplevel.Id);
                     startcolumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM).Set(0);
+
+                    if (topAttachElement != null)
+                        ColumnAttachment.AddColumnAttachment(m_Document, startcolumn, topAttachElement, 1, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Minimum, 0);
+
                     m_Form.PostMessage(string.Format("Placing Post  {3} at {0} , {1} , {2} \n \n ", pt1.X, pt1.Y, pt1.Z, inputLine.strStudType));
                     startColumnID = startcolumn.Id;
                     startColumnOrientation = startcolumn.FacingOrientation;
@@ -123,6 +132,10 @@ namespace Revit_Automation.Source.ModelCreators
                     FamilyInstance endColumn = m_Document.Create.NewFamilyInstance(pt2, columnType, baseLevel, StructuralType.Column);
                     endColumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(toplevel.Id);
                     endColumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM).Set(0);
+
+                    if (topAttachElement != null)
+                        ColumnAttachment.AddColumnAttachment(m_Document, endColumn, topAttachElement, 1, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Minimum, 0);
+
                     m_Form.PostMessage(string.Format("Placing Post  {3} at {0} , {1} , {2} \n \n ", pt2.X, pt2.Y, pt2.Z, inputLine.strStudType));
                     EndColumnID = endColumn.Id;
                     endColumnOrientation = endColumn.FacingOrientation;
@@ -176,8 +189,8 @@ namespace Revit_Automation.Source.ModelCreators
                     studEndPoint = pt1.X > pt2.X ? pt1 : pt2;
                 }
 
-                XYZ tempXVector = new XYZ(2.5, 0, 0);
-                XYZ tempYVector = new XYZ(0, 2.5, 0);
+                XYZ tempXVector = new XYZ(inputLine.dFlangeOfset, 0, 0);
+                XYZ tempYVector = new XYZ(0, inputLine.dFlangeOfset, 0);
 
                 bool bCanCreateColumn = true;
                 while (bCanCreateColumn)
@@ -198,6 +211,10 @@ namespace Revit_Automation.Source.ModelCreators
                             FamilyInstance studColumn = m_Document.Create.NewFamilyInstance(studPoint, columnType, baseLevel, StructuralType.Column);
                             studColumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(toplevel.Id);
                             studColumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM).Set(0);
+
+                            if (topAttachElement != null)
+                                ColumnAttachment.AddColumnAttachment(m_Document, studColumn, topAttachElement, 1, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Minimum, 0);
+
                             m_Form.PostMessage(string.Format("Placing Post  {3} at {0} , {1} , {2} \n \n ", studPoint.X, studPoint.Y, studPoint.Z, inputLine.strStudType));
                             StudColumnID = studColumn.Id;
                             StudColumnOrientation = studColumn.FacingOrientation;
@@ -365,6 +382,30 @@ namespace Revit_Automation.Source.ModelCreators
 
             return (elements.Count > 0); 
 
+        }
+
+        private Element GetNearestFloor(Level level)
+        {
+            List<FloorObject> floorObjects = FloorHelper.colFloors;
+
+            Element elemID = null;
+
+            foreach (FloorObject floor in floorObjects)
+            {
+                
+                Element levelElement = m_Document.GetElement(floor.levelID);
+                Parameter elevationParam = levelElement.get_Parameter(BuiltInParameter.LEVEL_ELEV);
+                if (elevationParam != null)
+                {
+                    if (MathUtils.IsWithInRange(elevationParam.AsDouble(), level.Elevation + 1 , level.Elevation - 1))
+                    {
+                        elemID = m_Document.GetElement(floor.elemID);
+                        
+                    } 
+                }
+            }
+
+            return elemID;
         }
     }
 }

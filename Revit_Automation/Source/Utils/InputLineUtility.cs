@@ -14,6 +14,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using Revit_Automation.CustomTypes;
+using System.Windows.Media.Animation;
 
 namespace Revit_Automation.Source
 {
@@ -43,6 +44,9 @@ namespace Revit_Automation.Source
 
             foreach (Element locCurve in locationCurvedCol)
             {
+                if(locCurve.IsHidden(doc.ActiveView))
+                    continue;
+
                 InputLine iLine = new InputLine(); 
 
                 iLine.locationCurve = (LocationCurve)locCurve.Location;
@@ -111,7 +115,7 @@ namespace Revit_Automation.Source
                     iLine.strBottomTrackSize = BottomTrackSizeParam.AsString();
                 }
 
-                Parameter FlangeOffsetParam = locCurve.LookupParameter("Flange Offset");
+                Parameter FlangeOffsetParam = locCurve.LookupParameter("Stud O.C.");
                 if (FlangeOffsetParam != null)
                 {
                     iLine.dFlangeOfset = FlangeOffsetParam.AsDouble();

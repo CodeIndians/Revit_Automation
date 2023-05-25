@@ -22,6 +22,8 @@ using System.Windows.Forms;
 using Revit_Automation.Source;
 using Revit_Automation.CustomTypes;
 using Revit_Automation.Source.ModelCreators;
+using System.Collections.ObjectModel;
+using Revit_Automation.Source.Utils;
 
 namespace Revit_Automation
 {
@@ -47,6 +49,8 @@ namespace Revit_Automation
             Autodesk.Revit.ApplicationServices.Application app = uiapp.Application;
             Document doc = uidoc.Document;
 
+            RoofUtility.computeRoofSlopes(doc);
+
             // 1. Identify the main Grids in the model
             GridCollector gridCollection = new GridCollector(doc);
 
@@ -60,13 +64,21 @@ namespace Revit_Automation
             // 2. Find the levels in the project
             IOrderedEnumerable<Level> levels = FindAndSortLevels(doc);
 
+
+            // 2. Find the levels in the project
+            IOrderedEnumerable<Floor> floors = FindAndSortFloors(doc);
+
+
             // 3. Collect the necessary symbols
             SymbolCollector.CollectColumnSymbols(doc);
 
             // 4. Input Lines to be collected
             InputLineUtility.GatherInputLines(doc);
-            
-            // 5. Place Columns
+
+            // 5. Input Lines to be collected
+            FloorHelper.GatherFloors(doc);
+
+            // 6. Place Columns
             ColumnCreator columnCreator = new ColumnCreator(doc, form);
             columnCreator.CreateModel(InputLineUtility.colInputLines, levels);
 
@@ -83,6 +95,18 @@ namespace Revit_Automation
                             .WherePasses(new ElementClassFilter(typeof(Level), false))
                             .Cast<Level>()
                             .OrderBy(e => e.Elevation);
+
         }
+
+        public static IOrderedEnumerable<Floor> FindAndSortFloors(Document doc)
+        {
+            return new FilteredElementCollector(doc)
+                .WhereElementIsNotElementType()
+                .OfCategory(BuiltInCategory.OST_GenericModel)
+                            .Cast<Floor>()
+                            .OrderBy(e => e.LevelId);
+        }
+
+
     }
 }
