@@ -1,6 +1,7 @@
 ﻿using Autodesk.Revit.Creation;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Structure;
+using Autodesk.Revit.UI;
 using Revit_Automation.CustomTypes;
 using Revit_Automation.Source.Utils;
 using System;
@@ -60,8 +61,8 @@ namespace Revit_Automation.Source.ModelCreators
                 XYZ pt1 = inputLine.locationCurve.Curve.GetEndPoint(0);
                 XYZ pt2 = inputLine.locationCurve.Curve.GetEndPoint(1);
 
-                ElementId startColumnID, EndColumnID, columnID;
-                XYZ startColumnOrientation, endColumnOrientation, columnOrientation;
+                ElementId startColumnID, EndColumnID;
+                XYZ startColumnOrientation, endColumnOrientation;
 
                 LineType lineType = LineType.vertical;
 
@@ -106,12 +107,9 @@ namespace Revit_Automation.Source.ModelCreators
                 {
                     tx.Start("Place Column");
 
-                    // Place column at the start
-                    if (CheckForExistingColumns(pt1))
-                    {
-                        AdjustLinePoint(pt1, pt2, lineType);
-                    }
+                    CheckForExistingColumns(pt1);
 
+                    //Place Column at start
                     FamilyInstance startcolumn = m_Document.Create.NewFamilyInstance(pt1, columnType, baseLevel, StructuralType.Column);
                     startcolumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(toplevel.Id);
                     startcolumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM).Set(0);
@@ -122,11 +120,6 @@ namespace Revit_Automation.Source.ModelCreators
                     m_Form.PostMessage(string.Format("Placing Post  {3} at {0} , {1} , {2} \n \n ", pt1.X, pt1.Y, pt1.Z, inputLine.strStudType));
                     startColumnID = startcolumn.Id;
                     startColumnOrientation = startcolumn.FacingOrientation;
-
-                    if (CheckForExistingColumns(pt1))
-                    {
-                        AdjustLinePoint(pt1, pt2, lineType);
-                    }
 
                     // Place column at end
                     FamilyInstance endColumn = m_Document.Create.NewFamilyInstance(pt2, columnType, baseLevel, StructuralType.Column);
@@ -142,38 +135,19 @@ namespace Revit_Automation.Source.ModelCreators
 
 
                     XYZ referencePoint = null;
-                    if (inputLine.mainGridIntersectionPoints != null)
+                    if (inputLine.mainGridIntersectionPoints?.Count > 0)
                         referencePoint = inputLine.mainGridIntersectionPoints[0];
 
                     tx.Commit();
                 }
 
-                UpdateOrientation(startColumnID, startColumnOrientation, pt1, pt2);
+                UpdateOrientation(startColumnID, startColumnOrientation, pt1, pt2, true);
+                XYZ Adjustedpt1 = AdjustLinePoint(pt1, pt2, lineType, 0.208333/2);
+                MoveColumn(startColumnID, Adjustedpt1);
+
                 UpdateOrientation(EndColumnID, endColumnOrientation, pt2, pt1, true);
-
-                /* XYZ IntersectionPoint = null;
-
-                 if(inputLine.mainGridIntersectionPoints != null && inputLine.mainGridIntersectionPoints.Count > 0)
-                     IntersectionPoint = inputLine.mainGridIntersectionPoints[0];
-                 else
-                     IntersectionPoint = computeInstersectionPoint(pt1, pt2, lineType);
-
-                 XYZ tempXVector = new XYZ(2.5, 0, 0);
-                 XYZ tempYVector = new XYZ(0, 2.5, 0);
-                 XYZ tempXNegativeVector = new XYZ(-2.5, 0, 0);
-                 XYZ tempYNegativeVector = new XYZ(0, -2.5, 0);
-
-                 XYZ onCenterVector = null;
-
-                 if (lineType == LineType.horizontal && IntersectionPoint.X < pt1.X && IntersectionPoint.X < pt2.X)
-                     onCenterVector = tempXVector;
-                 else if (lineType == LineType.horizontal && IntersectionPoint.X > pt1.X && IntersectionPoint.X > pt2.X)
-                     onCenterVector = tempXNegativeVector;
-
-                 if (lineType == LineType.vertical && IntersectionPoint.Y < pt1.Y && IntersectionPoint.Y < pt2.Y)
-                     onCenterVector = tempYVector;
-                 else if (lineType == LineType.vertical && IntersectionPoint.Y > pt1.Y && IntersectionPoint.Y > pt2.Y)
-                     onCenterVector = tempYNegativeVector;*/
+                XYZ Adjustedpt2 = AdjustLinePoint(pt2, pt1, lineType, 0.208333/2);
+                MoveColumn(EndColumnID, Adjustedpt2);
 
                 XYZ studPoint = null, studEndPoint = null;
 
@@ -249,51 +223,101 @@ namespace Revit_Automation.Source.ModelCreators
 
         }
 
-        private void UpdateOrientation(ElementId columnID, XYZ ColumnOrientation,  XYZ pt1, XYZ pt2 , bool bRotate = false)
+        /// <summary>
+        /// BE VERY VERY Careful when changing any of the below logic
+        /// The current Logic is based on 2 conditions.
+        /// The start and End column should be facing towards the line and facing each other
+        /// Other studs should be oriented along the Low Eave.
+        /// Any modification should evaluate each of the condition very carefully.
+        /// </summary>
+        /// <param name="columnID"></param>
+        /// <param name="ColumnOrientation"></param>
+        /// <param name="pt1"></param>
+        /// <param name="pt2"></param>
+        /// <param name="bRotate"></param>
+        private void UpdateOrientation(ElementId columnID, XYZ ColumnOrientation,  XYZ pt1, XYZ pt2 , bool bEndingColumns = false)
         {
+            XYZ UnitVectorAlongLine
+                = null;
+
+            XYZ point1 = new XYZ(pt1.X, pt1.Y, 0);
+            XYZ point2 = new XYZ(pt1.X, pt1.Y, 1);
+            Line axis = Line.CreateBound(point1, point2);
+
             using (Transaction tx = new Transaction(m_Document))
             {
                 tx.Start("Change Orientation");
 
                 double dAngle = 0;
 
-                XYZ point1 = new XYZ(pt1.X, pt1.Y, 0);
-                XYZ point2 = new XYZ(pt1.X, pt1.Y, 1);
-                Line axis = Line.CreateBound(point1, point2);
+                XYZ LineOrientation = pt2 - pt1;
+                UnitVectorAlongLine = LineOrientation.Normalize();
 
-                XYZ LineOrientation = pt1.X > pt2.X ? (pt1 - pt2) : (pt2 - pt1);
-
-                if ((ColumnOrientation.X == 0 && !MathUtils.ApproximatelyEqual(LineOrientation.X, 0)) || (ColumnOrientation.Y == 0 && LineOrientation.Y != 0))
+                if ((ColumnOrientation.X == 0 && !MathUtils.ApproximatelyEqual(LineOrientation.X, 0)) || (ColumnOrientation.Y == 0 && !MathUtils.ApproximatelyEqual(LineOrientation.Y, 0)))
                     dAngle = (Math.PI * 90) / 180;
-
-                if (bRotate && dAngle != 0)
-                    dAngle = -dAngle;
-                
-                if (dAngle == 0 && bRotate)
-                    dAngle = Math.PI;
                 
                 ElementTransformUtils.RotateElement(m_Document, columnID, axis, dAngle);
 
                 tx.Commit();
             }
+
+            using (Transaction tx = new Transaction(m_Document))
+            {
+                tx.Start("Change Orientation2");
+
+                // Compute the orientation after rotation. 
+                FamilyInstance column = m_Document.GetElement(columnID) as FamilyInstance;
+                XYZ newOrientation = column.FacingOrientation;
+
+                if (bEndingColumns)
+                {
+                    // The web outward normal should be in a direction opposite to that of Input Line For Start and End Lines
+                    if (MathUtils.CompareVectors(UnitVectorAlongLine, newOrientation) == "Parallel")
+                    {
+                        ElementTransformUtils.RotateElement(m_Document, columnID, axis, Math.PI);
+                    }
+                }
+                else
+                {
+                    // The web outward Normal should be along the slope for studs On Center.  
+                }
+                tx.Commit();
+            }
+
         }
 
-        private void AdjustLinePoint(XYZ pt1, XYZ pt2, LineType lineType)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="pt1"></param>
+        /// <param name="pt2"></param>
+        /// <param name="lineType"></param>
+        private XYZ AdjustLinePoint(XYZ pt1, XYZ pt2, LineType lineType, double dOffset)
         {
-            XYZ tempXVector = new XYZ(0.4, 0, 0);
-            XYZ tempYVector = new XYZ(0, 0.4, 0);
-            XYZ tempXMinusVector = new XYZ(-0.4, 0, 0);
-            XYZ tempYMinusVector = new XYZ(0, -0.4, 0);
+            XYZ AdjustedPoint = null;
 
-            if (lineType == LineType.vertical && pt1.Y < pt2.Y)
-                pt1 = pt1 + tempYVector;
-            else
-                pt1 = pt1 + tempYMinusVector;
+            XYZ tempXVector = new XYZ(dOffset, 0, 0);
+            XYZ tempYVector = new XYZ(0, dOffset, 0);
 
-            if (lineType == LineType.horizontal && pt1.X < pt2.X)
-                pt1 = pt1 + tempXVector;
-            else
-                pt1 = pt1 + tempXMinusVector;
+            XYZ tempXMinusVector = new XYZ(-dOffset, 0, 0);
+            XYZ tempYMinusVector = new XYZ(0, -dOffset, 0);
+
+            if (lineType == LineType.vertical)
+            {
+                if (pt1.Y < pt2.Y)
+                    AdjustedPoint = pt1 + tempYVector;
+                else
+                    AdjustedPoint = pt1 + tempYMinusVector;
+            }
+
+            if (lineType == LineType.horizontal)
+            {
+                if (pt1.X < pt2.X)
+                    AdjustedPoint = pt1 + tempXVector;
+                else
+                    AdjustedPoint = pt1 + tempXMinusVector;
+            }
+            return AdjustedPoint;
         }
 
         private  void ProcessT62InputLine(InputLine inputLine, IOrderedEnumerable<Level> levels)
@@ -406,6 +430,28 @@ namespace Revit_Automation.Source.ModelCreators
             }
 
             return elemID;
+        }
+
+        private void MoveColumn(ElementId columnId, XYZ newLocation)
+        {
+            FamilyInstance column = m_Document.GetElement(columnId) as FamilyInstance;
+
+            using (Transaction tx = new Transaction(m_Document))
+            {
+                tx.Start("Change Orientation");
+                
+                // Get the column's Location property
+                Location location = column.Location;
+
+                // Check if the column's location is a LocationPoint
+                if (location is LocationPoint locationPoint)
+                {
+                    // Set the new location for the column
+                    locationPoint.Point = newLocation;
+                }
+
+                tx.Commit();
+            }
         }
     }
 }

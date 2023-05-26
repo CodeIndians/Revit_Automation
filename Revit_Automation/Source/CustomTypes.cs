@@ -40,5 +40,13 @@ namespace Revit_Automation.CustomTypes
         public ElementId elemID;
         public string strBuildingName;
     }
+
+    public struct RoofObject
+    {
+        public XYZ min;
+        public XYZ max;
+        public Curve slopeLine;
+        public string strBuildingName;
+    }
 }
 

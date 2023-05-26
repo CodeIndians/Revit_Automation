@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using Revit_Automation.CustomTypes;
 using System.Windows.Media.Animation;
+using Autodesk.Revit.UI.Selection;
 
 namespace Revit_Automation.Source
 {
@@ -32,15 +33,41 @@ namespace Revit_Automation.Source
         /// This function is used to collect all input lines in the model
         /// </summary>
         /// <param name="doc"> Pointer to the Active document</param>
-        public static void GatherInputLines(Document doc)
+        public static void GatherInputLines(Document doc, bool bSelected, Selection selection)
         {
             if (colInputLines != null)
                 colInputLines.Clear();
 
-            FilteredElementCollector locationCurvedCol
-              = new FilteredElementCollector(doc)
-                .WhereElementIsNotElementType()
-                .OfCategory(BuiltInCategory.OST_GenericModel);
+            FilteredElementCollector locationCurvedCol = null;
+
+            if (!bSelected)
+            {
+                locationCurvedCol
+                  = new FilteredElementCollector(doc)
+                    .WhereElementIsNotElementType()
+                    .OfCategory(BuiltInCategory.OST_GenericModel);
+            }
+
+            else
+            {
+                // Check if any elements are selected
+                if (selection.GetElementIds().Count > 0)
+                {
+                    // Get the selected elements
+                    ICollection<ElementId> selectedIds = selection.GetElementIds();
+
+                    // Create a filter to match elements of the OST_GenericModel category
+                    ElementCategoryFilter modelCategoryFilter = new ElementCategoryFilter(BuiltInCategory.OST_GenericModel);
+
+                    // Create a filtered element collector to filter the selected elements
+                    locationCurvedCol = new FilteredElementCollector(doc, selectedIds);
+
+                    // Apply the category filter to the collector
+                    locationCurvedCol.WherePasses(modelCategoryFilter);
+
+
+                }
+            }
 
             foreach (Element locCurve in locationCurvedCol)
             {

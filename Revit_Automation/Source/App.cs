@@ -14,6 +14,7 @@ using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Revit_Automation.Dialogs;
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Windows.Forms;
@@ -48,14 +49,36 @@ namespace Revit_Automation
                 // create push button for CurveTotalLength
                 PushButtonData b1Data = new PushButtonData(
                     "testCMD",
-                    "Generate Model",
+                    "Generate \n Model",
                     thisAssemblyPath,
                     "Revit_Automation.Command");
 
                 PushButton pb1 = ribbonPanel.AddItem(b1Data) as PushButton;
                 pb1.ToolTip = "Place posts as per the existing grids";
-                BitmapImage pb1Image = new BitmapImage(new Uri("pack://application:,,,/Revit_Automation;component/Resources/Revit.png"));
-                pb1.LargeImage = pb1Image;
+                string path = "C:\\Users\\Administrator\\Downloads\\Gifs\\Model.png";
+
+                if (File.Exists(path))
+                {
+                    BitmapImage pb1Image = new BitmapImage(new Uri(path));
+                    pb1.LargeImage = pb1Image;
+                }
+                // Create source.
+
+
+                PushButtonData b2Data = new PushButtonData(
+                    "testCMD2",
+                    "Posts At \n Selection",
+                    thisAssemblyPath,
+                    "Revit_Automation.Command2");
+
+                PushButton pb2 = ribbonPanel.AddItem(b2Data) as PushButton;
+                pb2.ToolTip = "Place posts At a selected Input line";
+                string path2 = "C:\\Users\\Administrator\\Downloads\\Gifs\\Posts.png";
+                if (File.Exists(path2))
+                {
+                    BitmapImage pb2Image = new BitmapImage(new Uri(path2));
+                    pb2.LargeImage = pb2Image;
+                }
                 return Result.Succeeded;
             }
             //else

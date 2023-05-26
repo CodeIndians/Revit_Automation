@@ -41,7 +41,7 @@ namespace Revit_Automation.Source.Utils
                 Parameter phaseCreated = floor.get_Parameter(BuiltInParameter.PHASE_CREATED);
                 if (phaseCreated != null)
                 {
-                    floorObj.strBuildingName = phaseCreated.AsString();
+                    floorObj.strBuildingName = phaseCreated.AsValueString();
                 }
 
                 //Add the line to the collection 
@@ -51,8 +51,7 @@ namespace Revit_Automation.Source.Utils
 
 
         /// <summary>
-        /// Adds Input line to the collection
-        /// </summary>
+        /// Adds Input line to the 
         /// <param name="inputLine"> The Input Line to be added </param>
         /// <returns>True if the line is added to the collection </returns>
         public static bool AddFloor(FloorObject floor)

@@ -24,6 +24,7 @@ using Revit_Automation.CustomTypes;
 using Revit_Automation.Source.ModelCreators;
 using System.Collections.ObjectModel;
 using Revit_Automation.Source.Utils;
+using Autodesk.Revit.UI.Selection;
 
 namespace Revit_Automation
 {
@@ -37,7 +38,7 @@ namespace Revit_Automation
         /// </summary>
         /// <param name="uiapp"> Application pointer</param>
         /// <param name="form">Address of the overlaying dialog when model creation is in progress </param>
-        static public void CreateModel(UIApplication uiapp, Form1 form)
+        static public void CreateModel(UIApplication uiapp, Form1 form, bool bSelected = false)
         {
 
             form.Show();
@@ -48,37 +49,40 @@ namespace Revit_Automation
             UIDocument uidoc = uiapp.ActiveUIDocument;
             Autodesk.Revit.ApplicationServices.Application app = uiapp.Application;
             Document doc = uidoc.Document;
+            Selection selection = uidoc.Selection;
 
+            // Clear out all the static vectors
+            ClearStatics();
+
+            // 1. Identify the roof slopes
             RoofUtility.computeRoofSlopes(doc);
 
-            // 1. Identify the main Grids in the model
+            // 2. Identify the main Grids in the model
             GridCollector gridCollection = new GridCollector(doc);
 
-            // 1.1 Validate if the grids are equidistant
+            // 3. Validate if the grids are equidistant
             if(gridCollection.Validate())
             {
                 MessageBox.Show("Grid Validation Failed");
                 return;
             }
 
-            // 2. Find the levels in the project
+            // 4. Find the levels in the project
             IOrderedEnumerable<Level> levels = FindAndSortLevels(doc);
 
-
-            // 2. Find the levels in the project
+            // 5. Find the levels in the project
             IOrderedEnumerable<Floor> floors = FindAndSortFloors(doc);
 
-
-            // 3. Collect the necessary symbols
+            // 6. Collect the necessary symbols
             SymbolCollector.CollectColumnSymbols(doc);
 
-            // 4. Input Lines to be collected
-            InputLineUtility.GatherInputLines(doc);
+            // 7. Input Lines to be collected
+            InputLineUtility.GatherInputLines(doc, bSelected, selection);
 
-            // 5. Input Lines to be collected
+            // 8. Input Lines to be collected
             FloorHelper.GatherFloors(doc);
 
-            // 6. Place Columns
+            // 9. Place Columns
             ColumnCreator columnCreator = new ColumnCreator(doc, form);
             columnCreator.CreateModel(InputLineUtility.colInputLines, levels);
 
@@ -107,6 +111,15 @@ namespace Revit_Automation
                             .OrderBy(e => e.LevelId);
         }
 
-
+        internal static void ClearStatics()
+        {
+            RoofUtility.colRoofs?.Clear();       
+            GridCollector.mVerticalMainLines?.Clear();
+            GridCollector.mHorizontalMainLines?.Clear();
+            GridCollector.mHorizontalMainLines?.Clear();
+            GridCollector.mVerticalMainLines?.Clear();
+            InputLineUtility.colInputLines?.Clear();
+            FloorHelper.colFloors?.Clear();
+        }
     }
 }

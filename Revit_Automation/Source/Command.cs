@@ -56,4 +56,28 @@ namespace Revit_Automation
             return Result.Succeeded;
         }
     }
+
+    [Transaction(TransactionMode.Manual)]
+    public class Command2 : IExternalCommand
+    {
+        public Result Execute(
+          ExternalCommandData commandData,
+          ref string message,
+          ElementSet elements)
+        {
+            //TaskDialog.Show("Automation Toolkit", "Placing Columns"); // Can be used to show custom messages
+
+            UIApplication uiapp = commandData.Application;
+
+            Form1 form = new Form1();
+            form.StartPosition = FormStartPosition.CenterScreen;
+            //form.TopMost= true;
+            form.ShowDialog();
+
+            if (form.CanCreateModel)
+                ModelCreator.CreateModel(uiapp, form, true);
+
+            return Result.Succeeded;
+        }
+    }
 }

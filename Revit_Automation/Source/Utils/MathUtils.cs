@@ -68,5 +68,25 @@ namespace Revit_Automation.Source
 
             return (reference >= Low && reference <= high);
         }
+
+        public static string CompareVectors(XYZ vector1, XYZ vector2)
+        {
+            // Calculate the dot product of the two vectors
+            double dotProduct = vector1.DotProduct(vector2);
+
+            // Compare the dot product to determine if vectors are parallel or anti-parallel
+            if (Math.Abs(dotProduct - 1) < 1e-6)
+            {
+                return "Parallel";
+            }
+            else if (Math.Abs(dotProduct + 1) < 1e-6)
+            {
+                return "Anti-parallel";
+            }
+            else
+            {
+                return "Not parallel or anti-parallel";
+            }
+        }
     }
 }
