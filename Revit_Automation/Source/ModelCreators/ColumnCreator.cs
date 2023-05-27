@@ -15,6 +15,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static Autodesk.Revit.DB.SpecTypeId;
 using static Revit_Automation.Source.Utils.WarningSwallowers;
 
 namespace Revit_Automation.Source.ModelCreators
@@ -163,12 +164,14 @@ namespace Revit_Automation.Source.ModelCreators
                             tx.Commit();
                         }
 
+                        double dFlangeWidth = FlangeWidth(inputLine.strStudType);
+
                         UpdateOrientation(startColumnID, startColumnOrientation, pt1, pt2, true);
-                        XYZ Adjustedpt1 = AdjustLinePoint(pt1, pt2, lineType, 0.208333 / 2);
+                        XYZ Adjustedpt1 = AdjustLinePoint(pt1, pt2, lineType, dFlangeWidth / 2);
                         MoveColumn(startColumnID, Adjustedpt1);
 
                         UpdateOrientation(EndColumnID, endColumnOrientation, pt2, pt1, true);
-                        XYZ Adjustedpt2 = AdjustLinePoint(pt2, pt1, lineType, 0.208333 / 2);
+                        XYZ Adjustedpt2 = AdjustLinePoint(pt2, pt1, lineType, dFlangeWidth / 2);
                         MoveColumn(EndColumnID, Adjustedpt2);
 
                         
@@ -369,12 +372,14 @@ namespace Revit_Automation.Source.ModelCreators
                     tx.Commit();
                 }
 
+                double dFlangeWidth = FlangeWidth(inputLine.strStudType);
+
                 UpdateOrientation(startColumnID, startColumnOrientation, pt1, pt2, true);
-                XYZ Adjustedpt1 = AdjustLinePoint(pt1, pt2, lineType, 0.208333/2);
+                XYZ Adjustedpt1 = AdjustLinePoint(pt1, pt2, lineType, dFlangeWidth/2);
                 MoveColumn(startColumnID, Adjustedpt1);
 
                 UpdateOrientation(EndColumnID, endColumnOrientation, pt2, pt1, true);
-                XYZ Adjustedpt2 = AdjustLinePoint(pt2, pt1, lineType, 0.208333/2);
+                XYZ Adjustedpt2 = AdjustLinePoint(pt2, pt1, lineType, dFlangeWidth / 2);
                 MoveColumn(EndColumnID, Adjustedpt2);
 
                 XYZ studPoint = null, studEndPoint = null;
@@ -766,6 +771,34 @@ namespace Revit_Automation.Source.ModelCreators
 
                 tx.Commit();
             }
+        }
+
+        private double FlangeWidth(string strColumnName)
+        {
+            double width = 0;
+            string token = "x";
+            string[] result = strColumnName.Split(new string[] { token }, StringSplitOptions.None);
+
+            if (result[1].Contains(" 1\""))
+                return 0.083333;
+
+            else if (result[1].Contains("1 1/2\""))
+                return 0.125;
+
+            else if (result[1].Contains(" 2\""))
+                return 0.166666;
+            
+            else if (result[1].Contains("2 1/2\""))
+                return 0.208333;
+            
+            else if (result[1].Contains(" 3\""))
+                return 0.25;
+            
+            else if (result[1].Contains("3 1/2\""))
+                return 0.291666;
+
+            return width;
+               
         }
     }
 }
