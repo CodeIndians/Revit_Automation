@@ -71,8 +71,11 @@ namespace Revit_Automation.Source
 
         public static string CompareVectors(XYZ vector1, XYZ vector2)
         {
+            XYZ vectorA = vector1.Normalize();
+            XYZ vectorB = vector2.Normalize();
+
             // Calculate the dot product of the two vectors
-            double dotProduct = vector1.DotProduct(vector2);
+            double dotProduct = vectorA.DotProduct(vectorB);
 
             // Compare the dot product to determine if vectors are parallel or anti-parallel
             if (Math.Abs(dotProduct - 1) < 1e-6)
@@ -81,11 +84,34 @@ namespace Revit_Automation.Source
             }
             else if (Math.Abs(dotProduct + 1) < 1e-6)
             {
-                return "Anti-parallel";
+                return "Anti-Parallel";
             }
             else
             {
                 return "Not parallel or anti-parallel";
+            }
+        }
+
+        public static bool IsParallel(XYZ vector1, XYZ vector2)
+        {
+            XYZ vectorA = vector1.Normalize();
+            XYZ vectorB = vector2.Normalize();
+
+            // Calculate the dot product of the two vectors
+            double dotProduct = vectorA.DotProduct(vectorB);
+
+            // Compare the dot product to determine if vectors are parallel or anti-parallel
+            if (Math.Abs(dotProduct - 1) < 1e-6)
+            {
+                return true;
+            }
+            else if (Math.Abs(dotProduct + 1) < 1e-6)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
             }
         }
     }

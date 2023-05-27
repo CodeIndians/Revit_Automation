@@ -154,6 +154,11 @@ namespace Revit_Automation.Source
                     iLine.dOnCenter = StudOnCenterParam.AsDouble();
                 }
 
+                Parameter DoubleStudParam = locCurve.LookupParameter("Double Stud");
+                if (DoubleStudParam != null)
+                {
+                    iLine.strDoubleStudType = DoubleStudParam.AsString();
+                }
                 // Compute Intersection Points with Grids. 
                 GridCollector GridCollectionHelper = new GridCollector(doc);
 

@@ -39,6 +39,10 @@ namespace Revit_Automation.Source.ModelCreators
         {
             foreach (InputLine inputLine in inputLinesCollection)
             {
+                if (!string.IsNullOrEmpty(inputLine.strDoubleStudType))
+                {
+                    ProcessDoubleStud(inputLine, levels);
+                }
                 if (!string.IsNullOrEmpty(inputLine.strT62Guage) && !string.IsNullOrEmpty(inputLine.strStudGuage))
                 {
                     ProcessT62AndStudLine(inputLine, levels);
@@ -151,15 +155,29 @@ namespace Revit_Automation.Source.ModelCreators
 
                 XYZ studPoint = null, studEndPoint = null;
 
-                // 4. Place columns in the Model
+                // For placing On Center's This is the Logic
+                // First Check if the line is vertical or Horizontal,
+                // Get the Horizontal Grids[0] / Vertical Grids [0] 
+                // Assumption is from which ever grid we take, the On-Center points will be same
+
                 if (lineType == LineType.vertical)
-                {
-                    studPoint = pt1.Y < pt2.Y ? pt1 : pt2;
+                {   
+                    XYZ referencePoint = pt1.Y < pt2.Y ? pt1 : pt2;
+                    studPoint = new XYZ( referencePoint.X, GridCollector.mHorizontalMainLines[0].Item1.Y, GridCollector.mHorizontalMainLines[0].Item1.Z) ;
+                    while ((studPoint.Y  + inputLine.dOnCenter ) < referencePoint.Y )
+                    {
+                        studPoint = new XYZ(studPoint.X , studPoint.Y + inputLine.dOnCenter, referencePoint.Z); 
+                    }
                     studEndPoint = pt1.Y > pt2.Y ? pt1 : pt2;
                 }
                 else
                 {
-                    studPoint = pt1.X < pt2.X ? pt1 : pt2;
+                    XYZ referencePoint = pt1.X < pt2.X ? pt1 : pt2;
+                    studPoint =  new XYZ( GridCollector.mVerticalMainLines[0].Item1.X, referencePoint.Y, GridCollector.mHorizontalMainLines[0].Item1.Z);
+                    while ((studPoint.X + inputLine.dOnCenter) < referencePoint.X)
+                    {
+                        studPoint = new XYZ(referencePoint.X + inputLine.dOnCenter, studPoint.Y , referencePoint.Z);
+                    }
                     studEndPoint = pt1.X > pt2.X ? pt1 : pt2;
                 }
 
@@ -279,11 +297,53 @@ namespace Revit_Automation.Source.ModelCreators
                 }
                 else
                 {
-                    // The web outward Normal should be along the slope for studs On Center.  
+                    XYZ SlopeDirection = GetRoofSlopeDirection(pt1);
+                    
+                    // The web outward normal should be in a direction of slope
+                    if (MathUtils.IsParallel(SlopeDirection, newOrientation))
+                    {
+                        if (MathUtils.CompareVectors(SlopeDirection, newOrientation) == "Anti-Parallel")
+                        {
+                            ElementTransformUtils.RotateElement(m_Document, columnID, axis, Math.PI);
+                        }
+                    }
                 }
                 tx.Commit();
             }
 
+        }
+
+        private XYZ GetRoofSlopeDirection(XYZ pt1)
+        {
+            XYZ SlopeDirect = null;
+
+            RoofObject targetRoof;
+            targetRoof.slopeLine = null;
+
+            foreach (RoofObject roof in RoofUtility.colRoofs)
+            {
+                double Xmin, Xmax, Ymin, Ymax = 0.0;
+                Xmin = Math.Min(roof.max.X, roof.min.X);
+                Xmax = Math.Max(roof.max.X, roof.min.X);
+                Ymin = Math.Min(roof.max.Y, roof.min.Y);
+                Ymax = Math.Max(roof.max.Y, roof.min.Y);
+
+                if (pt1.X > Xmin && pt1.X < Xmax && pt1.Y > Ymin && pt1.Y < Ymax)
+                {
+                    targetRoof = roof;
+                    break;
+                }
+            }
+
+            Curve SlopeCurve = targetRoof.slopeLine;
+            XYZ start = SlopeCurve.GetEndPoint(0);
+            XYZ end = SlopeCurve.GetEndPoint(1);
+
+            XYZ slope = start.Z > end.Z ? (end - start) : (start - end);
+
+            SlopeDirect = new XYZ(slope.X, slope.Y, pt1.Z);
+
+            return SlopeDirect;
         }
 
         /// <summary>
