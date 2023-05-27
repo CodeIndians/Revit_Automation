@@ -1,5 +1,6 @@
 ﻿using Autodesk.Revit.Creation;
 using Autodesk.Revit.DB;
+using Autodesk.Revit.DB.Mechanical;
 using Autodesk.Revit.DB.Structure;
 using Autodesk.Revit.UI;
 using Revit_Automation.CustomTypes;
@@ -14,6 +15,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static Revit_Automation.Source.Utils.WarningSwallowers;
 
 namespace Revit_Automation.Source.ModelCreators
 {
@@ -43,7 +45,7 @@ namespace Revit_Automation.Source.ModelCreators
                 {
                     ProcessDoubleStud(inputLine, levels);
                 }
-                if (!string.IsNullOrEmpty(inputLine.strT62Guage) && !string.IsNullOrEmpty(inputLine.strStudGuage))
+                else if (!string.IsNullOrEmpty(inputLine.strT62Guage) && !string.IsNullOrEmpty(inputLine.strStudGuage))
                 {
                     ProcessT62AndStudLine(inputLine, levels);
                 }
@@ -56,6 +58,226 @@ namespace Revit_Automation.Source.ModelCreators
                     ProcessStudInputLine(inputLine, levels);
                 }
             }
+        }
+
+        private void ProcessDoubleStud(InputLine inputLine, IOrderedEnumerable<Level> levels)
+        {
+            try
+            {
+                // To-Do : This is repeated Code - Chances of moving to separate Method
+                XYZ pt1 = inputLine.locationCurve.Curve.GetEndPoint(0);
+                XYZ pt2 = inputLine.locationCurve.Curve.GetEndPoint(1);
+
+                ElementId startColumnID, EndColumnID;
+                XYZ startColumnOrientation, endColumnOrientation;
+
+                LineType lineType = LineType.vertical;
+
+                if (MathUtils.ApproximatelyEqual(pt1.Y, pt2.Y))
+                    lineType = LineType.horizontal;
+
+                //compute levels
+                Level toplevel = null, baseLevel = null;
+
+                string strBuildingName = "Building " + inputLine.strBuildingName;
+                // Filter levels based on buldings to use
+                List<Level> filteredLevels = new List<Level>();
+                foreach (Level filteredlevel in levels)
+                {
+                    if (filteredlevel.Name.Contains(strBuildingName))
+                        filteredLevels.Add(filteredlevel);
+                }
+
+                for (int i = 0; i < filteredLevels.Count() - 1; i++)
+                {
+                    Level tempLevel = filteredLevels.ElementAt(i);
+
+                    if ((pt2.Z < (tempLevel.Elevation + 1)) && (pt2.Z > (tempLevel.Elevation - 1)))
+                    {
+
+                        baseLevel = tempLevel;
+                        toplevel = filteredLevels.ElementAt(i + 1);
+
+                        break;
+                    }
+                }
+
+                // Compute the top Attachment Object
+                Element topAttachElement = GetNearestFloor(toplevel);
+
+                inputLine.strStudType = inputLine.strStudType.ToString() + string.Format(" x {0}ga", inputLine.strStudGuage);
+
+                FamilySymbol columnType = SymbolCollector.GetSymbol(inputLine.strStudType, "Post");
+
+
+                // We have 3 types of Double Stud Conditions. 
+                // 1 - At Ends - Place Double Stud at Start and End
+                // 2 - At Grid - Intersection of the Input Line and Grids
+                // 3 - Continuous - At given On Center
+                // In a Double stud the Main Stud should Exend below floor by 3 feet, the secondary studs should flush at the floor
+
+                if (inputLine.strDoubleStudType == "At Ends")
+                {
+                    for (int i = 0; i < 2; i++)
+                    {
+
+                        // Start a new Tranasaction
+                        using (Transaction tx = new Transaction(m_Document))
+                        {
+
+                            SupressWarningsInTransaction(tx);
+
+                            tx.Start("Place Column");
+
+                            CheckForExistingColumns(pt1);
+
+                            //Place Column at start
+                            FamilyInstance startcolumn = m_Document.Create.NewFamilyInstance(pt1, columnType, baseLevel, StructuralType.Column);
+                            startcolumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(toplevel.Id);
+                            startcolumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM).Set(0);
+
+                            if (topAttachElement != null)
+                                ColumnAttachment.AddColumnAttachment(m_Document, startcolumn, topAttachElement, 1, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Minimum, 0);
+
+                            m_Form.PostMessage(string.Format("Placing Post  {3} at {0} , {1} , {2} \n \n ", pt1.X, pt1.Y, pt1.Z,  inputLine.strStudType));
+                            startColumnID = startcolumn.Id;
+                            startColumnOrientation = startcolumn.FacingOrientation;
+
+                            // Place column at end
+                            FamilyInstance endColumn = m_Document.Create.NewFamilyInstance(pt2, columnType, baseLevel, StructuralType.Column);
+                            endColumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(toplevel.Id);
+                            endColumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM).Set(0);
+
+                            if (topAttachElement != null)
+                                ColumnAttachment.AddColumnAttachment(m_Document, endColumn, topAttachElement, 1, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Minimum, 0);
+
+                            m_Form.PostMessage(string.Format("Placing Post  {3} at {0} , {1} , {2} \n \n ", pt2.X, pt2.Y, pt2.Z, inputLine.strStudType));
+                            EndColumnID = endColumn.Id;
+                            endColumnOrientation = endColumn.FacingOrientation;
+
+
+                            XYZ referencePoint = null;
+                            if (inputLine.mainGridIntersectionPoints?.Count > 0)
+                                referencePoint = inputLine.mainGridIntersectionPoints[0];
+
+                            tx.Commit();
+                        }
+
+                        UpdateOrientation(startColumnID, startColumnOrientation, pt1, pt2, true);
+                        XYZ Adjustedpt1 = AdjustLinePoint(pt1, pt2, lineType, 0.208333 / 2);
+                        MoveColumn(startColumnID, Adjustedpt1);
+
+                        UpdateOrientation(EndColumnID, endColumnOrientation, pt2, pt1, true);
+                        XYZ Adjustedpt2 = AdjustLinePoint(pt2, pt1, lineType, 0.208333 / 2);
+                        MoveColumn(EndColumnID, Adjustedpt2);
+
+                        
+                        if (i != 0 )
+                        {
+                            RotateColumn(startColumnID, pt1, pt2, Math.PI);
+                            RotateColumn(EndColumnID, pt2, pt1, Math.PI);
+                        }
+                    }
+                }
+                else if (inputLine.strDoubleStudType == "Grid")
+                { 
+
+                }
+                else if (inputLine.strDoubleStudType == "Continuous")
+                {
+                    XYZ studPoint = null, studEndPoint = null;
+
+                    // For placing On Center's This is the Logic
+                    // First Check if the line is vertical or Horizontal,
+                    // Get the Horizontal Grids[0] / Vertical Grids [0] 
+                    // Assumption is from which ever grid we take, the On-Center points will be same
+
+                    if (lineType == LineType.vertical)
+                    {
+                        XYZ referencePoint = pt1.Y < pt2.Y ? pt1 : pt2;
+                        studPoint = new XYZ(referencePoint.X, GridCollector.mHorizontalMainLines[0].Item1.Y, GridCollector.mHorizontalMainLines[0].Item1.Z);
+                        while ((studPoint.Y + inputLine.dOnCenter) < referencePoint.Y)
+                        {
+                            studPoint = new XYZ(studPoint.X, studPoint.Y + inputLine.dOnCenter, referencePoint.Z);
+                        }
+                        studEndPoint = pt1.Y > pt2.Y ? pt1 : pt2;
+                    }
+                    else
+                    {
+                        XYZ referencePoint = pt1.X < pt2.X ? pt1 : pt2;
+                        studPoint = new XYZ(GridCollector.mVerticalMainLines[0].Item1.X, referencePoint.Y, GridCollector.mHorizontalMainLines[0].Item1.Z);
+                        while ((studPoint.X + inputLine.dOnCenter) < referencePoint.X)
+                        {
+                            studPoint = new XYZ(referencePoint.X + inputLine.dOnCenter, studPoint.Y, referencePoint.Z);
+                        }
+                        studEndPoint = pt1.X > pt2.X ? pt1 : pt2;
+                    }
+
+                    XYZ tempXVector = new XYZ(inputLine.dFlangeOfset, 0, 0);
+                    XYZ tempYVector = new XYZ(0, inputLine.dFlangeOfset, 0);
+
+                    bool bCanCreateColumn = true;
+                    while (bCanCreateColumn)
+                    {
+                        ElementId StudColumnID;
+                        XYZ StudColumnOrientation;
+
+                        if (lineType == LineType.vertical)
+                            studPoint = studPoint + tempYVector;
+                        else
+                            studPoint = studPoint + tempXVector;
+
+                        if ((lineType == LineType.vertical && studPoint.Y < (studEndPoint.Y - 1.0)) || (lineType == LineType.horizontal && studPoint.X < (studEndPoint.X - 1.0)))
+                        {
+                            using (Transaction tx = new Transaction(m_Document))
+                            {
+                                SupressWarningsInTransaction(tx);
+
+                                tx.Start("Placing posts");
+                                FamilyInstance studColumn = m_Document.Create.NewFamilyInstance(studPoint, columnType, baseLevel, StructuralType.Column);
+                                studColumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(toplevel.Id);
+                                studColumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM).Set(0);
+
+                                if (topAttachElement != null)
+                                    ColumnAttachment.AddColumnAttachment(m_Document, studColumn, topAttachElement, 1, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Minimum, 0);
+
+                                m_Form.PostMessage(string.Format("Placing Post  {3} at {0} , {1} , {2} \n \n ", studPoint.X, studPoint.Y, studPoint.Z, inputLine.strStudType));
+                                StudColumnID = studColumn.Id;
+                                StudColumnOrientation = studColumn.FacingOrientation;
+                                tx.Commit();
+                            }
+
+                            UpdateOrientation(StudColumnID, StudColumnOrientation, studPoint, pt2);
+                        }
+                        else
+                            bCanCreateColumn = false;
+
+                    }
+                }
+            }
+
+            catch (Exception)
+            {
+
+            }
+        }
+
+        private void SupressWarningsInTransaction(Transaction tx)
+        {
+            FailureHandlingOptions failureHandlingOptions =
+                                tx.GetFailureHandlingOptions();
+
+            DuplicateColumnWarningSwallower duplicateColumnWarningSwallower =
+              new DuplicateColumnWarningSwallower();
+
+            failureHandlingOptions.SetFailuresPreprocessor(
+              duplicateColumnWarningSwallower);
+
+            failureHandlingOptions.SetClearAfterRollback(
+              true);
+
+            tx.SetFailureHandlingOptions(
+              failureHandlingOptions);
         }
 
         private void ProcessStudInputLine(InputLine inputLine, IOrderedEnumerable<Level> levels)
@@ -109,6 +331,8 @@ namespace Revit_Automation.Source.ModelCreators
 
                 using (Transaction tx = new Transaction(m_Document))
                 {
+                    SupressWarningsInTransaction(tx);
+
                     tx.Start("Place Column");
 
                     CheckForExistingColumns(pt1);
@@ -199,6 +423,8 @@ namespace Revit_Automation.Source.ModelCreators
                     {
                         using (Transaction tx = new Transaction(m_Document))
                         {
+                            SupressWarningsInTransaction(tx);
+
                             tx.Start("Placing posts");
                             FamilyInstance studColumn = m_Document.Create.NewFamilyInstance(studPoint, columnType, baseLevel, StructuralType.Column);
                             studColumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(toplevel.Id);
@@ -264,6 +490,8 @@ namespace Revit_Automation.Source.ModelCreators
 
             using (Transaction tx = new Transaction(m_Document))
             {
+                SupressWarningsInTransaction(tx);
+
                 tx.Start("Change Orientation");
 
                 double dAngle = 0;
@@ -281,6 +509,8 @@ namespace Revit_Automation.Source.ModelCreators
 
             using (Transaction tx = new Transaction(m_Document))
             {
+                SupressWarningsInTransaction(tx);
+
                 tx.Start("Change Orientation2");
 
                 // Compute the orientation after rotation. 
@@ -311,6 +541,26 @@ namespace Revit_Automation.Source.ModelCreators
                 tx.Commit();
             }
 
+        }
+
+        private void RotateColumn(ElementId columnID, XYZ pt1, XYZ pt2, double dAngle)
+        {
+            XYZ point1 = new XYZ(pt1.X, pt1.Y, 0);
+            XYZ point2 = new XYZ(pt1.X, pt1.Y, 1);
+            Line axis = Line.CreateBound(point1, point2);
+
+            using (Transaction tx = new Transaction(m_Document))
+            {
+                SupressWarningsInTransaction(tx);
+
+                tx.Start("Change Orientation");
+
+                XYZ LineOrientation = pt2 - pt1;
+
+                ElementTransformUtils.RotateElement(m_Document, columnID, axis, dAngle);
+
+                tx.Commit();
+            }
         }
 
         private XYZ GetRoofSlopeDirection(XYZ pt1)
@@ -431,6 +681,8 @@ namespace Revit_Automation.Source.ModelCreators
 
                 using (Transaction tx = new Transaction(m_Document))
                 {
+                    SupressWarningsInTransaction(tx);
+
                     tx.Start("Place Column");
 
                     foreach (XYZ studPoint in inputLine.gridIntersectionPoints)
@@ -498,6 +750,8 @@ namespace Revit_Automation.Source.ModelCreators
 
             using (Transaction tx = new Transaction(m_Document))
             {
+                SupressWarningsInTransaction(tx);
+
                 tx.Start("Change Orientation");
                 
                 // Get the column's Location property

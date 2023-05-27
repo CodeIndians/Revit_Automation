@@ -89,6 +89,7 @@
     <Compile Include="Source\Utils\RoofUtility.cs" />
     <Compile Include="Source\Utils\SymbolCollector.cs" />
     <Compile Include="Source\Interfaces\ValidationInterface.cs" />
+    <Compile Include="Source\Utils\WarningSwallowers.cs" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\Revit.png" />
