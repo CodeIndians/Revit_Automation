@@ -159,6 +159,13 @@ namespace Revit_Automation.Source
                 {
                     iLine.strDoubleStudType = DoubleStudParam.AsString();
                 }
+
+                Parameter MaterialTypeParameter = locCurve.LookupParameter("Material Type");
+                if (MaterialTypeParameter != null)
+                {
+                    iLine.strMaterialType = MaterialTypeParameter.AsString();
+                }
+
                 // Compute Intersection Points with Grids. 
                 GridCollector GridCollectionHelper = new GridCollector(doc);
 

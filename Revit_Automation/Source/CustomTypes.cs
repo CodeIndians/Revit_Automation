@@ -28,6 +28,7 @@ namespace Revit_Automation.CustomTypes
         public string strBottomTrackSize;
         public string strBuildingName;
         public string strDoubleStudType;
+        public string strMaterialType;
         public double dFlangeOfset;
         public double dOnCenter;
 
