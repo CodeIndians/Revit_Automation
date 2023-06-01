@@ -74,6 +74,7 @@
     <Compile Include="Source\CustomTypes.cs" />
     <Compile Include="Source\ModelCreators\ColumnCreator.cs" />
     <Compile Include="Source\ModelCreators\T62Valiations.cs" />
+    <Compile Include="Source\Utils\ErrorHandler.cs" />
     <Compile Include="Source\Utils\FloorHelper.cs" />
     <Compile Include="Source\Utils\GridCollector.cs" />
     <Compile Include="Source\Utils\InputLineUtility.cs" />

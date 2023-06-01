@@ -38,7 +38,7 @@ namespace Revit_Automation
         /// </summary>
         /// <param name="uiapp"> Application pointer</param>
         /// <param name="form">Address of the overlaying dialog when model creation is in progress </param>
-        static public void CreateModel(UIApplication uiapp, Form1 form, bool bSelected = false)
+        static public void CreateModel(UIApplication uiapp, Form1 form, bool bSelected = false, CommandCode commandCode = CommandCode.All)
         {
 
             form.Show();
@@ -54,8 +54,17 @@ namespace Revit_Automation
             // Clear out all the static vectors
             ClearStatics();
 
-            // 1. Identify the roof slopes
-            RoofUtility.computeRoofSlopes(doc);
+            IOrderedEnumerable<Level> levels = null;
+
+            try
+            {
+                // 1. Identify the roof slopes
+                RoofUtility.computeRoofSlopes(doc);
+            }
+            catch(Exception ex) 
+            {
+                TaskDialog.Show("Automation Error", "Failed while processing the roofs");
+            }
 
             // 2. Identify the main Grids in the model
             GridCollector gridCollection = new GridCollector(doc);
@@ -63,25 +72,51 @@ namespace Revit_Automation
             // 3. Validate if the grids are equidistant
             if(gridCollection.Validate())
             {
-                MessageBox.Show("Grid Validation Failed");
+                TaskDialog.Show("Automation Error" , "Grid Validation Failed");
                 return;
             }
 
-            // 4. Find the levels in the project
-            IOrderedEnumerable<Level> levels = FindAndSortLevels(doc);
+            try
+            {
+                // 4. Find the levels in the project
+                levels = FindAndSortLevels(doc);
+            }
+            catch(Exception ex) 
+            {
+                TaskDialog.Show("Automation Error", "Failed while processing the Levels");
+            }
 
-            // 5. Find the levels in the project
-            IOrderedEnumerable<Floor> floors = FindAndSortFloors(doc);
+            try
+            {
+                // 5. Find the levels in the project
+                IOrderedEnumerable<Floor> floors = FindAndSortFloors(doc);
+            }
+            catch (Exception e)
+            {
+                TaskDialog.Show("Automation Error", "Failed while processing the Floors");
+            }
 
-            // 6. Collect the necessary symbols
-            SymbolCollector.CollectColumnSymbols(doc);
-
+            try
+            {
+                // 6. Collect the necessary symbols
+                SymbolCollector.CollectColumnSymbols(doc);
+            }
+            catch(Exception e) 
+            {
+                TaskDialog.Show("Automation Error", "Failed while processing the Symbols");
+            }
             // 7. Input Lines to be collected
-            InputLineUtility.GatherInputLines(doc, bSelected, selection);
+            InputLineUtility.GatherInputLines(doc, bSelected, selection, commandCode);
 
             // 8. Input Lines to be collected
-            FloorHelper.GatherFloors(doc);
-
+            try
+            {
+                FloorHelper.GatherFloors(doc);
+            }
+            catch (Exception e)
+            {
+                TaskDialog.Show("Automation Error", "Failed while processing the Levels");
+            }
             // 9. Place Columns
             ColumnCreator columnCreator = new ColumnCreator(doc, form);
             columnCreator.CreateModel(InputLineUtility.colInputLines, levels);
@@ -106,7 +141,7 @@ namespace Revit_Automation
         {
             return new FilteredElementCollector(doc)
                 .WhereElementIsNotElementType()
-                .OfCategory(BuiltInCategory.OST_GenericModel)
+                .OfCategory(BuiltInCategory.OST_Floors)
                             .Cast<Floor>()
                             .OrderBy(e => e.LevelId);
         }

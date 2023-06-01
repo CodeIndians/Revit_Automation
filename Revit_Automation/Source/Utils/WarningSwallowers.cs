@@ -23,7 +23,7 @@ namespace Revit_Automation.Source.Utils
                     FailureDefinitionId failID = failure.GetFailureDefinitionId();
                     
                     // prevent Revit from showing Unenclosed room warnings
-                    if (failID == BuiltInFailures.OverlapFailures.DuplicateInstances)
+                    if (failID == BuiltInFailures.OverlapFailures.DuplicateInstances || failID == BuiltInFailures.ColumnFailures.ColumnJoinNonhitFailure)
                     {
                         failuresAccessor.DeleteWarning(failure);
                     }

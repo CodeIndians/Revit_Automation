@@ -16,7 +16,8 @@ namespace Revit_Automation.CustomTypes
     {
         public LocationCurve locationCurve;
         public XYZ startpoint;
-        public XYZ endpoint;    
+        public XYZ endpoint;
+        public ElementId id;
         public string strT62Guage;
         public string strT62Type;
         public string strStudGuage;
@@ -31,7 +32,7 @@ namespace Revit_Automation.CustomTypes
         public string strMaterialType;
         public double dFlangeOfset;
         public double dOnCenter;
-
+        public DirectionWithRespectToRoofSlope dirWRTRoofSlope;
         public List<XYZ> gridIntersectionPoints;
         public List<XYZ> mainGridIntersectionPoints;
     }
@@ -49,6 +50,12 @@ namespace Revit_Automation.CustomTypes
         public XYZ max;
         public Curve slopeLine;
         public string strBuildingName;
+    }
+
+    public enum DirectionWithRespectToRoofSlope
+    {
+        Parallel = 0, 
+        Perpendicular
     }
 }
 

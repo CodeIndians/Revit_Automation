@@ -27,10 +27,18 @@ using System.IO;
 
 namespace Revit_Automation
 {
-    enum LineType
+    public enum LineType
     {
         Horizontal = 0,
         vertical
+    }
+    public enum CommandCode
+    {
+        All = 0,
+        ExteriorParallel = 1,
+        ExteriorPerpendicular = 2,
+        InteriorParallel = 3,
+        InteriorPerpendicular    
     }
 
     [Transaction(TransactionMode.Manual)]
@@ -51,7 +59,7 @@ namespace Revit_Automation
             form.ShowDialog();
 
             if (form.CanCreateModel)
-                ModelCreator.CreateModel(uiapp, form);
+                ModelCreator.CreateModel(uiapp, form, false, CommandCode.All);
 
             return Result.Succeeded;
         }
@@ -80,4 +88,101 @@ namespace Revit_Automation
             return Result.Succeeded;
         }
     }
+
+    [Transaction(TransactionMode.Manual)]
+    public class Command3 : IExternalCommand
+    {
+        public Result Execute(
+          ExternalCommandData commandData,
+          ref string message,
+          ElementSet elements)
+        {
+            //TaskDialog.Show("Automation Toolkit", "Placing Columns"); // Can be used to show custom messages
+
+            UIApplication uiapp = commandData.Application;
+
+            Form1 form = new Form1();
+            form.StartPosition = FormStartPosition.CenterScreen;
+            //form.TopMost= true;
+            form.ShowDialog();
+
+            if (form.CanCreateModel)
+                ModelCreator.CreateModel(uiapp, form, false, CommandCode.ExteriorParallel);
+
+            return Result.Succeeded;
+        }
+    }
+
+    [Transaction(TransactionMode.Manual)]
+    public class Command4 : IExternalCommand
+    {
+        public Result Execute(
+          ExternalCommandData commandData,
+          ref string message,
+          ElementSet elements)
+        {
+            //TaskDialog.Show("Automation Toolkit", "Placing Columns"); // Can be used to show custom messages
+
+            UIApplication uiapp = commandData.Application;
+
+            Form1 form = new Form1();
+            form.StartPosition = FormStartPosition.CenterScreen;
+            //form.TopMost= true;
+            form.ShowDialog();
+
+            if (form.CanCreateModel)
+                ModelCreator.CreateModel(uiapp, form, false, CommandCode.ExteriorPerpendicular);
+
+            return Result.Succeeded;
+        }
+    }
+
+    [Transaction(TransactionMode.Manual)]
+    public class Command5 : IExternalCommand
+    {
+        public Result Execute(
+          ExternalCommandData commandData,
+          ref string message,
+          ElementSet elements)
+        {
+            //TaskDialog.Show("Automation Toolkit", "Placing Columns"); // Can be used to show custom messages
+
+            UIApplication uiapp = commandData.Application;
+
+            Form1 form = new Form1();
+            form.StartPosition = FormStartPosition.CenterScreen;
+            //form.TopMost= true;
+            form.ShowDialog();
+
+            if (form.CanCreateModel)
+                ModelCreator.CreateModel(uiapp, form, false, CommandCode.InteriorParallel);
+
+            return Result.Succeeded;
+        }
+    }
+
+    [Transaction(TransactionMode.Manual)]
+    public class Command6 : IExternalCommand
+    {
+        public Result Execute(
+          ExternalCommandData commandData,
+          ref string message,
+          ElementSet elements)
+        {
+            //TaskDialog.Show("Automation Toolkit", "Placing Columns"); // Can be used to show custom messages
+
+            UIApplication uiapp = commandData.Application;
+
+            Form1 form = new Form1();
+            form.StartPosition = FormStartPosition.CenterScreen;
+            //form.TopMost= true;
+            form.ShowDialog();
+
+            if (form.CanCreateModel)
+                ModelCreator.CreateModel(uiapp, form, false, CommandCode.InteriorPerpendicular);
+
+            return Result.Succeeded;
+        }
+    }
+
 }

@@ -16,6 +16,7 @@ using System.Windows;
 using Revit_Automation.CustomTypes;
 using System.Windows.Media.Animation;
 using Autodesk.Revit.UI.Selection;
+using Revit_Automation.Source.Utils;
 
 namespace Revit_Automation.Source
 {
@@ -33,7 +34,7 @@ namespace Revit_Automation.Source
         /// This function is used to collect all input lines in the model
         /// </summary>
         /// <param name="doc"> Pointer to the Active document</param>
-        public static void GatherInputLines(Document doc, bool bSelected, Selection selection)
+        public static void GatherInputLines(Document doc, bool bSelected, Selection selection, CommandCode commandcode)
         {
             if (colInputLines != null)
                 colInputLines.Clear();
@@ -81,6 +82,7 @@ namespace Revit_Automation.Source
                 iLine.startpoint = iLine.locationCurve.Curve.GetEndPoint(0);
                 iLine.endpoint = iLine.locationCurve.Curve.GetEndPoint(1);
 
+                iLine.id = locCurve.Id;
 
                 Parameter studGuageParam = locCurve.LookupParameter("Stud Gauge");
                 if (studGuageParam != null)
@@ -171,18 +173,58 @@ namespace Revit_Automation.Source
 
                 var locationCurve = (LocationCurve)locCurve.Location;
                 var linecoords = Tuple.Create(locationCurve.Curve.GetEndPoint(0), locationCurve.Curve.GetEndPoint(1));
-                
-                // Compute Grid Intersections for T62 Placement
-                iLine.gridIntersectionPoints = GridCollectionHelper.computeIntersectionPoints(linecoords);
+
+                // Compute if the Line is parallel, or perpendicular to roof slope.
+                XYZ lineDirection = locationCurve.Curve.GetEndPoint(1) - locationCurve.Curve.GetEndPoint(0);
+                XYZ roofSlope = GetRoofSlopeDirection(locationCurve.Curve.GetEndPoint(1));
+                if (MathUtils.IsParallel(roofSlope, lineDirection))
+                    iLine.dirWRTRoofSlope = DirectionWithRespectToRoofSlope.Parallel;
+                else
+                    iLine.dirWRTRoofSlope = DirectionWithRespectToRoofSlope.Perpendicular;
+
+                    // Compute Grid Intersections for T62 Placement
+                    iLine.gridIntersectionPoints = GridCollectionHelper.computeIntersectionPoints(linecoords);
 
                 // Compute Main intesection points for Stud placement offset
                 iLine.mainGridIntersectionPoints = GridCollectionHelper.computeIntersectionPoints(linecoords, true);
                 
                 //Add the line to the collection 
-                AddInputLine(iLine);
+                if (CheckIfPassesCondition(iLine, commandcode))
+                    AddInputLine(iLine);
             }
         }
 
+        public static bool CheckIfPassesCondition(InputLine iLine, CommandCode commandcode)
+        {
+            if (commandcode == CommandCode.All)
+                return true;
+            
+            if (iLine.strWallType == null)
+                return true;
+
+            else if (commandcode == CommandCode.ExteriorParallel)
+            {
+                return (iLine.strWallType.Contains("Ex") &&
+                    iLine.dirWRTRoofSlope == DirectionWithRespectToRoofSlope.Parallel);
+            }
+            else if (commandcode == CommandCode.ExteriorPerpendicular)
+            {
+                return (iLine.strWallType.Contains("Ex") &&
+                    iLine.dirWRTRoofSlope == DirectionWithRespectToRoofSlope.Perpendicular);
+            }
+            else if (commandcode == CommandCode.InteriorParallel)
+            {
+                return (!iLine.strWallType.Contains("Ex") &&
+                    iLine.dirWRTRoofSlope == DirectionWithRespectToRoofSlope.Parallel);
+            }
+            else if (commandcode == CommandCode.InteriorPerpendicular)
+            {
+                return (!iLine.strWallType.Contains("Ex") &&
+                    iLine.dirWRTRoofSlope == DirectionWithRespectToRoofSlope.Perpendicular);
+            }
+
+            return false;
+        }
 
         /// <summary>
         /// Adds Input line to the collection
@@ -193,6 +235,42 @@ namespace Revit_Automation.Source
         {
             colInputLines.Add(inputLine);
             return true;
+        }
+
+        public static XYZ GetRoofSlopeDirection(XYZ pt1)
+        {
+            XYZ SlopeDirect = null;
+
+            RoofObject targetRoof;
+            targetRoof.slopeLine = null;
+
+            foreach (RoofObject roof in RoofUtility.colRoofs)
+            {
+                double Xmin, Xmax, Ymin, Ymax = 0.0;
+                Xmin = Math.Min(roof.max.X, roof.min.X);
+                Xmax = Math.Max(roof.max.X, roof.min.X);
+                Ymin = Math.Min(roof.max.Y, roof.min.Y);
+                Ymax = Math.Max(roof.max.Y, roof.min.Y);
+
+                if (pt1.X > Xmin && pt1.X < Xmax && pt1.Y > Ymin && pt1.Y < Ymax)
+                {
+                    targetRoof = roof;
+                    break;
+                }
+            }
+
+            Curve SlopeCurve = targetRoof.slopeLine;
+
+            if (SlopeCurve != null)
+            {
+                XYZ start = SlopeCurve.GetEndPoint(0);
+                XYZ end = SlopeCurve.GetEndPoint(1);
+
+                XYZ slope = start.Z > end.Z ? (end - start) : (start - end);
+
+                SlopeDirect = new XYZ(slope.X, slope.Y, 0.0);
+            }
+            return SlopeDirect;
         }
     }
 }

@@ -94,6 +94,9 @@ namespace Revit_Automation.Source
 
         public static bool IsParallel(XYZ vector1, XYZ vector2)
         {
+            if (vector1 == null || vector2 == null)
+                return false;
+
             XYZ vectorA = vector1.Normalize();
             XYZ vectorB = vector2.Normalize();
 
