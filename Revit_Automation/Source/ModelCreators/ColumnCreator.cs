@@ -8,6 +8,7 @@ using Revit_Automation.Source.Utils;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Data.Common;
 using System.Drawing;
 using System.Linq;
 using System.Reflection.Emit;
@@ -546,6 +547,7 @@ namespace Revit_Automation.Source.ModelCreators
                 }
             }
 
+            
             Curve SlopeCurve = targetRoof.slopeLine;
             XYZ start = SlopeCurve.GetEndPoint(0);
             XYZ end = SlopeCurve.GetEndPoint(1);
@@ -641,15 +643,18 @@ namespace Revit_Automation.Source.ModelCreators
                 }
 
                 FamilySymbol columnType = SymbolCollector.GetSymbol(inputLine.strT62Type, "T62");
+                XYZ T62Orientation = null;
+                ElementId t62ElementId = null;
 
-                using (Transaction tx = new Transaction(m_Document))
+                foreach (XYZ studPoint in inputLine.gridIntersectionPoints)
                 {
-                    SupressWarningsInTransaction(tx);
-
-                    tx.Start("Place Column");
-
-                    foreach (XYZ studPoint in inputLine.gridIntersectionPoints)
+                    using (Transaction tx = new Transaction(m_Document))
                     {
+                        SupressWarningsInTransaction(tx);
+
+                        tx.Start("Place Column");
+
+
                         FamilyInstance column = m_Document.Create.NewFamilyInstance(studPoint, columnType, baseLevel, StructuralType.Column);
 
                         m_Form.PostMessage(string.Format("Placing T62  {3} at {0} , {1} , {2} \n \n ", studPoint.X, studPoint.Y, studPoint.Z, inputLine.strT62Type));
@@ -657,8 +662,14 @@ namespace Revit_Automation.Source.ModelCreators
                         column.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(toplevel.Id);
                         column.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM).Set(0);
 
+                        t62ElementId = column.Id;
+                        T62Orientation = column.FacingOrientation;
+
+                        tx.Commit();
+
                     }
-                    tx.Commit();
+
+                    UpdateOrientation(t62ElementId, T62Orientation, studPoint, pt2, false);
                 }
             }
             catch (Exception) { }
