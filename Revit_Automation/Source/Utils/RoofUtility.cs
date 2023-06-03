@@ -27,6 +27,7 @@ namespace Revit_Automation.Source.Utils
 
             foreach (RoofBase roof in roofs)
             {
+                ElementId roofId = roof.Id;
                 Parameter phaseCreated = roof.get_Parameter(BuiltInParameter.PHASE_CREATED);
                 string strBuldName = string.Empty;
                 if (phaseCreated != null)
@@ -127,6 +128,9 @@ namespace Revit_Automation.Source.Utils
                             roofObject.max = pt2;
                             roofObject.slopeLine = selectedCurve;
                             roofObject.strBuildingName = strBuldName;
+                            roofObject.roofElementID = roofId;
+
+
                             RoofUtility.colRoofs.Add(roofObject);
                         }
                     }

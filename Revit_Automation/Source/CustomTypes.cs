@@ -50,6 +50,7 @@ namespace Revit_Automation.CustomTypes
         public XYZ max;
         public Curve slopeLine;
         public string strBuildingName;
+        public ElementId roofElementID;
     }
 
     public enum DirectionWithRespectToRoofSlope

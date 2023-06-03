@@ -112,7 +112,7 @@ namespace Revit_Automation.Source.ModelCreators
                     }
                 }
                 // Compute the top Attachment Object
-                Element topAttachElement = GetNearestFloor(toplevel);
+                Element topAttachElement = GetNearestFloorOrRoof(toplevel);
 
                 inputLine.strStudType = inputLine.strStudType.ToString() + string.Format(" x {0}ga", inputLine.strStudGuage);
 
@@ -193,6 +193,11 @@ namespace Revit_Automation.Source.ModelCreators
                                 FamilyInstance studColumn = m_Document.Create.NewFamilyInstance(studPoint, columnType, baseLevel, StructuralType.Column);
                                 studColumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(toplevel.Id);
                                 studColumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM).Set(0);
+
+                                // If we coulfdn't find a floor, the input line is on top floor
+                                // Need to attach it to roof
+                                if (topAttachElement == null)
+                                    topAttachElement = GetRoofAtPoint(studPoint);
 
                                 if (topAttachElement != null)
                                     ColumnAttachment.AddColumnAttachment(m_Document, studColumn, topAttachElement, 1, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Minimum, 0);
@@ -283,7 +288,7 @@ namespace Revit_Automation.Source.ModelCreators
                 }
 
                 // Compute the top Attachment Object
-                Element topAttachElement = GetNearestFloor(toplevel);
+                Element topAttachElement = GetNearestFloorOrRoof(toplevel);
 
 
                 inputLine.strStudType = inputLine.strStudType.ToString() + string.Format(" x {0}ga", inputLine.strStudGuage);
@@ -303,6 +308,11 @@ namespace Revit_Automation.Source.ModelCreators
                     startcolumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(toplevel.Id);
                     startcolumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM).Set(0);
 
+                    // If we coulfdn't find a floor, the input line is on top floor
+                    // Need to attach it to roof
+                    if (topAttachElement == null)
+                        topAttachElement = GetRoofAtPoint(pt1);
+
                     if (topAttachElement != null)
                         ColumnAttachment.AddColumnAttachment(m_Document, startcolumn, topAttachElement, 1, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Minimum, 0);
 
@@ -314,6 +324,11 @@ namespace Revit_Automation.Source.ModelCreators
                     FamilyInstance endColumn = m_Document.Create.NewFamilyInstance(pt2, columnType, baseLevel, StructuralType.Column);
                     endColumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(toplevel.Id);
                     endColumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM).Set(0);
+
+                    // If we coulfdn't find a floor, the input line is on top floor
+                    // Need to attach it to roof
+                    if (topAttachElement == null)
+                        topAttachElement = GetRoofAtPoint(pt2);
 
                     if (topAttachElement != null)
                         ColumnAttachment.AddColumnAttachment(m_Document, endColumn, topAttachElement, 1, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Minimum, 0);
@@ -392,6 +407,11 @@ namespace Revit_Automation.Source.ModelCreators
                             FamilyInstance studColumn = m_Document.Create.NewFamilyInstance(studPoint, columnType, baseLevel, StructuralType.Column);
                             studColumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(toplevel.Id);
                             studColumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM).Set(0);
+
+                            // If we coulfdn't find a floor, the input line is on top floor
+                            // Need to attach it to roof
+                            if (topAttachElement == null)
+                                topAttachElement = GetRoofAtPoint(studPoint);
 
                             if (topAttachElement != null)
                                 ColumnAttachment.AddColumnAttachment(m_Document, studColumn, topAttachElement, 1, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Minimum, 0);
@@ -557,6 +577,36 @@ namespace Revit_Automation.Source.ModelCreators
             SlopeDirect = new XYZ(slope.X, slope.Y, pt1.Z);
 
             return SlopeDirect;
+        }
+
+        private Element GetRoofAtPoint(XYZ pt1)
+        {
+            XYZ SlopeDirect = null;
+
+            RoofObject targetRoof;
+            targetRoof.slopeLine = null;
+            targetRoof.roofElementID = null;
+
+            foreach (RoofObject roof in RoofUtility.colRoofs)
+            {
+                double Xmin, Xmax, Ymin, Ymax = 0.0;
+                Xmin = Math.Min(roof.max.X, roof.min.X);
+                Xmax = Math.Max(roof.max.X, roof.min.X);
+                Ymin = Math.Min(roof.max.Y, roof.min.Y);
+                Ymax = Math.Max(roof.max.Y, roof.min.Y);
+
+                if (pt1.X > Xmin && pt1.X < Xmax && pt1.Y > Ymin && pt1.Y < Ymax)
+                {
+                    targetRoof = roof;
+                    break;
+                }
+            }
+
+            if (targetRoof.roofElementID != null)
+                return m_Document.GetElement(targetRoof.roofElementID);
+
+            else
+                return null;
         }
 
         /// <summary>
@@ -729,16 +779,30 @@ namespace Revit_Automation.Source.ModelCreators
                             column.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(toplevel.Id);
                             column.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM).Set(0);
 
+                            if (J == 0)
+                                column.get_Parameter(BuiltInParameter.FAMILY_BASE_LEVEL_OFFSET_PARAM).Set(-3);
+
+                            // If we coulfdn't find a floor, the input line is on top floor
+                            // Need to attach it to roof
+                            if (topAttachElement == null)
+                                topAttachElement = GetRoofAtPoint(studPoint);
+
+                            if (topAttachElement != null)
+                                ColumnAttachment.AddColumnAttachment(m_Document, column, topAttachElement, 1, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Minimum, 0);
+
                             columnID = column.Id;
 
                             tx.Commit();
 
                             UpdateOrientation(columnID, column.FacingOrientation, studPoint, pt2, true);
-                            XYZ Adjustedpt1 = AdjustLinePoint(studPoint, pt2, lineType, dFlangeWidth / 2);
-                            MoveColumn(columnID, Adjustedpt1);
+
 
                             if (J != 0)
-                                RotateColumn(columnID, studPoint, pt2, Math.PI); 
+                            {
+                                XYZ Adjustedpt1 = AdjustLinePoint(studPoint, pt2, lineType, dFlangeWidth);
+                                MoveColumn(columnID, Adjustedpt1);
+                                RotateColumn(columnID, studPoint, pt2, Math.PI);
+                            }
                         }
                     }
 
@@ -777,6 +841,13 @@ namespace Revit_Automation.Source.ModelCreators
                     FamilyInstance startcolumn = m_Document.Create.NewFamilyInstance(pt1, columnType, baseLevel, StructuralType.Column);
                     startcolumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(toplevel.Id);
                     startcolumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM).Set(0);
+                    if (i == 0)
+                        startcolumn.get_Parameter(BuiltInParameter.FAMILY_BASE_LEVEL_OFFSET_PARAM).Set(-3);
+                    
+                    // If we coulfdn't find a floor, the input line is on top floor
+                    // Need to attach it to roof
+                    if (topAttachElement == null)
+                        topAttachElement = GetRoofAtPoint(pt1);
 
                     if (topAttachElement != null)
                         ColumnAttachment.AddColumnAttachment(m_Document, startcolumn, topAttachElement, 1, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Minimum, 0);
@@ -789,6 +860,12 @@ namespace Revit_Automation.Source.ModelCreators
                     FamilyInstance endColumn = m_Document.Create.NewFamilyInstance(pt2, columnType, baseLevel, StructuralType.Column);
                     endColumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(toplevel.Id);
                     endColumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM).Set(0);
+                    if (i == 0)
+                        startcolumn.get_Parameter(BuiltInParameter.FAMILY_BASE_LEVEL_OFFSET_PARAM).Set(-3);
+                    // If we coulfdn't find a floor, the input line is on top floor
+                    // Need to attach it to roof
+                    if (topAttachElement == null)
+                        topAttachElement = GetRoofAtPoint(pt2);
 
                     if (topAttachElement != null)
                         ColumnAttachment.AddColumnAttachment(m_Document, endColumn, topAttachElement, 1, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Minimum, 0);
@@ -808,22 +885,24 @@ namespace Revit_Automation.Source.ModelCreators
                 double dFlangeWidth = FlangeWidth(inputLine.strStudType);
 
                 UpdateOrientation(startColumnID, startColumnOrientation, pt1, pt2, true);
-                XYZ Adjustedpt1 = AdjustLinePoint(pt1, pt2, lineType, dFlangeWidth / 2);
-                MoveColumn(startColumnID, Adjustedpt1);
 
                 UpdateOrientation(EndColumnID, endColumnOrientation, pt2, pt1, true);
-                XYZ Adjustedpt2 = AdjustLinePoint(pt2, pt1, lineType, dFlangeWidth / 2);
-                MoveColumn(EndColumnID, Adjustedpt2);
+
 
 
                 if (i != 0)
                 {
+                    XYZ Adjustedpt1 = AdjustLinePoint(pt1, pt2, lineType, dFlangeWidth);
+                    MoveColumn(startColumnID, Adjustedpt1);
                     RotateColumn(startColumnID, pt1, pt2, Math.PI);
+
+                    XYZ Adjustedpt2 = AdjustLinePoint(pt2, pt1, lineType, dFlangeWidth);
+                    MoveColumn(EndColumnID, Adjustedpt2);
                     RotateColumn(EndColumnID, pt2, pt1, Math.PI);
                 }
             }
         }
-        private Element GetNearestFloor(Level level)
+        private Element GetNearestFloorOrRoof(Level level)
         {
             List<FloorObject> floorObjects = FloorHelper.colFloors;
 
@@ -843,7 +922,6 @@ namespace Revit_Automation.Source.ModelCreators
                     } 
                 }
             }
-
             return elemID;
         }
 
