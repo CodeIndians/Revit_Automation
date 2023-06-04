@@ -131,11 +131,11 @@ namespace Revit_Automation.Source.ModelCreators
 
                 if (inputLine.strDoubleStudType == "At Ends")
                 {
-                    ProcessDoubleStudAtEnds(inputLine, pt1, pt2, columnType, topAttachElement, toplevel, baseLevel);
+                    ProcessDoubleStudAtEnds(inputLine, pt1, pt2, columnType, topAttachElement, bottomAttachElement, toplevel, baseLevel);
                 }
                 else if (inputLine.strDoubleStudType == "Grid")
                 {
-                    ProcessDoubleStudAtGrids(inputLine, levels, columnType, topAttachElement, toplevel, baseLevel);
+                    ProcessDoubleStudAtGrids(inputLine, levels, columnType, topAttachElement, bottomAttachElement,  toplevel, baseLevel);
                 }
 
                 else if (inputLine.strDoubleStudType == "Continuous")
