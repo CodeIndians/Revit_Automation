@@ -30,7 +30,7 @@ namespace Revit_Automation.CustomTypes
         public string strBuildingName;
         public string strDoubleStudType;
         public string strMaterialType;
-        public double dFlangeOfset;
+        public int dFlangeOfset;
         public double dOnCenter;
         public DirectionWithRespectToRoofSlope dirWRTRoofSlope;
         public List<XYZ> gridIntersectionPoints;

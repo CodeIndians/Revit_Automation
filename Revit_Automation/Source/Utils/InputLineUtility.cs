@@ -144,10 +144,10 @@ namespace Revit_Automation.Source
                     iLine.strBottomTrackSize = BottomTrackSizeParam.AsString();
                 }
 
-                Parameter FlangeOffsetParam = locCurve.LookupParameter("Stud O.C.");
+                Parameter FlangeOffsetParam = locCurve.LookupParameter("Flange Offset");
                 if (FlangeOffsetParam != null)
                 {
-                    iLine.dFlangeOfset = FlangeOffsetParam.AsDouble();
+                    iLine.dFlangeOfset = FlangeOffsetParam.AsInteger();
                 }
 
                 Parameter StudOnCenterParam = locCurve.LookupParameter("Stud O.C.");

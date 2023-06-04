@@ -147,6 +147,8 @@ namespace Revit_Automation
             XYZ lineStart = linecoords.Item1;
             XYZ lineEnd = linecoords.Item2;
 
+            LineType lineType = MathUtils.ApproximatelyEqual(lineStart.Y, lineEnd.Y) ? LineType.Horizontal : LineType.vertical;
+
             var mGridLinesToIntersect = bMain ? mHorizontalMainLines : mHorizontalLines;
 
             if (MathUtils.ApproximatelyEqual(lineStart.Y, lineEnd.Y))
@@ -171,7 +173,14 @@ namespace Revit_Automation
                 }
             }
 
-            return colintesectPoints;
+            var sortedPoints = new List<XYZ>();
+
+            if (lineType == LineType.Horizontal)
+               sortedPoints =  colintesectPoints.OrderBy(p => p.X).ToList();
+            else
+                sortedPoints = colintesectPoints.OrderBy(p => p.Y).ToList();
+
+            return sortedPoints;
         }
     }
 }

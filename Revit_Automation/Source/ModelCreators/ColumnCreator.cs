@@ -18,6 +18,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using static Autodesk.Revit.DB.SpecTypeId;
 using static Revit_Automation.Source.Utils.WarningSwallowers;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace Revit_Automation.Source.ModelCreators
 {
@@ -114,6 +115,9 @@ namespace Revit_Automation.Source.ModelCreators
                 // Compute the top Attachment Object
                 Element topAttachElement = GetNearestFloorOrRoof(toplevel);
 
+                // compute the bottom attach element
+                Element bottomAttachElement = GetNearestFloorOrRoof(baseLevel);
+
                 inputLine.strStudType = inputLine.strStudType.ToString() + string.Format(" x {0}ga", inputLine.strStudGuage);
 
                 FamilySymbol columnType = SymbolCollector.GetSymbol(inputLine.strStudType, "Post");
@@ -169,8 +173,8 @@ namespace Revit_Automation.Source.ModelCreators
                         studEndPoint = pt1.X > pt2.X ? pt1 : pt2;
                     }
 
-                    XYZ tempXVector = new XYZ(inputLine.dFlangeOfset, 0, 0);
-                    XYZ tempYVector = new XYZ(0, inputLine.dFlangeOfset, 0);
+                    XYZ tempXVector = new XYZ(inputLine.dOnCenter, 0, 0);
+                    XYZ tempYVector = new XYZ(0, inputLine.dOnCenter, 0);
 
                     bool bCanCreateColumn = true;
                     while (bCanCreateColumn)
@@ -200,7 +204,7 @@ namespace Revit_Automation.Source.ModelCreators
                                     topAttachElement = GetRoofAtPoint(studPoint);
 
                                 if (topAttachElement != null)
-                                    ColumnAttachment.AddColumnAttachment(m_Document, studColumn, topAttachElement, 1, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Minimum, 0);
+                                    ColumnAttachment.AddColumnAttachment(m_Document, studColumn, topAttachElement, 1, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
 
                                 m_Form.PostMessage(string.Format("Placing Post  {3} at {0} , {1} , {2} \n \n ", studPoint.X, studPoint.Y, studPoint.Z, inputLine.strStudType));
                                 StudColumnID = studColumn.Id;
@@ -261,6 +265,22 @@ namespace Revit_Automation.Source.ModelCreators
                 if (MathUtils.ApproximatelyEqual(pt1.Y, pt2.Y))
                     lineType = LineType.horizontal;
 
+                XYZ lineOrientation = null;
+
+                // Compute Line Orientation
+                if (lineType == LineType.vertical)
+                {
+                    XYZ startPoint = pt1.Y < pt2.Y ? pt1 : pt2;
+                    XYZ endPoint = pt1.Y < pt2.Y ? pt2 : pt1;
+                    lineOrientation = endPoint - startPoint;
+                }
+                else
+                {
+                    XYZ startPoint = pt1.X < pt2.X ? pt1 : pt2;
+                    XYZ endPoint = pt1.X < pt2.X ? pt2 : pt1;
+                    lineOrientation = endPoint - startPoint;
+                }
+
                 //compute levels
                 Level toplevel = null, baseLevel = null;
 
@@ -290,6 +310,9 @@ namespace Revit_Automation.Source.ModelCreators
                 // Compute the top Attachment Object
                 Element topAttachElement = GetNearestFloorOrRoof(toplevel);
 
+                // Compute Bottom Attachment Object
+                Element bottomAttachElement = GetNearestFloorOrRoof(baseLevel);
+
 
                 inputLine.strStudType = inputLine.strStudType.ToString() + string.Format(" x {0}ga", inputLine.strStudGuage);
 
@@ -314,7 +337,10 @@ namespace Revit_Automation.Source.ModelCreators
                         topAttachElement = GetRoofAtPoint(pt1);
 
                     if (topAttachElement != null)
-                        ColumnAttachment.AddColumnAttachment(m_Document, startcolumn, topAttachElement, 1, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Minimum, 0);
+                        ColumnAttachment.AddColumnAttachment(m_Document, startcolumn, topAttachElement, 1, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
+
+                    if (bottomAttachElement != null)
+                        ColumnAttachment.AddColumnAttachment(m_Document, startcolumn, bottomAttachElement, 0, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
 
                     m_Form.PostMessage(string.Format("Placing Post  {3} at {0} , {1} , {2} \n \n ", pt1.X, pt1.Y, pt1.Z, inputLine.strStudType));
                     startColumnID = startcolumn.Id;
@@ -331,7 +357,10 @@ namespace Revit_Automation.Source.ModelCreators
                         topAttachElement = GetRoofAtPoint(pt2);
 
                     if (topAttachElement != null)
-                        ColumnAttachment.AddColumnAttachment(m_Document, endColumn, topAttachElement, 1, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Minimum, 0);
+                        ColumnAttachment.AddColumnAttachment(m_Document, endColumn, topAttachElement, 1, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
+
+                    if (bottomAttachElement != null)
+                        ColumnAttachment.AddColumnAttachment(m_Document, endColumn, bottomAttachElement, 0, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
 
                     m_Form.PostMessage(string.Format("Placing Post  {3} at {0} , {1} , {2} \n \n ", pt2.X, pt2.Y, pt2.Z, inputLine.strStudType));
                     EndColumnID = endColumn.Id;
@@ -347,55 +376,52 @@ namespace Revit_Automation.Source.ModelCreators
 
                 double dFlangeWidth = FlangeWidth(inputLine.strStudType);
 
+                // Reference - Dev Guide - Page 1
+                // At ends the column web should match with grid point. so we compute the adjusted point and move the colum to the desired location
                 UpdateOrientation(startColumnID, startColumnOrientation, pt1, pt2, true);
                 XYZ Adjustedpt1 = AdjustLinePoint(pt1, pt2, lineType, dFlangeWidth/2);
                 MoveColumn(startColumnID, Adjustedpt1);
 
+                // Reference - Dev Guide - Page 1
+                // At ends the column web should match with grid point. so we compute the adjusted point and move the colum to the desired location
                 UpdateOrientation(EndColumnID, endColumnOrientation, pt2, pt1, true);
                 XYZ Adjustedpt2 = AdjustLinePoint(pt2, pt1, lineType, dFlangeWidth / 2);
                 MoveColumn(EndColumnID, Adjustedpt2);
 
                 XYZ studPoint = null, studEndPoint = null;
 
+                
                 // For placing On Center's This is the Logic
-                // First Check if the line is vertical or Horizontal,
-                // Get the Horizontal Grids[0] / Vertical Grids [0] 
-                // Assumption is from which ever grid we take, the On-Center points will be same
+                // Compute the Start point for On center placement in a given line
+                // Check for Flange Offset Parameter and adjust accordingly
+
+                XYZ FlangeOffsetXVector = new XYZ(dFlangeWidth/2, 0, 0);
+                XYZ FlangeOffsetYVector = new XYZ(0, dFlangeWidth/2, 0);
+
 
                 if (lineType == LineType.vertical)
-                {   
-                    XYZ referencePoint = pt1.Y < pt2.Y ? pt1 : pt2;
-                    studPoint = new XYZ( referencePoint.X, GridCollector.mHorizontalMainLines[0].Item1.Y, GridCollector.mHorizontalMainLines[0].Item1.Z) ;
-                    while ((studPoint.Y  + inputLine.dOnCenter ) < referencePoint.Y )
-                    {
-                        studPoint = new XYZ(studPoint.X , studPoint.Y + inputLine.dOnCenter, referencePoint.Z); 
-                    }
+                {
+                    studPoint = ComputeOnCenterStartingPoint(pt1, pt2, inputLine, inputLine.dOnCenter, lineType);
+                    if (inputLine.dFlangeOfset == 1)
+                        studPoint += FlangeOffsetYVector;
                     studEndPoint = pt1.Y > pt2.Y ? pt1 : pt2;
                 }
                 else
-                {
-                    XYZ referencePoint = pt1.X < pt2.X ? pt1 : pt2;
-                    studPoint =  new XYZ( GridCollector.mVerticalMainLines[0].Item1.X, referencePoint.Y, GridCollector.mHorizontalMainLines[0].Item1.Z);
-                    while ((studPoint.X + inputLine.dOnCenter) < referencePoint.X)
-                    {
-                        studPoint = new XYZ(referencePoint.X + inputLine.dOnCenter, studPoint.Y , referencePoint.Z);
-                    }
+                {  
+                    studPoint = ComputeOnCenterStartingPoint(pt1, pt2, inputLine, inputLine.dOnCenter, lineType);
+                    if (inputLine.dFlangeOfset == 1)
+                        studPoint += FlangeOffsetXVector;
                     studEndPoint = pt1.X > pt2.X ? pt1 : pt2;
                 }
 
-                XYZ tempXVector = new XYZ(inputLine.dFlangeOfset, 0, 0);
-                XYZ tempYVector = new XYZ(0, inputLine.dFlangeOfset, 0);
+                XYZ tempXVector = new XYZ(inputLine.dOnCenter, 0, 0);
+                XYZ tempYVector = new XYZ(0, inputLine.dOnCenter, 0);
 
                 bool bCanCreateColumn = true;
                 while (bCanCreateColumn)
                 {
                     ElementId StudColumnID;
                     XYZ StudColumnOrientation;
-
-                    if (lineType == LineType.vertical)
-                        studPoint = studPoint + tempYVector;
-                    else
-                        studPoint = studPoint + tempXVector;
 
                     if ((lineType == LineType.vertical && studPoint.Y < (studEndPoint.Y - 1.0)) || (lineType == LineType.horizontal && studPoint.X < (studEndPoint.X - 1.0)))
                     {
@@ -414,7 +440,11 @@ namespace Revit_Automation.Source.ModelCreators
                                 topAttachElement = GetRoofAtPoint(studPoint);
 
                             if (topAttachElement != null)
-                                ColumnAttachment.AddColumnAttachment(m_Document, studColumn, topAttachElement, 1, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Minimum, 0);
+                                ColumnAttachment.AddColumnAttachment(m_Document, studColumn, topAttachElement, 1, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
+
+                            if (bottomAttachElement != null)
+                                ColumnAttachment.AddColumnAttachment(m_Document, studColumn, bottomAttachElement, 0, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
+
 
                             m_Form.PostMessage(string.Format("Placing Post  {3} at {0} , {1} , {2} \n \n ", studPoint.X, studPoint.Y, studPoint.Z, inputLine.strStudType));
                             StudColumnID = studColumn.Id;
@@ -423,10 +453,25 @@ namespace Revit_Automation.Source.ModelCreators
                         }
 
                         UpdateOrientation(StudColumnID, StudColumnOrientation, studPoint, pt2);
+
+
+                        //If line orientation and Web orientaion are is same direction, we need to move the column back by Flange Width
+                        // This is because, we have moved the point away from origin while computing the stud on-center point. 
+                        if (inputLine.dFlangeOfset != 0 && MathUtils.CompareVectors(lineOrientation, StudColumnOrientation) == "Parallel")
+                        {
+                            XYZ AP1 = AdjustLinePoint(studPoint, pt1, lineType, -dFlangeWidth);
+                            MoveColumn(StudColumnID, AP1);
+                        }
+
+                        // Move to next point
+                        if (lineType == LineType.vertical)
+                            studPoint = studPoint + tempYVector;
+                        else
+                            studPoint = studPoint + tempXVector;
+
                     }
                     else
                         bCanCreateColumn = false;
-
                 }
             }
 
@@ -743,7 +788,7 @@ namespace Revit_Automation.Source.ModelCreators
             return (elements.Count > 0); 
         }
 
-        private void ProcessDoubleStudAtGrids(InputLine inputLine, IOrderedEnumerable<Level> levels, FamilySymbol columnType, Element topAttachElement, Level toplevel, Level baseLevel)
+        private void ProcessDoubleStudAtGrids(InputLine inputLine, IOrderedEnumerable<Level> levels, FamilySymbol columnType, Element topAttachElement, Element bottomAttachElement, Level toplevel, Level baseLevel)
         {
 
             double dFlangeWidth = FlangeWidth(inputLine.strStudType);
@@ -788,7 +833,10 @@ namespace Revit_Automation.Source.ModelCreators
                                 topAttachElement = GetRoofAtPoint(studPoint);
 
                             if (topAttachElement != null)
-                                ColumnAttachment.AddColumnAttachment(m_Document, column, topAttachElement, 1, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Minimum, 0);
+                                ColumnAttachment.AddColumnAttachment(m_Document, column, topAttachElement, 1, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
+
+                            if (bottomAttachElement != null)
+                                ColumnAttachment.AddColumnAttachment(m_Document, column, bottomAttachElement, 0, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
 
                             columnID = column.Id;
 
@@ -814,7 +862,7 @@ namespace Revit_Automation.Source.ModelCreators
             }
         }
 
-        private void ProcessDoubleStudAtEnds(InputLine inputLine, XYZ pt1, XYZ pt2, FamilySymbol columnType, Element topAttachElement, Level toplevel, Level baseLevel)
+        private void ProcessDoubleStudAtEnds(InputLine inputLine, XYZ pt1, XYZ pt2, FamilySymbol columnType, Element topAttachElement, Element bottomAttachElement, Level toplevel, Level baseLevel)
         {
             ElementId startColumnID, EndColumnID;
             XYZ startColumnOrientation, endColumnOrientation;
@@ -850,7 +898,10 @@ namespace Revit_Automation.Source.ModelCreators
                         topAttachElement = GetRoofAtPoint(pt1);
 
                     if (topAttachElement != null)
-                        ColumnAttachment.AddColumnAttachment(m_Document, startcolumn, topAttachElement, 1, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Minimum, 0);
+                        ColumnAttachment.AddColumnAttachment(m_Document, startcolumn, topAttachElement, 1, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
+
+                    if (bottomAttachElement != null)
+                        ColumnAttachment.AddColumnAttachment(m_Document, startcolumn, bottomAttachElement, 0, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
 
                     m_Form.PostMessage(string.Format("Placing Post  {3} at {0} , {1} , {2} \n \n ", pt1.X, pt1.Y, pt1.Z, inputLine.strStudType));
                     startColumnID = startcolumn.Id;
@@ -868,7 +919,10 @@ namespace Revit_Automation.Source.ModelCreators
                         topAttachElement = GetRoofAtPoint(pt2);
 
                     if (topAttachElement != null)
-                        ColumnAttachment.AddColumnAttachment(m_Document, endColumn, topAttachElement, 1, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Minimum, 0);
+                        ColumnAttachment.AddColumnAttachment(m_Document, endColumn, topAttachElement, 1, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
+
+                    if (bottomAttachElement != null)
+                        ColumnAttachment.AddColumnAttachment(m_Document, endColumn, bottomAttachElement, 0, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
 
                     m_Form.PostMessage(string.Format("Placing Post  {3} at {0} , {1} , {2} \n \n ", pt2.X, pt2.Y, pt2.Z, inputLine.strStudType));
                     EndColumnID = endColumn.Id;
@@ -975,6 +1029,144 @@ namespace Revit_Automation.Source.ModelCreators
 
             return width;
                
+        }
+
+        // This method returns the location of the nearest main grid to the given line.
+        // The nearest main grid could be intersecting or not intersectin the line
+        private XYZ GetNearestMainGridLocation(XYZ pt1, XYZ pt2, InputLine inputLine, LineType lineType)
+        {
+            XYZ nearestMainGridLocation = null;
+
+            if (inputLine.mainGridIntersectionPoints.Count > 0)
+            { 
+               nearestMainGridLocation = inputLine.mainGridIntersectionPoints[0];
+            }
+            else
+            {
+                XYZ referencePt = null;
+                if (lineType == LineType.horizontal)
+                {
+                    referencePt = pt1.X < pt2.X ? pt1 : pt2;
+                    nearestMainGridLocation = GetNearestPoint(GridCollector.mVerticalMainLines, referencePt, lineType);
+                }
+                else
+                {
+                    referencePt = pt1.Y < pt2.Y ? pt1 : pt2;
+                    nearestMainGridLocation = GetNearestPoint(GridCollector.mHorizontalMainLines, referencePt, lineType);
+                }
+                
+            }
+
+            return nearestMainGridLocation;
+        }
+
+        private XYZ GetNearestPoint ( List<Tuple<XYZ, XYZ>> gridLinesCollection, XYZ referencePoint, LineType lineType)
+        {
+            XYZ nearestPoint = null;
+            double minDistance = double.MaxValue;
+
+            XYZ point = null;
+            foreach (var gridline in gridLinesCollection)
+            {
+                if (lineType == LineType.horizontal)
+                    point = new XYZ (gridline.Item1.X, referencePoint.Y, referencePoint.Z);
+                else
+                    point = new XYZ(referencePoint.X, gridline.Item1.Y, referencePoint.Z);
+
+                double distance = point.DistanceTo(referencePoint);
+
+                if (distance < minDistance)
+                {
+                    minDistance = distance;
+                    nearestPoint = point;
+                }
+            }
+
+            return nearestPoint;
+        }
+
+        private XYZ ComputeOnCenterStartingPoint(XYZ lineStart, XYZ lineEnd, InputLine inputLine , double dOnCenter, LineType lineType)
+        {
+
+
+            XYZ refpoint = null, OnCenterStartPoint = null, nearestGridPoint = null, refpoint2 = null;
+
+            // Temp Vectors
+            XYZ positiveXVector = new XYZ(dOnCenter, 0, 0);
+            XYZ positiveYVector = new XYZ( 0, dOnCenter, 0);
+            XYZ negativeXVector = new XYZ(-dOnCenter, 0, 0);
+            XYZ NegativeYVector = new XYZ(0, -dOnCenter, 0);
+
+
+            // Refpoint is computed such that it is always the smalllest among the given
+            // Input points
+            if (lineType == LineType.horizontal)
+            {
+                refpoint = lineStart.X < lineEnd.X ? lineStart : lineEnd;
+                refpoint2 = lineStart.X > lineEnd.X ? lineStart : lineEnd;
+            }
+            else
+            {
+                refpoint = lineStart.Y < lineEnd.Y ? lineStart : lineEnd;
+                refpoint2 = lineStart.Y > lineEnd.Y ? lineStart : lineEnd;
+            }
+            // Get the Nearest GridPoint to the start of the line
+            nearestGridPoint = GetNearestMainGridLocation(lineStart, lineEnd, inputLine, lineType);
+
+
+            // We have 4 cases
+            
+            // 1. nearestGridPoint is with in the input line and line is horizontal
+            if (lineType == LineType.horizontal &&
+                nearestGridPoint.X > refpoint.X &&
+                nearestGridPoint.X < refpoint2.X)
+            {
+                OnCenterStartPoint = nearestGridPoint;
+                while (OnCenterStartPoint.X > refpoint.X)
+                {
+                    OnCenterStartPoint += negativeXVector;
+                }
+                OnCenterStartPoint += positiveXVector;
+            }
+            
+            // 2. nearestGridPoint is outside the input line and line is horizontal
+            if (lineType == LineType.horizontal &&
+                nearestGridPoint.X < refpoint.X &&
+                nearestGridPoint.X < refpoint2.X)
+            {
+                OnCenterStartPoint = nearestGridPoint;
+                while (OnCenterStartPoint.X < refpoint.X)
+                {
+                    OnCenterStartPoint += positiveXVector;
+                }
+            }
+
+            // 3. nearestGridPoint is with in the input line and line is vertical
+            if (lineType == LineType.vertical &&
+               nearestGridPoint.Y > refpoint.Y &&
+               nearestGridPoint.Y < refpoint2.Y)
+            {
+                OnCenterStartPoint = nearestGridPoint;
+                while (OnCenterStartPoint.Y > refpoint.Y)
+                {
+                    OnCenterStartPoint += NegativeYVector;
+                }
+                OnCenterStartPoint += positiveYVector;
+            }
+
+            // 4. nearestGridPoint is outside the input line and line is vertical
+            if (lineType == LineType.vertical &&
+               nearestGridPoint.Y < refpoint.Y &&
+               nearestGridPoint.Y < refpoint2.Y)
+            {
+                OnCenterStartPoint = nearestGridPoint;
+                while (OnCenterStartPoint.Y < refpoint.Y)
+                {
+                    OnCenterStartPoint += positiveYVector;
+                }
+            }
+
+            return OnCenterStartPoint;
         }
     }
 }
