@@ -39,6 +39,8 @@ namespace Revit_Automation.CustomTypes
 
     public struct FloorObject
     {
+        public XYZ min;
+        public XYZ max;
         public ElementId levelID;
         public ElementId elemID;
         public string strBuildingName;

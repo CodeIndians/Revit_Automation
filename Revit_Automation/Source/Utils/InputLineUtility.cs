@@ -126,10 +126,10 @@ namespace Revit_Automation.Source
                     iLine.strTopTrackSize = TopTrackSizeParam.AsString();
                 }
 
-                Parameter BuildingNameParam = locCurve.LookupParameter("Building Name");
-                if (BuildingNameParam != null)
+                Parameter phaseCreated = locCurve.get_Parameter(BuiltInParameter.PHASE_CREATED);
+                if (phaseCreated != null)
                 {
-                    iLine.strBuildingName = BuildingNameParam.AsString();
+                    iLine.strBuildingName = phaseCreated.AsValueString();
                 }
 
                 Parameter BottomTrackGaugeParam = locCurve.LookupParameter("Bottom Track Gauge");

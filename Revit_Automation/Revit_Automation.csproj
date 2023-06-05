@@ -64,6 +64,7 @@
       <DependentUpon>Form2.cs</DependentUpon>
     </Compile>
     <Compile Include="Source\App.cs" />
+    <Compile Include="Source\CollisionResolvers\PostCollisionResolver.cs" />
     <Compile Include="Source\Command.cs" />
     <Compile Include="Dialogs\Form1.cs">
       <SubType>Form</SubType>
@@ -72,6 +73,7 @@
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
     <Compile Include="Source\CustomTypes.cs" />
+    <Compile Include="Source\Interfaces\CollisionInterface.cs" />
     <Compile Include="Source\ModelCreators\ColumnCreator.cs" />
     <Compile Include="Source\ModelCreators\T62Valiations.cs" />
     <Compile Include="Source\Utils\ErrorHandler.cs" />

@@ -1,24 +1,13 @@
-﻿using Autodesk.Revit.Creation;
-using Autodesk.Revit.DB;
-using Autodesk.Revit.DB.Mechanical;
+﻿using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Structure;
 using Autodesk.Revit.UI;
 using Revit_Automation.CustomTypes;
+using Revit_Automation.Source.CollisionDetectors;
 using Revit_Automation.Source.Utils;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Data.Common;
-using System.Drawing;
 using System.Linq;
-using System.Reflection.Emit;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using static Autodesk.Revit.DB.SpecTypeId;
 using static Revit_Automation.Source.Utils.WarningSwallowers;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace Revit_Automation.Source.ModelCreators
 {
@@ -113,10 +102,10 @@ namespace Revit_Automation.Source.ModelCreators
                     }
                 }
                 // Compute the top Attachment Object
-                Element topAttachElement = GetNearestFloorOrRoof(toplevel);
+                Element topAttachElement = GetNearestFloorOrRoof(toplevel, pt1);
 
                 // compute the bottom attach element
-                Element bottomAttachElement = GetNearestFloorOrRoof(baseLevel);
+                Element bottomAttachElement = GetNearestFloorOrRoof(baseLevel, pt1);
 
                 inputLine.strStudType = inputLine.strStudType.ToString() + string.Format(" x {0}ga", inputLine.strStudGuage);
 
@@ -254,6 +243,9 @@ namespace Revit_Automation.Source.ModelCreators
 
             try
             {
+                // Create the collision object.
+                PostCollisionResolver collider = new PostCollisionResolver(m_Document);
+
                 XYZ pt1 = inputLine.locationCurve.Curve.GetEndPoint(0);
                 XYZ pt2 = inputLine.locationCurve.Curve.GetEndPoint(1);
 
@@ -284,12 +276,12 @@ namespace Revit_Automation.Source.ModelCreators
                 //compute levels
                 Level toplevel = null, baseLevel = null;
 
-                string strBuildingName = "Building " + inputLine.strBuildingName;
+                
                 // Filter levels based on buldings to use
                 List<Level> filteredLevels = new List<Level>();
                 foreach (Level filteredlevel in levels)
                 {
-                    if (filteredlevel.Name.Contains(strBuildingName))
+                    if (filteredlevel.Name.Contains(inputLine.strBuildingName))
                         filteredLevels.Add(filteredlevel);
                 }
 
@@ -308,10 +300,10 @@ namespace Revit_Automation.Source.ModelCreators
                 }
 
                 // Compute the top Attachment Object
-                Element topAttachElement = GetNearestFloorOrRoof(toplevel);
+                Element topAttachElement = GetNearestFloorOrRoof(toplevel, pt1);
 
                 // Compute Bottom Attachment Object
-                Element bottomAttachElement = GetNearestFloorOrRoof(baseLevel);
+                Element bottomAttachElement = GetNearestFloorOrRoof(baseLevel, pt1);
 
 
                 inputLine.strStudType = inputLine.strStudType.ToString() + string.Format(" x {0}ga", inputLine.strStudGuage);
@@ -388,9 +380,13 @@ namespace Revit_Automation.Source.ModelCreators
                 XYZ Adjustedpt2 = AdjustLinePoint(pt2, pt1, lineType, dFlangeWidth / 2);
                 MoveColumn(EndColumnID, Adjustedpt2);
 
+                // Collision Handling
+                collider.HandleCollision(Adjustedpt1);
+                collider.HandleCollision(Adjustedpt2);
+
+
                 XYZ studPoint = null, studEndPoint = null;
 
-                
                 // For placing On Center's This is the Logic
                 // Compute the Start point for On center placement in a given line
                 // Check for Flange Offset Parameter and adjust accordingly
@@ -455,11 +451,23 @@ namespace Revit_Automation.Source.ModelCreators
                         UpdateOrientation(StudColumnID, StudColumnOrientation, studPoint, pt2);
 
 
+                        // Compute the orientation after rotation. 
+                        FamilyInstance column = m_Document.GetElement(StudColumnID) as FamilyInstance;
+                        XYZ newOrientation = column.FacingOrientation;
+
                         //If line orientation and Web orientaion are is same direction, we need to move the column back by Flange Width
                         // This is because, we have moved the point away from origin while computing the stud on-center point. 
-                        if (inputLine.dFlangeOfset != 0 && MathUtils.CompareVectors(lineOrientation, StudColumnOrientation) == "Parallel")
+                        if (inputLine.dFlangeOfset != 0 && MathUtils.CompareVectors(lineOrientation, newOrientation) == "Parallel")
                         {
-                            XYZ AP1 = AdjustLinePoint(studPoint, pt1, lineType, -dFlangeWidth);
+                            XYZ lineEndPoint = null;
+
+                            if (lineType == LineType.vertical)
+                                lineEndPoint = pt1.Y > pt2.Y ? pt1 : pt2;
+
+                            if (lineType == LineType.horizontal)
+                                lineEndPoint = pt1.X > pt2.X ? pt1 : pt2;
+
+                            XYZ AP1 = AdjustLinePoint(studPoint, lineEndPoint, lineType, -dFlangeWidth);
                             MoveColumn(StudColumnID, AP1);
                         }
 
@@ -517,6 +525,7 @@ namespace Revit_Automation.Source.ModelCreators
             XYZ point2 = new XYZ(pt1.X, pt1.Y, 1);
             Line axis = Line.CreateBound(point1, point2);
 
+            // This logic is to rotate the column such that it is perpendicular to Input line
             using (Transaction tx = new Transaction(m_Document))
             {
                 SupressWarningsInTransaction(tx);
@@ -536,6 +545,7 @@ namespace Revit_Automation.Source.ModelCreators
                 tx.Commit();
             }
 
+            
             using (Transaction tx = new Transaction(m_Document))
             {
                 SupressWarningsInTransaction(tx);
@@ -546,6 +556,7 @@ namespace Revit_Automation.Source.ModelCreators
                 FamilyInstance column = m_Document.GetElement(columnID) as FamilyInstance;
                 XYZ newOrientation = column.FacingOrientation;
 
+                // End columns should face towards the line and also each other
                 if (bEndingColumns)
                 {
                     // The web outward normal should be in a direction opposite to that of Input Line For Start and End Lines
@@ -554,6 +565,8 @@ namespace Revit_Automation.Source.ModelCreators
                         ElementTransformUtils.RotateElement(m_Document, columnID, axis, Math.PI);
                     }
                 }
+
+                // Columns should point to low eve
                 else
                 {
                     XYZ SlopeDirection = GetRoofSlopeDirection(pt1);
@@ -956,25 +969,45 @@ namespace Revit_Automation.Source.ModelCreators
                 }
             }
         }
-        private Element GetNearestFloorOrRoof(Level level)
+
+        private Element GetNearestFloorOrRoof(Level level, XYZ pt1)
         {
             List<FloorObject> floorObjects = FloorHelper.colFloors;
 
             Element elemID = null;
 
-            foreach (FloorObject floor in floorObjects)
+            // match the building name as the level
+            List<FloorObject> filteredFloors = new List<FloorObject>();
+
+            foreach(FloorObject floorObject in floorObjects) 
             {
-                
-                Element levelElement = m_Document.GetElement(floor.levelID);
-                Parameter elevationParam = levelElement.get_Parameter(BuiltInParameter.LEVEL_ELEV);
-                if (elevationParam != null)
+                if (level.Name.Contains(floorObject.strBuildingName))
+                    filteredFloors.Add(floorObject);
+            }
+
+            
+            foreach (FloorObject floor in filteredFloors)
+            {
+                // match the bounding box of the point with the Floor Range
+                double Xmin, Xmax, Ymin, Ymax = 0.0;
+                Xmin = Math.Min(floor.max.X, floor.min.X);
+                Xmax = Math.Max(floor.max.X, floor.min.X);
+                Ymin = Math.Min(floor.max.Y, floor.min.Y);
+                Ymax = Math.Max(floor.max.Y, floor.min.Y);
+
+                if (pt1.X > Xmin && pt1.X < Xmax && pt1.Y > Ymin && pt1.Y < Ymax)
                 {
-                    if (MathUtils.IsWithInRange(elevationParam.AsDouble(), level.Elevation + 1 , level.Elevation - 1))
+                    Element levelElement = m_Document.GetElement(floor.levelID);
+                    Parameter elevationParam = levelElement.get_Parameter(BuiltInParameter.LEVEL_ELEV);
+                    if (elevationParam != null)
                     {
-                        elemID = m_Document.GetElement(floor.elemID);
-                        
-                    } 
-                }
+                        if (MathUtils.IsWithInRange(elevationParam.AsDouble(), level.Elevation + 1, level.Elevation - 1))
+                        {
+                            elemID = m_Document.GetElement(floor.elemID);
+                            break;
+                        }
+                    }
+                }  
             }
             return elemID;
         }

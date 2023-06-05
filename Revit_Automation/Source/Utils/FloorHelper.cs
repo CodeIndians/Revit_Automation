@@ -36,12 +36,43 @@ namespace Revit_Automation.Source.Utils
                 floorObj.levelID = floor.LevelId;
 
                 floorObj.elemID = floor.Id;
-                // To DO - Differentiate floors based on building
 
                 Parameter phaseCreated = floor.get_Parameter(BuiltInParameter.PHASE_CREATED);
                 if (phaseCreated != null)
                 {
                     floorObj.strBuildingName = phaseCreated.AsValueString();
+                }
+
+                GeometryElement geometry = floor.get_Geometry(new Options());
+                bool bRangeComputed = false;
+                foreach (GeometryObject obj in geometry)
+                {
+                    Solid solid = obj as Solid;
+                    if (solid != null)
+                    {
+                        foreach (Face face in solid.Faces)
+                        {
+                            XYZ normal = face.ComputeNormal(new UV(0, 0));
+                            XYZ ZNormal = new XYZ(0, 0, 1);
+
+                            if (MathUtils.IsParallel(normal, ZNormal))
+                            {
+                                BoundingBoxUV boundingBoxUV = face.GetBoundingBox();
+                                UV min = boundingBoxUV.Min;
+                                UV max = boundingBoxUV.Max;
+
+                                floorObj.min = face.Evaluate(min);
+                                floorObj.max = face.Evaluate(max);
+
+                                bRangeComputed = true;
+                                  
+                                break;
+                            }  
+                        }
+                    }
+
+                    if (bRangeComputed)
+                        break;
                 }
 
                 //Add the line to the collection 
