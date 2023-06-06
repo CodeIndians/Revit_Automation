@@ -1,4 +1,5 @@
 ﻿using Autodesk.Revit.DB;
+using Revit_Automation.CustomTypes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,7 @@ namespace Revit_Automation.Source.Interfaces
 {
     public interface ICollisionInterface
     {
-        void HandleCollision(XYZ pt);
+        void HandleCollision(CollisionObject collisionObject);
         void PlaceObjectInClearSpace();
     }
 }

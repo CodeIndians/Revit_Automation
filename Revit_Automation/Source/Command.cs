@@ -49,7 +49,7 @@ namespace Revit_Automation
           ref string message,
           ElementSet elements)
         {
-            //TaskDialog.Show("Automation Toolkit", "Placing Columns"); // Can be used to show custom messages
+
 
             UIApplication uiapp = commandData.Application;
 
@@ -73,7 +73,7 @@ namespace Revit_Automation
           ref string message,
           ElementSet elements)
         {
-            //TaskDialog.Show("Automation Toolkit", "Placing Columns"); // Can be used to show custom messages
+
 
             UIApplication uiapp = commandData.Application;
 
@@ -97,7 +97,7 @@ namespace Revit_Automation
           ref string message,
           ElementSet elements)
         {
-            //TaskDialog.Show("Automation Toolkit", "Placing Columns"); // Can be used to show custom messages
+
 
             UIApplication uiapp = commandData.Application;
 
@@ -121,7 +121,7 @@ namespace Revit_Automation
           ref string message,
           ElementSet elements)
         {
-            //TaskDialog.Show("Automation Toolkit", "Placing Columns"); // Can be used to show custom messages
+
 
             UIApplication uiapp = commandData.Application;
 
@@ -145,7 +145,7 @@ namespace Revit_Automation
           ref string message,
           ElementSet elements)
         {
-            //TaskDialog.Show("Automation Toolkit", "Placing Columns"); // Can be used to show custom messages
+
 
             UIApplication uiapp = commandData.Application;
 
@@ -169,7 +169,7 @@ namespace Revit_Automation
           ref string message,
           ElementSet elements)
         {
-            //TaskDialog.Show("Automation Toolkit", "Placing Columns"); // Can be used to show custom messages
+
 
             UIApplication uiapp = commandData.Application;
 

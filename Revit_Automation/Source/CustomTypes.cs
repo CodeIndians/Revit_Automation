@@ -32,6 +32,7 @@ namespace Revit_Automation.CustomTypes
         public string strMaterialType;
         public int dFlangeOfset;
         public double dOnCenter;
+        public double dParapetHeight;
         public DirectionWithRespectToRoofSlope dirWRTRoofSlope;
         public List<XYZ> gridIntersectionPoints;
         public List<XYZ> mainGridIntersectionPoints;
@@ -55,6 +56,12 @@ namespace Revit_Automation.CustomTypes
         public ElementId roofElementID;
     }
 
+    public struct CollisionObject
+    {
+        public XYZ CollisionPoint;
+        public ElementId inputLineID;
+        public ElementId collisionElementID;
+    }
     public enum DirectionWithRespectToRoofSlope
     {
         Parallel = 0, 

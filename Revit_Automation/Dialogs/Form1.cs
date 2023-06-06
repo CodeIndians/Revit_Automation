@@ -25,9 +25,29 @@ namespace Revit_Automation
         public bool CanCreateModel { get; internal set; }
 
         public int ProgressMax { get; internal set; }
-        public void PostMessage(string message)
+
+        public void PostMessage(string message, bool bWarning = false)
         {
-            this.richTextBox1.Text += message;
+            this.Refresh();
+
+            if (bWarning)
+                this.richTextBox1.SelectionColor = Color.Red;
+            else
+                this.richTextBox1.SelectionColor = Color.Green;
+
+            this.richTextBox1.AppendText(message);
+
+            this.richTextBox1.SelectionStart = this.richTextBox1.Text.Length;
+            this.richTextBox1.ScrollToCaret();
+
+            if (bWarning)
+            {
+                string substring = "\n";
+                substring += message.Substring(34,8);
+                this.richTextBox2.AppendText(substring);
+                this.richTextBox2.SelectionStart = this.richTextBox2.Text.Length;
+                this.richTextBox2.ScrollToCaret();
+            }
         }
 
         public void UpdateProgress(int iProgress)
@@ -61,6 +81,11 @@ namespace Revit_Automation
         {
             this.progressBar1.Value = 100;
             this.button1.Text = "Finish";
+        }
+        internal void UpdateStarted()
+        {
+            this.progressBar1.Value = 0;
+            this.button1.Text = "Generating";
         }
 
         private void button2_Click(object sender, EventArgs e)

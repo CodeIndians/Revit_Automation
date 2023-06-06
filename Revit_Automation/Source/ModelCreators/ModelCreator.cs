@@ -42,6 +42,7 @@ namespace Revit_Automation
         {
 
             form.Show();
+            form.UpdateStarted();
             form.Refresh();
 
             Thread.Sleep(2000);

@@ -156,6 +156,12 @@ namespace Revit_Automation.Source
                     iLine.dOnCenter = StudOnCenterParam.AsDouble();
                 }
 
+                Parameter ParapetHeightParam = locCurve.LookupParameter("Parapet Height");
+                if (ParapetHeightParam != null)
+                {
+                    iLine.dParapetHeight = ParapetHeightParam.AsDouble();
+                }
+
                 Parameter DoubleStudParam = locCurve.LookupParameter("Double Stud");
                 if (DoubleStudParam != null)
                 {

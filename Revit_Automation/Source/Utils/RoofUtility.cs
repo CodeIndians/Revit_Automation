@@ -16,6 +16,8 @@ namespace Revit_Automation.Source.Utils
     public class RoofUtility
     {
         public static List<RoofObject> colRoofs = new List<RoofObject>();
+
+        public static List<RoofObject> colExtendedRoofs = new List<RoofObject>();
         public static void computeRoofSlopes(Document doc)
         {
             // Create a filter to get roof elements
@@ -132,6 +134,11 @@ namespace Revit_Automation.Source.Utils
 
 
                             RoofUtility.colRoofs.Add(roofObject);
+
+                            RoofObject roofObject1 = roofObject;
+                            roofObject1.min = new XYZ(pt1.X - 1, pt1.Y - 1, pt1.Z);
+                            roofObject1.max = new XYZ(pt2.X + 1, pt2.Y + 1, pt2.Z);
+                            RoofUtility.colExtendedRoofs.Add(roofObject1);
                         }
                     }
                 }
