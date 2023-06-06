@@ -1,14 +1,10 @@
 ﻿using Autodesk.Revit.DB;
 using Revit_Automation.CustomTypes;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Revit_Automation.Source.Utils
 {
-    public  class FloorHelper
+    public class FloorHelper
     {
         /// <summary>
         /// The collection of input lines
@@ -21,8 +17,7 @@ namespace Revit_Automation.Source.Utils
         /// <param name="doc"> Pointer to the Active document</param>
         public static void GatherFloors(Document doc)
         {
-            if (colFloors != null)
-                colFloors.Clear();
+            colFloors?.Clear();
 
             FilteredElementCollector floorsCollection
               = new FilteredElementCollector(doc)
@@ -31,11 +26,12 @@ namespace Revit_Automation.Source.Utils
 
             foreach (Element floor in floorsCollection)
             {
-                FloorObject floorObj = new FloorObject();
+                FloorObject floorObj = new FloorObject
+                {
+                    levelID = floor.LevelId,
 
-                floorObj.levelID = floor.LevelId;
-
-                floorObj.elemID = floor.Id;
+                    elemID = floor.Id
+                };
 
                 Parameter phaseCreated = floor.get_Parameter(BuiltInParameter.PHASE_CREATED);
                 if (phaseCreated != null)
@@ -65,18 +61,20 @@ namespace Revit_Automation.Source.Utils
                                 floorObj.max = face.Evaluate(max);
 
                                 bRangeComputed = true;
-                                  
+
                                 break;
-                            }  
+                            }
                         }
                     }
 
                     if (bRangeComputed)
+                    {
                         break;
+                    }
                 }
 
                 //Add the line to the collection 
-                AddFloor(floorObj);
+                _ = AddFloor(floorObj);
             }
         }
 

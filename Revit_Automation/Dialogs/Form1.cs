@@ -1,13 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Revit_Automation
@@ -17,9 +11,9 @@ namespace Revit_Automation
         public Form1()
         {
             InitializeComponent();
-            this.progressBar1.Value= 0;
-            this.richTextBox1.Text = "Beginning Creation of Model";
-            this.button1.Text = "START";
+            progressBar1.Value = 0;
+            richTextBox1.Text = "Beginning Creation of Model";
+            button1.Text = "START";
         }
 
         public bool CanCreateModel { get; internal set; }
@@ -28,38 +22,35 @@ namespace Revit_Automation
 
         public void PostMessage(string message, bool bWarning = false)
         {
-            this.Refresh();
+            Refresh();
 
-            if (bWarning)
-                this.richTextBox1.SelectionColor = Color.Red;
-            else
-                this.richTextBox1.SelectionColor = Color.Green;
+            richTextBox1.SelectionColor = bWarning ? Color.Red : Color.Green;
 
-            this.richTextBox1.AppendText(message);
+            richTextBox1.AppendText(message);
 
-            this.richTextBox1.SelectionStart = this.richTextBox1.Text.Length;
-            this.richTextBox1.ScrollToCaret();
+            richTextBox1.SelectionStart = richTextBox1.Text.Length;
+            richTextBox1.ScrollToCaret();
 
             if (bWarning)
             {
                 string substring = "\n";
-                substring += message.Substring(34,8);
-                this.richTextBox2.AppendText(substring);
-                this.richTextBox2.SelectionStart = this.richTextBox2.Text.Length;
-                this.richTextBox2.ScrollToCaret();
+                substring += message.Substring(34, 8);
+                richTextBox2.AppendText(substring);
+                richTextBox2.SelectionStart = richTextBox2.Text.Length;
+                richTextBox2.ScrollToCaret();
             }
         }
 
         public void UpdateProgress(int iProgress)
         {
-            this.progressBar1.Value += iProgress;
+            progressBar1.Value += iProgress;
         }
 
 
         private void button1_Click(object sender, EventArgs e)
         {
-            this.Close();
-            CanCreateModel=true;
+            Close();
+            CanCreateModel = true;
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -74,18 +65,18 @@ namespace Revit_Automation
 
         private void CloseBtn_Click(object sender, EventArgs e)
         {
-            this.Close();
+            Close();
         }
 
         internal void UpdateCompleted()
         {
-            this.progressBar1.Value = 100;
-            this.button1.Text = "Finish";
+            progressBar1.Value = 100;
+            button1.Text = "Finish";
         }
         internal void UpdateStarted()
         {
-            this.progressBar1.Value = 0;
-            this.button1.Text = "Generating";
+            progressBar1.Value = 0;
+            button1.Text = "Generating";
         }
 
         private void button2_Click(object sender, EventArgs e)
@@ -94,13 +85,13 @@ namespace Revit_Automation
 
             using (StreamWriter writer = new StreamWriter(filePath))
             {
-                writer.WriteLine(this.richTextBox1.Text); // Write a string to the file
-               
+                writer.WriteLine(richTextBox1.Text); // Write a string to the file
+
             }
 
             if (File.Exists(filePath))
             {
-                Process.Start(filePath); // Launch the file using the default program
+                _ = Process.Start(filePath); // Launch the file using the default program
             }
         }
     }

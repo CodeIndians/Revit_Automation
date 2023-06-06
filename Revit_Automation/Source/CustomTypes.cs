@@ -1,10 +1,5 @@
 ﻿using Autodesk.Revit.DB;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Security.Policy;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Revit_Automation.CustomTypes
 {
@@ -64,7 +59,7 @@ namespace Revit_Automation.CustomTypes
     }
     public enum DirectionWithRespectToRoofSlope
     {
-        Parallel = 0, 
+        Parallel = 0,
         Perpendicular
     }
 }

@@ -1,13 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 using System.Net;
+using System.Windows.Forms;
 
 namespace Revit_Automation.Dialogs
 {
@@ -15,37 +8,39 @@ namespace Revit_Automation.Dialogs
     {
         public Form2()
         {
-            this.ValidLicense = false;
+            ValidLicense = false;
             InitializeComponent();
             string hostName = Dns.GetHostName();
 
-            this.textBox1.Text = Dns.GetHostEntry(hostName).AddressList[1].ToString();
-            this.textBox3.Text = hostName;
+            textBox1.Text = Dns.GetHostEntry(hostName).AddressList[1].ToString();
+            textBox3.Text = hostName;
         }
 
         public bool ValidLicense { get; internal set; }
 
         private void button1_Click(object sender, EventArgs e)
         {
-            if (this.button1.Text == "Close")
-                this.Close();
-
-            if (this.richTextBox1.Text == "localhost")
+            if (button1.Text == "Close")
             {
-                this.label4.Visible = true;
-                this.pictureBox1.Visible = true;
-                this.ValidLicense = true;
+                Close();
+            }
+
+            if (richTextBox1.Text == "localhost")
+            {
+                label4.Visible = true;
+                pictureBox1.Visible = true;
+                ValidLicense = true;
             }
             else
             {
-                this.label4.Text = "Couldn't lease a license";
-                this.pictureBox1.Image = global::Revit_Automation.Properties.Resources.delete_button;
-                this.label4.Visible = true;
-                this.pictureBox1.Visible = true;
-                this.ValidLicense = false;
+                label4.Text = "Couldn't lease a license";
+                pictureBox1.Image = global::Revit_Automation.Properties.Resources.delete_button;
+                label4.Visible = true;
+                pictureBox1.Visible = true;
+                ValidLicense = false;
             }
-            this.button1.Text = "Close";
-            
+            button1.Text = "Close";
+
         }
     }
 }

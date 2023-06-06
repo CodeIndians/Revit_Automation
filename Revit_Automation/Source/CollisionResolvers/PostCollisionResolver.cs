@@ -1,13 +1,7 @@
 ﻿using Autodesk.Revit.DB;
-using Autodesk.Revit.DB.Visual;
 using Revit_Automation.CustomTypes;
 using Revit_Automation.Source.Interfaces;
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Drawing;
-using System.Linq;
-using static Revit_Automation.Source.Utils.WarningSwallowers;
 
 namespace Revit_Automation.Source.CollisionDetectors
 {
@@ -26,10 +20,10 @@ namespace Revit_Automation.Source.CollisionDetectors
                 new XYZ(collisionObject.CollisionPoint.X + 0.1,
                 collisionObject.CollisionPoint.Y + 0.1,
                 collisionObject.CollisionPoint.Z + 0.1));
-            
+
             // Create a BoundingBoxIntersects filter with this Outline
             BoundingBoxIntersectsFilter filter = new BoundingBoxIntersectsFilter(myOutLn);
-            
+
             // Apply the filter to the elements in the active document
             FilteredElementCollector collector = new FilteredElementCollector(m_Document);
             IList<Element> postElements = collector.WherePasses(filter).OfCategory(BuiltInCategory.OST_StructuralColumns).ToElements();
@@ -39,9 +33,11 @@ namespace Revit_Automation.Source.CollisionDetectors
 
             //Ideally we should have 2 columns and 2 input lines in collision case.
             if (InputLineElements.Count < 2 && postElements.Count < 2)
+            {
                 return;
+            }
 
-            Element ContinousLine = IdentifyContinousLineAtPoint(collisionObject.CollisionPoint, InputLineElements);
+            _ = IdentifyContinousLineAtPoint(collisionObject.CollisionPoint, InputLineElements);
 
         }
 
@@ -54,18 +50,20 @@ namespace Revit_Automation.Source.CollisionDetectors
             foreach (Element GenericLine in inputLineElements)
             {
                 // Get the location curve
-                var locationCurve = (LocationCurve)GenericLine.Location;
+                LocationCurve locationCurve = (LocationCurve)GenericLine.Location;
                 XYZ pt1 = locationCurve.Curve.GetEndPoint(0);
                 XYZ pt2 = locationCurve.Curve.GetEndPoint(1);
 
                 LineType lineType = LineType.vertical;
 
                 if (MathUtils.ApproximatelyEqual(pt1.Y, pt2.Y))
+                {
                     lineType = LineType.Horizontal;
+                }
 
                 if (lineType == LineType.Horizontal)
                 {
-                    TracePoint1 =  collisionPoint + new XYZ(0.1, 0, 0);
+                    TracePoint1 = collisionPoint + new XYZ(0.1, 0, 0);
                     TracePoint2 = collisionPoint + new XYZ(-0.1, 0, 0);
                 }
 
@@ -74,14 +72,14 @@ namespace Revit_Automation.Source.CollisionDetectors
                     TracePoint1 = collisionPoint + new XYZ(0, 0.1, 0);
                     TracePoint2 = collisionPoint + new XYZ(0, -0.1, 0);
                 }
-                    
+
             }
             return continousElement;
         }
 
         public void PlaceObjectInClearSpace()
         {
-            
+
         }
     }
 }

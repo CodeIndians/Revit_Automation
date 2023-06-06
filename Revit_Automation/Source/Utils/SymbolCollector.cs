@@ -8,12 +8,6 @@
 */
 
 using Autodesk.Revit.DB;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Revit_Automation
 {
@@ -24,7 +18,8 @@ namespace Revit_Automation
     {
         public static FilteredElementCollector CollSymbols;
 
-        public static void CollectColumnSymbols(Document doc) {
+        public static void CollectColumnSymbols(Document doc)
+        {
             if (CollSymbols == null)
             {
                 SymbolCollector.CollSymbols = new FilteredElementCollector(doc)
@@ -32,7 +27,7 @@ namespace Revit_Automation
                     .OfCategory(BuiltInCategory.OST_StructuralColumns);
             }
         }
-        static public FamilySymbol GetSymbol( string strSymbolName, string strFamilyName)
+        public static FamilySymbol GetSymbol(string strSymbolName, string strFamilyName)
         {
             FamilySymbol symbol = null;
 

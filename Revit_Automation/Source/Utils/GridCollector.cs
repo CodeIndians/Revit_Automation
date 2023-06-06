@@ -6,15 +6,12 @@
 /* -----------------------Revision History------------------------------------------
 */
 
-using Autodesk.Revit.Creation;
 using Autodesk.Revit.DB;
 using Revit_Automation.Source;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Document = Autodesk.Revit.DB.Document;
 
 namespace Revit_Automation
@@ -22,23 +19,22 @@ namespace Revit_Automation
     internal class GridCollector
     {
         private readonly Document mDocument;
-        private ICollection<Element> mGridCollection;
-        private List<Tuple<XYZ, XYZ>> mHorizontalLines;
-        private List<Tuple<XYZ, XYZ>> mVerticalLines;
         public static List<Tuple<XYZ, XYZ>> mHorizontalMainLines;
         public static List<Tuple<XYZ, XYZ>> mVerticalMainLines;
 
-        public ICollection<Element> GridCollection { get { return mGridCollection; } }
-        public List<Tuple<XYZ, XYZ>> HorizontalLines { get { return mHorizontalLines; } }
-        public List<Tuple<XYZ, XYZ>> VerticalLines { get { return mVerticalLines; } }
+        public ICollection<Element> GridCollection { get; private set; }
+        public List<Tuple<XYZ, XYZ>> HorizontalLines { get; private set; }
+        public List<Tuple<XYZ, XYZ>> VerticalLines { get; private set; }
 
 
-        public GridCollector(Document doc) 
+        public GridCollector(Document doc)
         {
             mDocument = doc;
 
-            if (mHorizontalLines == null && mVerticalLines == null)
+            if (HorizontalLines == null && VerticalLines == null)
+            {
                 Initialize();
+            }
         }
 
         /// <summary>
@@ -48,30 +44,31 @@ namespace Revit_Automation
         private void Initialize()
         {
             FilteredElementCollector gridCollector = new FilteredElementCollector(mDocument);
-            mGridCollection = gridCollector.OfCategory(BuiltInCategory.OST_Grids).ToElements();
+            GridCollection = gridCollector.OfCategory(BuiltInCategory.OST_Grids).ToElements();
 
             List<Tuple<XYZ, XYZ>> gridLines = new List<Tuple<XYZ, XYZ>>();
             List<Tuple<XYZ, XYZ>> mainGridLines = new List<Tuple<XYZ, XYZ>>();
             // collect each line into a gridline tuple 
-            foreach (Element element in mGridCollection)
+            foreach (Element element in GridCollection)
             {
                 Parameter archParameter = element.LookupParameter("Arch Grid");
 
-                if(archParameter != null)
+                if (archParameter != null)
                 {
                     int value = archParameter.AsInteger();
                     // Skip if Arch Grid is checkmarked
                     if (value == 1)
+                    {
                         continue;
+                    }
                 }
 
 
                 // add the tuple grid lines
-                Grid grid = element as Grid;
-                if (grid != null)
+                if (element is Grid grid)
                 {
 
-                    var pair = Tuple.Create(grid.Curve.GetEndPoint(0), grid.Curve.GetEndPoint(1));
+                    Tuple<XYZ, XYZ> pair = Tuple.Create(grid.Curve.GetEndPoint(0), grid.Curve.GetEndPoint(1));
                     gridLines.Add(pair);
 
                     Parameter mainGridParameter = element.LookupParameter("Main Grid");
@@ -80,7 +77,9 @@ namespace Revit_Automation
                         int value = mainGridParameter.AsInteger();
                         // Skip if Main Grid is not checkmarked
                         if (value == 1)
+                        {
                             mainGridLines.Add(pair);
+                        }
                     }
                 }
             }
@@ -88,8 +87,8 @@ namespace Revit_Automation
             double precision = 0.0001;
 
             // Collect Horizontal and Vertical Lines
-            mHorizontalLines = gridLines.Where(pair => Math.Abs(pair.Item1.Y - pair.Item2.Y) < precision).ToList().OrderBy(pair => pair.Item1.Y).ToList();
-            mVerticalLines = gridLines.Where(pair => Math.Abs(pair.Item1.X - pair.Item2.X) < precision).ToList().OrderBy(pair => pair.Item1.X).ToList();
+            HorizontalLines = gridLines.Where(pair => Math.Abs(pair.Item1.Y - pair.Item2.Y) < precision).ToList().OrderBy(pair => pair.Item1.Y).ToList();
+            VerticalLines = gridLines.Where(pair => Math.Abs(pair.Item1.X - pair.Item2.X) < precision).ToList().OrderBy(pair => pair.Item1.X).ToList();
 
             // Lines that are marked as main grids;
             mHorizontalMainLines = mainGridLines.Where(pair => Math.Abs(pair.Item1.Y - pair.Item2.Y) < precision).ToList().OrderBy(pair => pair.Item1.Y).ToList();
@@ -107,10 +106,10 @@ namespace Revit_Automation
             bool isEquidistant = true;
 
             // Check consecutive horizontal lines
-            for (int i = 0; i < mHorizontalLines.Count - 1; i++)
+            for (int i = 0; i < HorizontalLines.Count - 1; i++)
             {
-                double distance = mHorizontalLines[i + 1].Item1.X - mHorizontalLines[i].Item1.X;
-                if (Math.Abs(distance - (mHorizontalLines[i].Item2 - mHorizontalLines[i].Item1).GetLength()) > precision)
+                double distance = HorizontalLines[i + 1].Item1.X - HorizontalLines[i].Item1.X;
+                if (Math.Abs(distance - (HorizontalLines[i].Item2 - HorizontalLines[i].Item1).GetLength()) > precision)
                 {
                     isEquidistant = false;
                     break;
@@ -120,10 +119,10 @@ namespace Revit_Automation
             if (isEquidistant)
             {
                 // Check consecutive vertical lines
-                for (int i = 0; i < mVerticalLines.Count - 1; i++)
+                for (int i = 0; i < VerticalLines.Count - 1; i++)
                 {
-                    double distance = mVerticalLines[i + 1].Item1.Y - mVerticalLines[i].Item1.Y;
-                    if (Math.Abs(distance - (mVerticalLines[i].Item2 - mVerticalLines[i].Item1).GetLength()) > precision)
+                    double distance = VerticalLines[i + 1].Item1.Y - VerticalLines[i].Item1.Y;
+                    if (Math.Abs(distance - (VerticalLines[i].Item2 - VerticalLines[i].Item1).GetLength()) > precision)
                     {
                         isEquidistant = false;
                         break;
@@ -149,22 +148,21 @@ namespace Revit_Automation
 
             LineType lineType = MathUtils.ApproximatelyEqual(lineStart.Y, lineEnd.Y) ? LineType.Horizontal : LineType.vertical;
 
-            var mGridLinesToIntersect = bMain ? mHorizontalMainLines : mHorizontalLines;
+            List<Tuple<XYZ, XYZ>> mGridLinesToIntersect = bMain ? mHorizontalMainLines : HorizontalLines;
 
             if (MathUtils.ApproximatelyEqual(lineStart.Y, lineEnd.Y))
             {
-                mGridLinesToIntersect = bMain ? mVerticalMainLines : mVerticalLines;
+                mGridLinesToIntersect = bMain ? mVerticalMainLines : VerticalLines;
             }
-            
-        
+
+
             foreach (Tuple<XYZ, XYZ> GridlinetoIntersect in mGridLinesToIntersect)
             {
-                PointF ptIntesectionPoint;
-                bool bInsersects = MathUtils.GetIntersectionPoint(new PointF((float)(lineStart.X), (float)(lineStart.Y)),
-                                                                    new PointF((float)(lineEnd.X), (float)(lineEnd.Y)),
-                                                                    new PointF((float)GridlinetoIntersect.Item1.X, (float)(GridlinetoIntersect.Item1.Y)),
-                                                                    new PointF((float)(GridlinetoIntersect.Item2.X), (float)(GridlinetoIntersect.Item2.Y)),
-                                                                    out ptIntesectionPoint);
+                bool bInsersects = MathUtils.GetIntersectionPoint(new PointF((float)lineStart.X, (float)lineStart.Y),
+                                                                    new PointF((float)lineEnd.X, (float)lineEnd.Y),
+                                                                    new PointF((float)GridlinetoIntersect.Item1.X, (float)GridlinetoIntersect.Item1.Y),
+                                                                    new PointF((float)GridlinetoIntersect.Item2.X, (float)GridlinetoIntersect.Item2.Y),
+                                                                    out PointF ptIntesectionPoint);
 
                 if (bInsersects)
                 {
@@ -173,12 +171,9 @@ namespace Revit_Automation
                 }
             }
 
-            var sortedPoints = new List<XYZ>();
+            List<XYZ> sortedPoints = new List<XYZ>();
 
-            if (lineType == LineType.Horizontal)
-               sortedPoints =  colintesectPoints.OrderBy(p => p.X).ToList();
-            else
-                sortedPoints = colintesectPoints.OrderBy(p => p.Y).ToList();
+            sortedPoints = lineType == LineType.Horizontal ? colintesectPoints.OrderBy(p => p.X).ToList() : colintesectPoints.OrderBy(p => p.Y).ToList();
 
             return sortedPoints;
         }

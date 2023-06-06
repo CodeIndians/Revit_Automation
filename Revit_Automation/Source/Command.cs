@@ -7,21 +7,10 @@
 */
 
 #region Namespaces
-using Autodesk.Revit.ApplicationServices;
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
-using Autodesk.Revit.DB.Structure;
 using Autodesk.Revit.UI;
-using Autodesk.Revit.UI.Selection;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Windows;
 using System.Windows.Forms;
-using System.Windows.Media.Media3D;
-using System.Threading;
-using System.IO;
 
 #endregion
 
@@ -38,7 +27,7 @@ namespace Revit_Automation
         ExteriorParallel = 1,
         ExteriorPerpendicular = 2,
         InteriorParallel = 3,
-        InteriorPerpendicular    
+        InteriorPerpendicular
     }
 
     [Transaction(TransactionMode.Manual)]
@@ -53,13 +42,17 @@ namespace Revit_Automation
 
             UIApplication uiapp = commandData.Application;
 
-            Form1 form = new Form1();
-            form.StartPosition = FormStartPosition.CenterScreen;
+            Form1 form = new Form1
+            {
+                StartPosition = FormStartPosition.CenterScreen
+            };
             //form.TopMost= true;
-            form.ShowDialog();
+            _ = form.ShowDialog();
 
             if (form.CanCreateModel)
+            {
                 ModelCreator.CreateModel(uiapp, form, false, CommandCode.All);
+            }
 
             return Result.Succeeded;
         }
@@ -77,13 +70,17 @@ namespace Revit_Automation
 
             UIApplication uiapp = commandData.Application;
 
-            Form1 form = new Form1();
-            form.StartPosition = FormStartPosition.CenterScreen;
+            Form1 form = new Form1
+            {
+                StartPosition = FormStartPosition.CenterScreen
+            };
             //form.TopMost= true;
-            form.ShowDialog();
+            _ = form.ShowDialog();
 
             if (form.CanCreateModel)
+            {
                 ModelCreator.CreateModel(uiapp, form, true);
+            }
 
             return Result.Succeeded;
         }
@@ -101,13 +98,17 @@ namespace Revit_Automation
 
             UIApplication uiapp = commandData.Application;
 
-            Form1 form = new Form1();
-            form.StartPosition = FormStartPosition.CenterScreen;
+            Form1 form = new Form1
+            {
+                StartPosition = FormStartPosition.CenterScreen
+            };
             //form.TopMost= true;
-            form.ShowDialog();
+            _ = form.ShowDialog();
 
             if (form.CanCreateModel)
+            {
                 ModelCreator.CreateModel(uiapp, form, false, CommandCode.ExteriorParallel);
+            }
 
             return Result.Succeeded;
         }
@@ -125,13 +126,17 @@ namespace Revit_Automation
 
             UIApplication uiapp = commandData.Application;
 
-            Form1 form = new Form1();
-            form.StartPosition = FormStartPosition.CenterScreen;
+            Form1 form = new Form1
+            {
+                StartPosition = FormStartPosition.CenterScreen
+            };
             //form.TopMost= true;
-            form.ShowDialog();
+            _ = form.ShowDialog();
 
             if (form.CanCreateModel)
+            {
                 ModelCreator.CreateModel(uiapp, form, false, CommandCode.ExteriorPerpendicular);
+            }
 
             return Result.Succeeded;
         }
@@ -149,13 +154,17 @@ namespace Revit_Automation
 
             UIApplication uiapp = commandData.Application;
 
-            Form1 form = new Form1();
-            form.StartPosition = FormStartPosition.CenterScreen;
+            Form1 form = new Form1
+            {
+                StartPosition = FormStartPosition.CenterScreen
+            };
             //form.TopMost= true;
-            form.ShowDialog();
+            _ = form.ShowDialog();
 
             if (form.CanCreateModel)
+            {
                 ModelCreator.CreateModel(uiapp, form, false, CommandCode.InteriorParallel);
+            }
 
             return Result.Succeeded;
         }
@@ -173,13 +182,17 @@ namespace Revit_Automation
 
             UIApplication uiapp = commandData.Application;
 
-            Form1 form = new Form1();
-            form.StartPosition = FormStartPosition.CenterScreen;
+            Form1 form = new Form1
+            {
+                StartPosition = FormStartPosition.CenterScreen
+            };
             //form.TopMost= true;
-            form.ShowDialog();
+            _ = form.ShowDialog();
 
             if (form.CanCreateModel)
+            {
                 ModelCreator.CreateModel(uiapp, form, false, CommandCode.InteriorPerpendicular);
+            }
 
             return Result.Succeeded;
         }

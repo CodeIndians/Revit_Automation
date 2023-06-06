@@ -8,14 +8,10 @@
 */
 
 #region Namespaces
-using Autodesk.Revit.ApplicationServices;
-using Autodesk.Revit.Attributes;
-using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Revit_Automation.Dialogs;
 using System;
 using System.IO;
-using System.Collections.Generic;
 using System.Reflection;
 using System.Windows.Forms;
 using System.Windows.Media.Imaging;
@@ -28,16 +24,17 @@ namespace Revit_Automation
     {
         public Result OnStartup(UIControlledApplication a)
         {
-
-            Form2 form = new Form2();
-            form.StartPosition = FormStartPosition.CenterScreen;
-            form.TopMost = true;
+            _ = new Form2
+            {
+                StartPosition = FormStartPosition.CenterScreen,
+                TopMost = true
+            };
             //form.ShowDialog();
 
             //if (form.ValidLicense)
             {
                 // Create a custom ribbon tab
-                String tabName = "Automation Toolkit";
+                string tabName = "Automation Toolkit";
                 a.CreateRibbonTab(tabName);
 
                 // Add a new ribbon panel

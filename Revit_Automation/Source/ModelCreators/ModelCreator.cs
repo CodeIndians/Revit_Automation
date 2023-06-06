@@ -7,24 +7,15 @@
 /* -----------------------Revision History------------------------------------------
 */
 
-using Autodesk.Revit.DB.Structure;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using static Revit_Automation.Command;
-using System.Windows.Forms;
-using Revit_Automation.Source;
-using Revit_Automation.CustomTypes;
-using Revit_Automation.Source.ModelCreators;
-using System.Collections.ObjectModel;
-using Revit_Automation.Source.Utils;
 using Autodesk.Revit.UI.Selection;
+using Revit_Automation.Source;
+using Revit_Automation.Source.ModelCreators;
+using Revit_Automation.Source.Utils;
+using System;
+using System.Linq;
+using System.Threading;
 
 namespace Revit_Automation
 {
@@ -38,7 +29,7 @@ namespace Revit_Automation
         /// </summary>
         /// <param name="uiapp"> Application pointer</param>
         /// <param name="form">Address of the overlaying dialog when model creation is in progress </param>
-        static public void CreateModel(UIApplication uiapp, Form1 form, bool bSelected = false, CommandCode commandCode = CommandCode.All)
+        public static void CreateModel(UIApplication uiapp, Form1 form, bool bSelected = false, CommandCode commandCode = CommandCode.All)
         {
 
             form.Show();
@@ -48,7 +39,7 @@ namespace Revit_Automation
             Thread.Sleep(2000);
 
             UIDocument uidoc = uiapp.ActiveUIDocument;
-            Autodesk.Revit.ApplicationServices.Application app = uiapp.Application;
+            _ = uiapp.Application;
             Document doc = uidoc.Document;
             Selection selection = uidoc.Selection;
 
@@ -56,24 +47,23 @@ namespace Revit_Automation
             ClearStatics();
 
             IOrderedEnumerable<Level> levels = null;
-
             try
             {
                 // 1. Identify the roof slopes
                 RoofUtility.computeRoofSlopes(doc);
             }
-            catch(Exception ex) 
+            catch (Exception)
             {
-                TaskDialog.Show("Automation Error", "Failed while processing the roofs");
+                _ = TaskDialog.Show("Automation Error", "Failed while processing the roofs");
             }
 
             // 2. Identify the main Grids in the model
             GridCollector gridCollection = new GridCollector(doc);
 
             // 3. Validate if the grids are equidistant
-            if(gridCollection.Validate())
+            if (gridCollection.Validate())
             {
-                TaskDialog.Show("Automation Error" , "Grid Validation Failed");
+                _ = TaskDialog.Show("Automation Error", "Grid Validation Failed");
                 return;
             }
 
@@ -82,9 +72,9 @@ namespace Revit_Automation
                 // 4. Find the levels in the project
                 levels = FindAndSortLevels(doc);
             }
-            catch(Exception ex) 
+            catch (Exception)
             {
-                TaskDialog.Show("Automation Error", "Failed while processing the Levels");
+                _ = TaskDialog.Show("Automation Error", "Failed while processing the Levels");
             }
 
             try
@@ -92,9 +82,9 @@ namespace Revit_Automation
                 // 5. Find the levels in the project
                 IOrderedEnumerable<Floor> floors = FindAndSortFloors(doc);
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                TaskDialog.Show("Automation Error", "Failed while processing the Floors");
+                _ = TaskDialog.Show("Automation Error", "Failed while processing the Floors");
             }
 
             try
@@ -102,9 +92,9 @@ namespace Revit_Automation
                 // 6. Collect the necessary symbols
                 SymbolCollector.CollectColumnSymbols(doc);
             }
-            catch(Exception e) 
+            catch (Exception)
             {
-                TaskDialog.Show("Automation Error", "Failed while processing the Symbols");
+                _ = TaskDialog.Show("Automation Error", "Failed while processing the Symbols");
             }
             // 7. Input Lines to be collected
             InputLineUtility.GatherInputLines(doc, bSelected, selection, commandCode);
@@ -114,9 +104,9 @@ namespace Revit_Automation
             {
                 FloorHelper.GatherFloors(doc);
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                TaskDialog.Show("Automation Error", "Failed while processing the Levels");
+                _ = TaskDialog.Show("Automation Error", "Failed while processing the Levels");
             }
             // 9. Place Columns
             ColumnCreator columnCreator = new ColumnCreator(doc, form);
@@ -125,7 +115,7 @@ namespace Revit_Automation
 
             form.Visible = false;
             form.UpdateCompleted();
-            form.ShowDialog();
+            _ = form.ShowDialog();
         }
 
 
@@ -149,7 +139,7 @@ namespace Revit_Automation
 
         internal static void ClearStatics()
         {
-            RoofUtility.colRoofs?.Clear();       
+            RoofUtility.colRoofs?.Clear();
             GridCollector.mVerticalMainLines?.Clear();
             GridCollector.mHorizontalMainLines?.Clear();
             GridCollector.mHorizontalMainLines?.Clear();

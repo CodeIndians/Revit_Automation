@@ -7,16 +7,11 @@
 */
 
 using Autodesk.Revit.DB;
+using Autodesk.Revit.UI.Selection;
+using Revit_Automation.CustomTypes;
+using Revit_Automation.Source.Utils;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using Revit_Automation.CustomTypes;
-using System.Windows.Media.Animation;
-using Autodesk.Revit.UI.Selection;
-using Revit_Automation.Source.Utils;
 
 namespace Revit_Automation.Source
 {
@@ -36,8 +31,7 @@ namespace Revit_Automation.Source
         /// <param name="doc"> Pointer to the Active document</param>
         public static void GatherInputLines(Document doc, bool bSelected, Selection selection, CommandCode commandcode)
         {
-            if (colInputLines != null)
-                colInputLines.Clear();
+            colInputLines?.Clear();
 
             FilteredElementCollector locationCurvedCol = null;
 
@@ -64,7 +58,7 @@ namespace Revit_Automation.Source
                     locationCurvedCol = new FilteredElementCollector(doc, selectedIds);
 
                     // Apply the category filter to the collector
-                    locationCurvedCol.WherePasses(modelCategoryFilter);
+                    _ = locationCurvedCol.WherePasses(modelCategoryFilter);
 
 
                 }
@@ -72,12 +66,15 @@ namespace Revit_Automation.Source
 
             foreach (Element locCurve in locationCurvedCol)
             {
-                if(locCurve.IsHidden(doc.ActiveView))
+                if (locCurve.IsHidden(doc.ActiveView))
+                {
                     continue;
+                }
 
-                InputLine iLine = new InputLine(); 
-
-                iLine.locationCurve = (LocationCurve)locCurve.Location;
+                InputLine iLine = new InputLine
+                {
+                    locationCurve = (LocationCurve)locCurve.Location
+                };
 
                 iLine.startpoint = iLine.locationCurve.Curve.GetEndPoint(0);
                 iLine.endpoint = iLine.locationCurve.Curve.GetEndPoint(1);
@@ -177,56 +174,60 @@ namespace Revit_Automation.Source
                 // Compute Intersection Points with Grids. 
                 GridCollector GridCollectionHelper = new GridCollector(doc);
 
-                var locationCurve = (LocationCurve)locCurve.Location;
-                var linecoords = Tuple.Create(locationCurve.Curve.GetEndPoint(0), locationCurve.Curve.GetEndPoint(1));
+                LocationCurve locationCurve = (LocationCurve)locCurve.Location;
+                Tuple<XYZ, XYZ> linecoords = Tuple.Create(locationCurve.Curve.GetEndPoint(0), locationCurve.Curve.GetEndPoint(1));
 
                 // Compute if the Line is parallel, or perpendicular to roof slope.
                 XYZ lineDirection = locationCurve.Curve.GetEndPoint(1) - locationCurve.Curve.GetEndPoint(0);
                 XYZ roofSlope = GetRoofSlopeDirection(locationCurve.Curve.GetEndPoint(1));
-                if (MathUtils.IsParallel(roofSlope, lineDirection))
-                    iLine.dirWRTRoofSlope = DirectionWithRespectToRoofSlope.Parallel;
-                else
-                    iLine.dirWRTRoofSlope = DirectionWithRespectToRoofSlope.Perpendicular;
+                iLine.dirWRTRoofSlope = MathUtils.IsParallel(roofSlope, lineDirection)
+                    ? DirectionWithRespectToRoofSlope.Parallel
+                    : DirectionWithRespectToRoofSlope.Perpendicular;
 
-                    // Compute Grid Intersections for T62 Placement
-                    iLine.gridIntersectionPoints = GridCollectionHelper.computeIntersectionPoints(linecoords);
+                // Compute Grid Intersections for T62 Placement
+                iLine.gridIntersectionPoints = GridCollectionHelper.computeIntersectionPoints(linecoords);
 
                 // Compute Main intesection points for Stud placement offset
                 iLine.mainGridIntersectionPoints = GridCollectionHelper.computeIntersectionPoints(linecoords, true);
-                
+
                 //Add the line to the collection 
                 if (CheckIfPassesCondition(iLine, commandcode))
-                    AddInputLine(iLine);
+                {
+                    _ = AddInputLine(iLine);
+                }
             }
         }
 
         public static bool CheckIfPassesCondition(InputLine iLine, CommandCode commandcode)
         {
             if (commandcode == CommandCode.All)
+            {
                 return true;
-            
-            if (iLine.strWallType == null)
-                return true;
+            }
 
+            if (iLine.strWallType == null)
+            {
+                return true;
+            }
             else if (commandcode == CommandCode.ExteriorParallel)
             {
-                return (iLine.strWallType.Contains("Ex") &&
-                    iLine.dirWRTRoofSlope == DirectionWithRespectToRoofSlope.Parallel);
+                return iLine.strWallType.Contains("Ex") &&
+                    iLine.dirWRTRoofSlope == DirectionWithRespectToRoofSlope.Parallel;
             }
             else if (commandcode == CommandCode.ExteriorPerpendicular)
             {
-                return (iLine.strWallType.Contains("Ex") &&
-                    iLine.dirWRTRoofSlope == DirectionWithRespectToRoofSlope.Perpendicular);
+                return iLine.strWallType.Contains("Ex") &&
+                    iLine.dirWRTRoofSlope == DirectionWithRespectToRoofSlope.Perpendicular;
             }
             else if (commandcode == CommandCode.InteriorParallel)
             {
-                return (!iLine.strWallType.Contains("Ex") &&
-                    iLine.dirWRTRoofSlope == DirectionWithRespectToRoofSlope.Parallel);
+                return !iLine.strWallType.Contains("Ex") &&
+                    iLine.dirWRTRoofSlope == DirectionWithRespectToRoofSlope.Parallel;
             }
             else if (commandcode == CommandCode.InteriorPerpendicular)
             {
-                return (!iLine.strWallType.Contains("Ex") &&
-                    iLine.dirWRTRoofSlope == DirectionWithRespectToRoofSlope.Perpendicular);
+                return !iLine.strWallType.Contains("Ex") &&
+                    iLine.dirWRTRoofSlope == DirectionWithRespectToRoofSlope.Perpendicular;
             }
 
             return false;

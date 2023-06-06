@@ -1,15 +1,8 @@
 ﻿using Autodesk.Revit.DB;
+using Revit_Automation.CustomTypes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using Revit_Automation.CustomTypes;
-using System.Windows.Media.Animation;
-using Autodesk.Revit.DB.Architecture;
-using System.Diagnostics;
-using Autodesk.Revit.UI;
 
 namespace Revit_Automation.Source.Utils
 {
@@ -22,7 +15,7 @@ namespace Revit_Automation.Source.Utils
         {
             // Create a filter to get roof elements
             FilteredElementCollector collector = new FilteredElementCollector(doc);
-            collector.OfClass(typeof(RoofBase));
+            _ = collector.OfClass(typeof(RoofBase));
 
             // Get all the roof elements
             List<RoofBase> roofs = collector.Cast<RoofBase>().ToList();
@@ -39,8 +32,10 @@ namespace Revit_Automation.Source.Utils
                 // Get the geometry of the roof element
                 GeometryElement geometryElement = roof.get_Geometry(new Options());
 
-                if (geometryElement == null)   
+                if (geometryElement == null)
+                {
                     continue;
+                }
 
                 // Iterate through the geometry objects
                 foreach (GeometryObject geometryObject in geometryElement)
@@ -91,7 +86,7 @@ namespace Revit_Automation.Source.Utils
 
                             if (!isParallel)
                             {
-                                uniqueNormals.Add(normal);
+                                _ = uniqueNormals.Add(normal);
                                 filteredFaces.Add(faceObj);
                             }
                         }
@@ -125,12 +120,14 @@ namespace Revit_Automation.Source.Utils
                             XYZ pt1 = faceObj.Evaluate(min);
                             XYZ pt2 = faceObj.Evaluate(max);
 
-                            RoofObject roofObject = new RoofObject();
-                            roofObject.min = pt1;
-                            roofObject.max = pt2;
-                            roofObject.slopeLine = selectedCurve;
-                            roofObject.strBuildingName = strBuldName;
-                            roofObject.roofElementID = roofId;
+                            RoofObject roofObject = new RoofObject
+                            {
+                                min = pt1,
+                                max = pt2,
+                                slopeLine = selectedCurve,
+                                strBuildingName = strBuldName,
+                                roofElementID = roofId
+                            };
 
 
                             RoofUtility.colRoofs.Add(roofObject);

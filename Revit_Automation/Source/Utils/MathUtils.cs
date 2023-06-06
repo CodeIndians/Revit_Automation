@@ -8,11 +8,7 @@
 
 using Autodesk.Revit.DB;
 using System;
-using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Revit_Automation.Source
 {
@@ -37,7 +33,9 @@ namespace Revit_Automation.Source
             float delta = ((b2.Y - b1.Y) * (a2.X - a1.X)) - ((b2.X - b1.X) * (a2.Y - a1.Y));
 
             if (delta == 0)
+            {
                 return false;
+            }
 
             float na = ((b2.X - b1.X) * (a1.Y - b1.Y)) - ((b2.Y - b1.Y) * (a1.X - b1.X));
             float nb = ((a2.X - a1.X) * (a1.Y - b1.Y)) - ((a2.Y - a1.Y) * (a1.X - b1.X));
@@ -47,7 +45,7 @@ namespace Revit_Automation.Source
 
             if (ua >= 0 && ua <= 1 && ub >= 0 && ub <= 1)
             {
-                intersection = new PointF(a1.X + ua * (a2.X - a1.X), a1.Y + ua * (a2.Y - a1.Y));
+                intersection = new PointF(a1.X + (ua * (a2.X - a1.X)), a1.Y + (ua * (a2.Y - a1.Y)));
                 return true;
             }
 
@@ -58,15 +56,15 @@ namespace Revit_Automation.Source
         {
             double precision = 0.0001;
 
-            return (Math.Abs(d1 - d2) <= precision);
-                
-            
+            return Math.Abs(d1 - d2) <= precision;
+
+
         }
 
-        public static bool IsWithInRange (double reference, double high, double Low)
+        public static bool IsWithInRange(double reference, double high, double Low)
         {
 
-            return (reference >= Low && reference <= high);
+            return reference >= Low && reference <= high;
         }
 
         public static string CompareVectors(XYZ vector1, XYZ vector2)
@@ -78,24 +76,17 @@ namespace Revit_Automation.Source
             double dotProduct = vectorA.DotProduct(vectorB);
 
             // Compare the dot product to determine if vectors are parallel or anti-parallel
-            if (Math.Abs(dotProduct - 1) < 1e-6)
-            {
-                return "Parallel";
-            }
-            else if (Math.Abs(dotProduct + 1) < 1e-6)
-            {
-                return "Anti-Parallel";
-            }
-            else
-            {
-                return "Not parallel or anti-parallel";
-            }
+            return Math.Abs(dotProduct - 1) < 1e-6
+                ? "Parallel"
+                : Math.Abs(dotProduct + 1) < 1e-6 ? "Anti-Parallel" : "Not parallel or anti-parallel";
         }
 
         public static bool IsParallel(XYZ vector1, XYZ vector2)
         {
             if (vector1 == null || vector2 == null)
+            {
                 return false;
+            }
 
             XYZ vectorA = vector1.Normalize();
             XYZ vectorB = vector2.Normalize();
@@ -104,18 +95,7 @@ namespace Revit_Automation.Source
             double dotProduct = vectorA.DotProduct(vectorB);
 
             // Compare the dot product to determine if vectors are parallel or anti-parallel
-            if (Math.Abs(dotProduct - 1) < 1e-6)
-            {
-                return true;
-            }
-            else if (Math.Abs(dotProduct + 1) < 1e-6)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
+            return Math.Abs(dotProduct - 1) < 1e-6 || Math.Abs(dotProduct + 1) < 1e-6;
         }
     }
 }
