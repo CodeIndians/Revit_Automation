@@ -1024,10 +1024,10 @@ namespace Revit_Automation.Source.ModelCreators
                             }
 
                             // Offset for Main stud is 3'0" feet
-                            if (J == 0)
-                            {
-                                _ = column.get_Parameter(BuiltInParameter.FAMILY_BASE_LEVEL_OFFSET_PARAM).Set(-3);
-                            }
+                            //if (J == 0)
+                            //{
+                            //    _ = column.get_Parameter(BuiltInParameter.FAMILY_BASE_LEVEL_OFFSET_PARAM).Set(-3);
+                            //}
 
                             columnID = column.Id;
 
@@ -1093,10 +1093,10 @@ namespace Revit_Automation.Source.ModelCreators
                         _ = startcolumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM).Set(inputLine.dParapetHeight);
                     }
 
-                    if (i == 0)
-                    {
-                        _ = startcolumn.get_Parameter(BuiltInParameter.FAMILY_BASE_LEVEL_OFFSET_PARAM).Set(-3);
-                    }
+                    //if (i == 0)
+                    //{
+                    //    _ = startcolumn.get_Parameter(BuiltInParameter.FAMILY_BASE_LEVEL_OFFSET_PARAM).Set(-3);
+                    //}
 
                     // If we coulfdn't find a floor, the input line is on top floor
                     // Need to attach it to roof
@@ -1137,10 +1137,10 @@ namespace Revit_Automation.Source.ModelCreators
                         _ = endColumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM).Set(inputLine.dParapetHeight);
                     }
 
-                    if (i == 0)
-                    {
-                        _ = endColumn.get_Parameter(BuiltInParameter.FAMILY_BASE_LEVEL_OFFSET_PARAM).Set(-3);
-                    }
+                    //if (i == 0)
+                    //{
+                    //    _ = endColumn.get_Parameter(BuiltInParameter.FAMILY_BASE_LEVEL_OFFSET_PARAM).Set(-3);
+                    //}
 
                     // If we coulfdn't find a floor, the input line is on top floor
                     // Need to attach it to roof
