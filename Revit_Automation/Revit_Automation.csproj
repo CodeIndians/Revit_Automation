@@ -97,6 +97,7 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\Revit.png" />
+    <None Include="Docs\Dev_Notes.pdf" />
     <None Include="Resources\check-mark.png" />
     <Content Include="Resources\Bitmap1.bmp" />
     <Content Include="Resources\CodeIndians.ico" />
