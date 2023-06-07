@@ -52,12 +52,11 @@ namespace Revit_Automation.Source
             return false;
         }
 
-        public static bool ApproximatelyEqual(double d1, double d2)
+        public static bool ApproximatelyEqual(double d1, double d2, double tolerance = 0.0)
         {
             double precision = 0.0001;
 
-            return Math.Abs(d1 - d2) <= precision;
-
+            return Math.Abs(d1 - d2) <= (tolerance > 0 ? tolerance : precision);
 
         }
 

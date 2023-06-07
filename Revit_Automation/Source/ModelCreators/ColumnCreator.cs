@@ -221,7 +221,7 @@ namespace Revit_Automation.Source.ModelCreators
                         {
                             using (Transaction tx = new Transaction(m_Document))
                             {
-                                SupressWarningsInTransaction(tx);
+                                GenericUtils.SupressWarningsInTransaction(tx);
 
                                 _ = tx.Start("Placing posts");
                                 FamilyInstance studColumn = m_Document.Create.NewFamilyInstance(studPoint, columnType, baseLevel, StructuralType.Column);
@@ -268,24 +268,6 @@ namespace Revit_Automation.Source.ModelCreators
             {
                 //ErrorHandler.reportError();
             }
-        }
-
-        private void SupressWarningsInTransaction(Transaction tx)
-        {
-            FailureHandlingOptions failureHandlingOptions =
-                                tx.GetFailureHandlingOptions();
-
-            DuplicateColumnWarningSwallower duplicateColumnWarningSwallower =
-              new DuplicateColumnWarningSwallower();
-
-            _ = failureHandlingOptions.SetFailuresPreprocessor(
-              duplicateColumnWarningSwallower);
-
-            _ = failureHandlingOptions.SetClearAfterRollback(
-              true);
-
-            tx.SetFailureHandlingOptions(
-              failureHandlingOptions);
         }
 
         private void ProcessStudInputLine(InputLine inputLine, IOrderedEnumerable<Level> levels)
@@ -377,7 +359,7 @@ namespace Revit_Automation.Source.ModelCreators
 
                 using (Transaction tx = new Transaction(m_Document))
                 {
-                    SupressWarningsInTransaction(tx);
+                    GenericUtils.SupressWarningsInTransaction(tx);
 
                     _ = tx.Start("Place Column");
 
@@ -469,7 +451,7 @@ namespace Revit_Automation.Source.ModelCreators
                     _ = tx.Commit();
                 }
 
-                double dFlangeWidth = FlangeWidth(inputLine.strStudType);
+                double dFlangeWidth = GenericUtils.FlangeWidth(inputLine.strStudType);
 
                 // Reference - Dev Guide - Page 1
                 // At ends the column web should match with grid point. so we compute the adjusted point and move the colum to the desired location
@@ -502,7 +484,7 @@ namespace Revit_Automation.Source.ModelCreators
                 collider.HandleCollision(collisionObject2);
 
 
-                XYZ studPoint = null, studEndPoint = null;
+                XYZ studPoint = null, studEndPoint = null, studStartPoint = null;
 
                 // For placing On Center's This is the Logic
                 // Compute the Start point for On center placement in a given line
@@ -519,7 +501,7 @@ namespace Revit_Automation.Source.ModelCreators
                     {
                         studPoint += FlangeOffsetYVector;
                     }
-
+                    studStartPoint = pt1.Y > pt2.Y ? pt2 : pt1;
                     studEndPoint = pt1.Y > pt2.Y ? pt1 : pt2;
                 }
                 else
@@ -529,7 +511,7 @@ namespace Revit_Automation.Source.ModelCreators
                     {
                         studPoint += FlangeOffsetXVector;
                     }
-
+                    studStartPoint = pt1.Y > pt2.Y ? pt2 : pt1;
                     studEndPoint = pt1.X > pt2.X ? pt1 : pt2;
                 }
 
@@ -544,76 +526,91 @@ namespace Revit_Automation.Source.ModelCreators
 
                     if ((lineType == LineType.vertical && studPoint.Y < (studEndPoint.Y - 1.0)) || (lineType == LineType.horizontal && studPoint.X < (studEndPoint.X - 1.0)))
                     {
-                        using (Transaction tx = new Transaction(m_Document))
-                        {
-                            SupressWarningsInTransaction(tx);
 
-                            _ = tx.Start("Placing posts");
-                            FamilyInstance studColumn = m_Document.Create.NewFamilyInstance(studPoint, columnType, baseLevel, StructuralType.Column);
-
-                            if (inputLine.dParapetHeight == 0)
+                        if ((lineType == LineType.vertical && studPoint.Y > (studStartPoint.Y + 0.2083)) || (lineType == LineType.horizontal && studPoint.X >  (studStartPoint.X + 0.20833))) // This condition ensures there are no collisions at the start
+                        { 
+                            using (Transaction tx = new Transaction(m_Document))
                             {
-                                _ = studColumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(toplevel.Id);
-                                _ = studColumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM).Set(0);
-                            }
-                            else
-                            {
-                                _ = studColumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(baseLevel.Id);
-                                _ = studColumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM).Set(inputLine.dParapetHeight);
-                            }
+                                GenericUtils.SupressWarningsInTransaction(tx);
 
-                            // If we coulfdn't find a floor, the input line is on top floor
-                            // Need to attach it to roof
-                            topAttachElement = GetNearestFloorOrRoof(toplevel, studPoint);
-                            bottomAttachElement = GetNearestFloorOrRoof(baseLevel, studPoint);
+                                _ = tx.Start("Placing posts");
+                                FamilyInstance studColumn = m_Document.Create.NewFamilyInstance(studPoint, columnType, baseLevel, StructuralType.Column);
 
-                            if (topAttachElement == null)
-                            {
-                                topAttachElement = GetRoofAtPoint(studPoint);
-                            }
-
-                            if (topAttachElement != null)
-                            {
-                                ColumnAttachment.AddColumnAttachment(m_Document, studColumn, topAttachElement, 1, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
-                            }
-
-                            if (bottomAttachElement != null)
-                            {
-                                ColumnAttachment.AddColumnAttachment(m_Document, studColumn, bottomAttachElement, 0, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
-                            }
+                                if (inputLine.dParapetHeight == 0)
+                                {
+                                    _ = studColumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(toplevel.Id);
+                                    _ = studColumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM).Set(0);
+                                }
+                                else
+                                {
+                                    _ = studColumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(baseLevel.Id);
+                                    _ = studColumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM).Set(inputLine.dParapetHeight);
+                                }
 
 
-                            //m_Form.PostMessage(string.Format("Placing Post  {3} at {0} , {1} , {2} \n \n ", studPoint.X, studPoint.Y, studPoint.Z, inputLine.strStudType));
-                            StudColumnID = studColumn.Id;
-                            StudColumnOrientation = studColumn.FacingOrientation;
-                            _ = tx.Commit();
-                        }
+                                topAttachElement = GetNearestFloorOrRoof(toplevel, studPoint);
+                                bottomAttachElement = GetNearestFloorOrRoof(baseLevel, studPoint);
 
-                        UpdateOrientation(StudColumnID, StudColumnOrientation, studPoint, pt2);
+                                // If we coulfdn't find a floor, the input line is on top floor
+                                // Need to attach it to roof
+                                if (topAttachElement == null)
+                                {
+                                    topAttachElement = GetRoofAtPoint(studPoint);
+                                }
+
+                                if (topAttachElement != null)
+                                {
+                                    ColumnAttachment.AddColumnAttachment(m_Document, studColumn, topAttachElement, 1, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
+                                }
+
+                                if (bottomAttachElement != null)
+                                {
+                                    ColumnAttachment.AddColumnAttachment(m_Document, studColumn, bottomAttachElement, 0, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
+                                }
 
 
-                        // Compute the orientation after rotation. 
-                        FamilyInstance column = m_Document.GetElement(StudColumnID) as FamilyInstance;
-                        XYZ newOrientation = column.FacingOrientation;
-
-                        //If line orientation and Web orientaion are is same direction, we need to move the column back by Flange Width
-                        // This is because, we have moved the point away from origin while computing the stud on-center point. 
-                        if (inputLine.dFlangeOfset != 0 && MathUtils.CompareVectors(lineOrientation, newOrientation) == "Parallel")
-                        {
-                            XYZ lineEndPoint = null;
-
-                            if (lineType == LineType.vertical)
-                            {
-                                lineEndPoint = pt1.Y > pt2.Y ? pt1 : pt2;
+                                //m_Form.PostMessage(string.Format("Placing Post  {3} at {0} , {1} , {2} \n \n ", studPoint.X, studPoint.Y, studPoint.Z, inputLine.strStudType));
+                                StudColumnID = studColumn.Id;
+                                StudColumnOrientation = studColumn.FacingOrientation;
+                                _ = tx.Commit();
                             }
 
-                            if (lineType == LineType.horizontal)
+                            UpdateOrientation(StudColumnID, StudColumnOrientation, studPoint, pt2);
+
+
+                            // Compute the orientation after rotation. 
+                            FamilyInstance column = m_Document.GetElement(StudColumnID) as FamilyInstance;
+                            XYZ newOrientation = column.FacingOrientation;
+                            XYZ AdjustedLinePoint = null;
+                            
+                            //If line orientation and Web orientaion are is same direction, we need to move the column back by Flange Width
+                            // This is because, we have moved the point away from origin while computing the stud on-center point.
+                            // Figure 2 Dev Guide
+                            if (inputLine.dFlangeOfset != 0 && MathUtils.CompareVectors(lineOrientation, newOrientation) == "Parallel")
                             {
-                                lineEndPoint = pt1.X > pt2.X ? pt1 : pt2;
+                                XYZ lineEndPoint = null;
+
+                                if (lineType == LineType.vertical)
+                                {
+                                    lineEndPoint = pt1.Y > pt2.Y ? pt1 : pt2;
+                                }
+
+                                if (lineType == LineType.horizontal)
+                                {
+                                    lineEndPoint = pt1.X > pt2.X ? pt1 : pt2;
+                                }
+
+                                AdjustedLinePoint = AdjustLinePoint(studPoint, lineEndPoint, lineType, -dFlangeWidth);
+                                MoveColumn(StudColumnID, AdjustedLinePoint);
                             }
 
-                            XYZ AP1 = AdjustLinePoint(studPoint, lineEndPoint, lineType, -dFlangeWidth);
-                            MoveColumn(StudColumnID, AP1);
+                            CollisionObject collisionObject3 = new CollisionObject
+                            {
+                                CollisionPoint = AdjustedLinePoint,
+                                inputLineID = inputLine.id,
+                                collisionElementID = StudColumnID
+                            };
+                            collider.HandleCollision(collisionObject3);
                         }
 
                         // Move to next point
@@ -673,7 +670,7 @@ namespace Revit_Automation.Source.ModelCreators
             // This logic is to rotate the column such that it is perpendicular to Input line
             using (Transaction tx = new Transaction(m_Document))
             {
-                SupressWarningsInTransaction(tx);
+                GenericUtils.SupressWarningsInTransaction(tx);
 
                 _ = tx.Start("Change Orientation");
 
@@ -695,7 +692,7 @@ namespace Revit_Automation.Source.ModelCreators
 
             using (Transaction tx = new Transaction(m_Document))
             {
-                SupressWarningsInTransaction(tx);
+                GenericUtils.SupressWarningsInTransaction(tx);
 
                 _ = tx.Start("Change Orientation2");
 
@@ -740,7 +737,7 @@ namespace Revit_Automation.Source.ModelCreators
 
             using (Transaction tx = new Transaction(m_Document))
             {
-                SupressWarningsInTransaction(tx);
+                GenericUtils.SupressWarningsInTransaction(tx);
 
                 _ = tx.Start("Change Orientation");
 
@@ -907,7 +904,7 @@ namespace Revit_Automation.Source.ModelCreators
                 {
                     using (Transaction tx = new Transaction(m_Document))
                     {
-                        SupressWarningsInTransaction(tx);
+                        GenericUtils.SupressWarningsInTransaction(tx);
 
                         _ = tx.Start("Place Column");
 
@@ -961,7 +958,7 @@ namespace Revit_Automation.Source.ModelCreators
         private void ProcessDoubleStudAtGrids(InputLine inputLine, IOrderedEnumerable<Level> levels, FamilySymbol columnType, Element topAttachElement, Element bottomAttachElement, Level toplevel, Level baseLevel)
         {
 
-            double dFlangeWidth = FlangeWidth(inputLine.strStudType);
+            double dFlangeWidth = GenericUtils.FlangeWidth(inputLine.strStudType);
 
             try
             {
@@ -984,7 +981,7 @@ namespace Revit_Automation.Source.ModelCreators
                     {
                         using (Transaction tx = new Transaction(m_Document))
                         {
-                            SupressWarningsInTransaction(tx);
+                            GenericUtils.SupressWarningsInTransaction(tx);
 
                             _ = tx.Start("Place Column");
 
@@ -1076,7 +1073,7 @@ namespace Revit_Automation.Source.ModelCreators
                 using (Transaction tx = new Transaction(m_Document))
                 {
 
-                    SupressWarningsInTransaction(tx);
+                    GenericUtils.SupressWarningsInTransaction(tx);
 
                     _ = tx.Start("Place Column");
 
@@ -1180,7 +1177,7 @@ namespace Revit_Automation.Source.ModelCreators
                     _ = tx.Commit();
                 }
 
-                double dFlangeWidth = FlangeWidth(inputLine.strStudType);
+                double dFlangeWidth = GenericUtils.FlangeWidth(inputLine.strStudType);
 
                 UpdateOrientation(startColumnID, startColumnOrientation, pt1, pt2, true);
 
@@ -1256,7 +1253,7 @@ namespace Revit_Automation.Source.ModelCreators
 
             using (Transaction tx = new Transaction(m_Document))
             {
-                SupressWarningsInTransaction(tx);
+                GenericUtils.SupressWarningsInTransaction(tx);
 
                 _ = tx.Start("Change Orientation");
 
@@ -1274,40 +1271,7 @@ namespace Revit_Automation.Source.ModelCreators
             }
         }
 
-        private double FlangeWidth(string strColumnName)
-        {
-            double width = 0;
-            string token = "x";
-            string[] result = strColumnName.Split(new string[] { token }, StringSplitOptions.None);
-
-            if (result[1].Contains(" 1\""))
-            {
-                return 0.083333;
-            }
-            else if (result[1].Contains("1 1/2\""))
-            {
-                return 0.125;
-            }
-            else if (result[1].Contains(" 2\""))
-            {
-                return 0.166666;
-            }
-            else if (result[1].Contains("2 1/2\""))
-            {
-                return 0.208333;
-            }
-            else if (result[1].Contains(" 3\""))
-            {
-                return 0.25;
-            }
-            else if (result[1].Contains("3 1/2\""))
-            {
-                return 0.291666;
-            }
-
-            return width;
-
-        }
+        
 
         // This method returns the location of the nearest main grid to the given line.
         // The nearest main grid could be intersecting or not intersectin the line
