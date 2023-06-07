@@ -511,7 +511,7 @@ namespace Revit_Automation.Source.ModelCreators
                     {
                         studPoint += FlangeOffsetXVector;
                     }
-                    studStartPoint = pt1.Y > pt2.Y ? pt2 : pt1;
+                    studStartPoint = pt1.X > pt2.X ? pt2 : pt1;
                     studEndPoint = pt1.X > pt2.X ? pt1 : pt2;
                 }
 
@@ -606,7 +606,7 @@ namespace Revit_Automation.Source.ModelCreators
 
                             CollisionObject collisionObject3 = new CollisionObject
                             {
-                                CollisionPoint = AdjustedLinePoint,
+                                CollisionPoint = studPoint,
                                 inputLineID = inputLine.id,
                                 collisionElementID = StudColumnID
                             };
