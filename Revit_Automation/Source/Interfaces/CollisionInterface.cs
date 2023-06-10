@@ -4,7 +4,7 @@ namespace Revit_Automation.Source.Interfaces
 {
     public interface ICollisionInterface
     {
-        void HandleCollision(CollisionObject collisionObject);
+        bool HandleCollision(CollisionObject collisionObject);
         void PlaceObjectInClearSpace();
     }
 }

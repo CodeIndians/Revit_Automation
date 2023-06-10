@@ -220,6 +220,9 @@ namespace Revit_Automation.Source.ModelCreators
                 //compute levels
                 Level toplevel = null, baseLevel = null;
 
+                // If there are any HSS posts colliding with given posts, we have to delete the current post
+                bool bDeleteDolumn = false;
+
                 // Filter levels based on buldings to use
                 List<Level> filteredLevels = new List<Level>();
                 foreach (Level filteredlevel in levels)
@@ -369,7 +372,9 @@ namespace Revit_Automation.Source.ModelCreators
                         inputLineID = inputLine.id,
                         collisionElementID = startColumnID
                     };
-                    collider.HandleCollision(collisionObject);
+                   
+                    if (collider.HandleCollision(collisionObject))
+                        DeleteColumn(startColumnID);
 
                     CollisionObject collisionObject2 = new CollisionObject
                     {
@@ -377,10 +382,10 @@ namespace Revit_Automation.Source.ModelCreators
                         inputLineID = inputLine.id,
                         collisionElementID = EndColumnID
                     };
-                    collider.HandleCollision(collisionObject2);
+
+                    if (collider.HandleCollision(collisionObject2))
+                        DeleteColumn(EndColumnID);
                 }
-
-
 
 
                 XYZ studPoint = null, studEndPoint = null, studStartPoint = null;
@@ -498,7 +503,9 @@ namespace Revit_Automation.Source.ModelCreators
                                 inputLineID = inputLine.id,
                                 collisionElementID = StudColumnID
                             };
-                            collider.HandleCollision(collisionObject3);
+
+                            if (collider.HandleCollision(collisionObject3)) 
+                                    DeleteColumn(StudColumnID);
                         }
 
                         // Move to next point
@@ -521,6 +528,24 @@ namespace Revit_Automation.Source.ModelCreators
             catch (Exception)
             {
                 //ErrorHandler.reportError();
+            }
+        }
+
+        private void DeleteColumn(ElementId elemID)
+        {
+            try
+            {
+                using (Transaction tx = new Transaction(m_Document))
+                {
+                    tx.Start("Deleting Post");
+                    m_Document.Delete(elemID);
+                    tx.Commit();
+                }
+                
+            }
+            catch (Exception e)
+            {
+                
             }
         }
 

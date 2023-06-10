@@ -24,8 +24,9 @@ namespace Revit_Automation.Source.CollisionDetectors
         
         public PostCollisionResolver(Document doc) { m_Document = doc; }
 
-        public void HandleCollision(CollisionObject collisionObject)
+        public bool HandleCollision(CollisionObject collisionObject)
         {
+            
             // Create a Outline, uses a minimum and maximum XYZ point to initialize the Bounding Box. 
             Outline myOutLn = new Outline(
                 new XYZ(collisionObject.CollisionPoint.X - 0.3,
@@ -47,9 +48,15 @@ namespace Revit_Automation.Source.CollisionDetectors
             IList<Element> InputLineElements = collector2.WherePasses(filter).OfCategory(BuiltInCategory.OST_GenericModel).ToElements();
 
 
+            //Check for HSS at a given location, if present delete the colliding post
+            bool bhasHSS = CheckForHSS(postElements);
+            if (bhasHSS)
+                return true;
+
             //Ideally we should have 2 columns and 2 input lines in collision case.
             if (InputLineElements.Count >= 2 && postElements.Count >= 2)
             {
+                
                 // Identify the continous line and from it the Static Column
                 Element continuousLine = IdentifyContinousLineAtPoint(collisionObject.CollisionPoint, InputLineElements);
 
@@ -66,9 +73,21 @@ namespace Revit_Automation.Source.CollisionDetectors
                 }
             }
 
-            return;
+            return false;
         }
 
+        private bool CheckForHSS(IList<Element> postElements)
+        {
+            foreach (Element colElement in postElements)
+            {
+                FamilyInstance post = m_Document.GetElement(colElement.Id) as FamilyInstance;
+
+                if (post.Name.Contains("HSS"))
+                    return true;
+            }
+
+            return false;
+        }
 
         private void MoveNonStaticColumns(IList<Element> inputLineElements, IList<Element> postElements, double distanceToMove, Element continuousLine)
         {
