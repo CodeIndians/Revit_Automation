@@ -8,6 +8,8 @@ using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Diagnostics;
+using System.Drawing;
+using System.Linq.Expressions;
 
 namespace Revit_Automation.Source.CollisionDetectors
 {
@@ -199,6 +201,9 @@ namespace Revit_Automation.Source.CollisionDetectors
 
             foreach (Element GenericLine in inputLineElements)
             {
+                // When two lines intesect in a T junction and one line is extened a little bit
+                collisionPoint = AdjustCollisionPointIfNecessary(collisionPoint, GenericLine, inputLineElements);
+                
                 // Get the location curve
                 LocationCurve locationCurve = (LocationCurve)GenericLine.Location;
                 XYZ pt1 = locationCurve.Curve.GetEndPoint(0);
@@ -244,6 +249,56 @@ namespace Revit_Automation.Source.CollisionDetectors
                 }
             }
             return continousElement;
+        }
+
+        private XYZ AdjustCollisionPointIfNecessary(XYZ refPoint, Element genericLine, IList<Element> inputLineElements)
+        {
+            XYZ AdjustedPoint = refPoint;
+            List<XYZ> IntersectionPoints = new List<XYZ>();
+
+            XYZ lineStart = null, lineEnd = null;
+            GenericUtils.GetlineStartAndEndPoints(genericLine, out lineStart, out lineEnd);
+
+            XYZ LineOrientation = GenericUtils.GetLineOrientation(genericLine);
+
+            foreach (Element element in inputLineElements) 
+            {
+               XYZ elemOrientation = GenericUtils.GetLineOrientation(element);
+
+                if (!MathUtils.IsParallel(LineOrientation, elemOrientation))
+                {
+                    XYZ elemStart = null, elemEnd = null;
+                    GenericUtils.GetlineStartAndEndPoints(element, out elemStart, out elemEnd);
+
+                    bool bInsersects = MathUtils.GetIntersectionPoint(new PointF((float)lineStart.X, (float)lineStart.Y),
+                                                    new PointF((float)lineEnd.X, (float)lineEnd.Y),
+                                                    new PointF((float)elemStart.X, (float)elemStart.Y),
+                                                    new PointF((float)elemEnd.X, (float)elemEnd.Y),
+                                                    out PointF ptIntesectionPoint);
+
+                    if (bInsersects)
+                    {
+                        XYZ intesectPoint = new XYZ(ptIntesectionPoint.X, ptIntesectionPoint.Y, lineStart.Z);
+                        IntersectionPoints.Add(intesectPoint);
+                    }
+                }
+            }
+
+            
+            XYZ nearestPoint = null;
+            double minDistance = double.MaxValue;
+            
+            foreach (XYZ intersectionPoint in IntersectionPoints)
+            {
+                double distance = AdjustedPoint.DistanceTo(intersectionPoint);
+                if (distance < minDistance)
+                {
+                    minDistance = distance;
+                    nearestPoint = intersectionPoint;
+                }
+            }
+
+            return nearestPoint == null ? AdjustedPoint : nearestPoint; 
         }
 
         public void PlaceObjectInClearSpace()
