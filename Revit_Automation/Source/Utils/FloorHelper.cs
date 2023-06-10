@@ -1,5 +1,6 @@
 ﻿using Autodesk.Revit.DB;
 using Revit_Automation.CustomTypes;
+using System;
 using System.Collections.Generic;
 
 namespace Revit_Automation.Source.Utils
@@ -46,24 +47,70 @@ namespace Revit_Automation.Source.Utils
                     Solid solid = obj as Solid;
                     if (solid != null)
                     {
-                        foreach (Face face in solid.Faces)
+
+                        FaceArray faceArray = solid.Faces;
+                        List<Face> tempfilteredFaces = new List<Face>();
+                        List<Face> filteredFaces = new List<Face>();
+                        HashSet<XYZ> uniqueNormals = new HashSet<XYZ>();
+
+                        // Take only those faces whose normals are in Z Plane
+                        foreach (Face faceObj in faceArray)
+                        {
+                            // TO DO , Ignore Faces that have zero Z normal
+                            XYZ normal = faceObj.ComputeNormal(new UV(0, 0));
+                            double dotProduct = normal.DotProduct(XYZ.BasisZ);
+
+                            // Check if the dot product is close to zero (indicating not perpendicular to Z-direction)
+                            double tolerance = 1e-6;
+                            if (Math.Abs(dotProduct) > tolerance)
+                            {
+                                tempfilteredFaces.Add(faceObj);
+                            }
+                        }
+
+                        // Filter and collect unique faces with non-parallel normals
+                        foreach (Face faceObj in tempfilteredFaces)
+                        {
+                            XYZ normal = faceObj.ComputeNormal(new UV(0, 0));
+                            bool isParallel = false;
+
+                            // Check if the normal is parallel to any previously processed normals
+                            foreach (XYZ existingNormal in uniqueNormals)
+                            {
+                                double dotProduct = normal.DotProduct(existingNormal);
+
+                                // Check if the dot product is close to 1 (indicating parallel)
+                                double tolerance = 1e-6;
+                                if (Math.Abs(Math.Abs(dotProduct) - 1.0) < tolerance)
+                                {
+                                    isParallel = true;
+                                    break;
+                                }
+                            }
+
+                            if (!isParallel)
+                            {
+                                _ = uniqueNormals.Add(normal);
+                                filteredFaces.Add(faceObj);
+                            }
+                        }
+
+                        foreach (Face face in filteredFaces)
                         {
                             XYZ normal = face.ComputeNormal(new UV(0, 0));
                             XYZ ZNormal = new XYZ(0, 0, 1);
 
-                            if (MathUtils.IsParallel(normal, ZNormal))
-                            {
-                                BoundingBoxUV boundingBoxUV = face.GetBoundingBox();
-                                UV min = boundingBoxUV.Min;
-                                UV max = boundingBoxUV.Max;
+                            BoundingBoxUV boundingBoxUV = face.GetBoundingBox();
+                            UV min = boundingBoxUV.Min;
+                            UV max = boundingBoxUV.Max;
 
-                                floorObj.min = face.Evaluate(min);
-                                floorObj.max = face.Evaluate(max);
+                            floorObj.min = face.Evaluate(min);
+                            floorObj.max = face.Evaluate(max);
 
-                                bRangeComputed = true;
+                            bRangeComputed = true;
 
-                                break;
-                            }
+                            break;
+
                         }
                     }
 
