@@ -697,7 +697,7 @@ namespace Revit_Automation.Source.ModelCreators
 
                 XYZ slope = start.Z > end.Z ? (end - start) : (start - end);
 
-                SlopeDirect = new XYZ(slope.X, slope.Y, pt1.Z);
+                SlopeDirect = new XYZ(slope.X, slope.Y, 0.0);
             }
 
             return SlopeDirect;
