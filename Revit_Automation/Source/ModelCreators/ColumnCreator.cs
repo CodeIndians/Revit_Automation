@@ -422,6 +422,7 @@ namespace Revit_Automation.Source.ModelCreators
                 XYZ tempXVector = new XYZ(inputLine.dOnCenter, 0, 0);
                 XYZ tempYVector = new XYZ(0, inputLine.dOnCenter, 0);
 
+                double dStartCollisionTolerance = bDoubleStudOnCenter ? 0.8 : 0.32;
                 bool bCanCreateColumn = true;
                 while (bCanCreateColumn)
                 {
@@ -431,7 +432,7 @@ namespace Revit_Automation.Source.ModelCreators
                     if ((lineType == LineType.vertical && studPoint.Y < (studEndPoint.Y - 1.0)) || (lineType == LineType.horizontal && studPoint.X < (studEndPoint.X - 1.0)))
                     {
 
-                        if ((lineType == LineType.vertical && studPoint.Y > (studStartPoint.Y + 0.32)) || (lineType == LineType.horizontal && studPoint.X >  (studStartPoint.X + 0.32))) // This condition ensures there are no collisions at the start
+                        if ((lineType == LineType.vertical && studPoint.Y > (studStartPoint.Y + dStartCollisionTolerance)) || (lineType == LineType.horizontal && studPoint.X >  (studStartPoint.X + dStartCollisionTolerance))) // This condition ensures there are no collisions at the start
                         { 
                             using (Transaction tx = new Transaction(m_Document))
                             {
