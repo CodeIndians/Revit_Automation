@@ -28,12 +28,12 @@ namespace Revit_Automation.Source.CollisionDetectors
         {
             // Create a Outline, uses a minimum and maximum XYZ point to initialize the Bounding Box. 
             Outline myOutLn = new Outline(
-                new XYZ(collisionObject.CollisionPoint.X - 0.1,
-                collisionObject.CollisionPoint.Y - 0.1,
-                collisionObject.CollisionPoint.Z - 0.1),
-                new XYZ(collisionObject.CollisionPoint.X + 0.1,
-                collisionObject.CollisionPoint.Y + 0.1,
-                collisionObject.CollisionPoint.Z + 0.1));
+                new XYZ(collisionObject.CollisionPoint.X - 0.3,
+                collisionObject.CollisionPoint.Y - 0.3,
+                collisionObject.CollisionPoint.Z - 0.3),
+                new XYZ(collisionObject.CollisionPoint.X + 0.3,
+                collisionObject.CollisionPoint.Y + 0.3,
+                collisionObject.CollisionPoint.Z + 0.3));
 
             // Create a BoundingBoxIntersects filter with this Outline
             BoundingBoxIntersectsFilter filter = new BoundingBoxIntersectsFilter(myOutLn);
@@ -52,14 +52,18 @@ namespace Revit_Automation.Source.CollisionDetectors
             {
                 // Identify the continous line and from it the Static Column
                 Element continuousLine = IdentifyContinousLineAtPoint(collisionObject.CollisionPoint, InputLineElements);
-                Element StaticColumn = IdentifyStaticPost(continuousLine, postElements);
 
-                //Obtain the Webwidth from the Static Column
-                double dWebWidth = StaticColumn == null ? 0 : GenericUtils.WebWidth(StaticColumn.Name);
+                if (continuousLine != null)
+                {
+                    Element StaticColumn = IdentifyStaticPost(continuousLine, postElements);
 
-                // Adjust the non static posts accordingly
-                if (dWebWidth > 0)
-                    MoveNonStaticColumns(InputLineElements, postElements, dWebWidth / 2, continuousLine);
+                    //Obtain the Webwidth from the Static Column
+                    double dWebWidth = StaticColumn == null ? 0 : GenericUtils.WebWidth(StaticColumn.Name);
+
+                    // Adjust the non static posts accordingly
+                    if (dWebWidth > 0)
+                        MoveNonStaticColumns(InputLineElements, postElements, dWebWidth / 2, continuousLine);
+                }
             }
 
             return;

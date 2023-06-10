@@ -181,5 +181,28 @@ namespace Revit_Automation.Source.Utils
                 end = pt1.Y > pt2.Y ? pt1 : pt2;
             }
         }
+
+        public static void GetlineStartAndEndPoints(InputLine inputLine, out XYZ start, out XYZ end)
+        {
+            LocationCurve locationCurve = inputLine.locationCurve;
+            XYZ pt1 = locationCurve.Curve.GetEndPoint(0);
+            XYZ pt2 = locationCurve.Curve.GetEndPoint(1);
+
+            start = null; end = null;
+
+            LineType lineType = MathUtils.ApproximatelyEqual(pt1.Y, pt2.Y) ? LineType.Horizontal : LineType.vertical;
+
+            if (lineType == LineType.Horizontal)
+            {
+                start = pt1.X > pt2.X ? pt2 : pt1;
+                end = pt1.X > pt2.X ? pt1 : pt2;
+            }
+
+            if (lineType == LineType.vertical)
+            {
+                start = pt1.Y > pt2.Y ? pt2 : pt1;
+                end = pt1.Y > pt2.Y ? pt1 : pt2;
+            }
+        }
     }
 }
