@@ -34,7 +34,7 @@ namespace Revit_Automation.Source.ModelCreators
         private void ProcessInputLines(List<InputLine> inputLinesCollection, IOrderedEnumerable<Level> levels)
         {
 
-            int iLineProcessing = 1;
+            int iLineProcessing = 0;
 
             DateTime StartTime = DateTime.Now;
 
@@ -46,8 +46,9 @@ namespace Revit_Automation.Source.ModelCreators
             {
                 try
                 {
-                    m_Form.PostMessage(string.Format("Processing Line {0} / {1}", iLineProcessing, inputLinesCollection.Count));
-
+                    iLineProcessing++;
+                    m_Form.PostMessage(string.Format("\n Processing Line {0} / {1}", iLineProcessing, inputLinesCollection.Count));
+                    Logger.logMessage(string.Format("Processing Line {0} / {1} : ID : {2}", iLineProcessing, inputLinesCollection.Count, inputLine.id));
 
                     if (iCounter < 100 && (iCounter < dCounter))
                     {
@@ -55,34 +56,38 @@ namespace Revit_Automation.Source.ModelCreators
                         m_Form.UpdateProgress(iCounter);
                     }
 
-
-                    ErrorHandler.elemIDbeingProcessed = inputLine.id;
-
                     if (!string.IsNullOrEmpty(inputLine.strDoubleStudType))
                     {
+                        Logger.logMessage("ProcessInputLines - ProcessDoubleStud ");
                         ProcessDoubleStud(inputLine, levels);
                     }
                     else if (!string.IsNullOrEmpty(inputLine.strT62Guage) && !string.IsNullOrEmpty(inputLine.strStudGuage))
                     {
+                        Logger.logMessage("ProcessInputLines - ProcessT62AndStudLine ");
                         ProcessT62AndStudLine(inputLine, levels);
+                        
                     }
                     else if (!string.IsNullOrEmpty(inputLine.strT62Guage))
                     {
+                        Logger.logMessage("ProcessInputLines - ProcessT62InputLine ");
                         ProcessT62InputLine(inputLine, levels);
                     }
                     else if (!string.IsNullOrEmpty(inputLine.strStudGuage))
                     {
+                        Logger.logMessage("ProcessInputLines - ProcessStudInputLine ");
                         ProcessStudInputLine(inputLine, levels);
                     }
 
                     dCounter += dIncrementFactor;
-                    iLineProcessing++;
+
                     m_Form.PostMessage(string.Format("\n SuccessFully Procesed InputLine {0} at {1}", inputLine.id, DateTime.Now));
+                    Logger.logMessage(string.Format("Processed Line {0} / {1} : ID : {2}", iLineProcessing, inputLinesCollection.Count, inputLine.id));
                 }
 
                 catch (Exception)
                 {
                     m_Form.PostMessage(string.Format("\n !!! Failed  To Process InputLine {0}, at {1}. Please Review", inputLine.id, DateTime.Now), true);
+                    Logger.logError(string.Format("\n !!! Failed  To Process InputLine {0}, at {1}. Please Review", inputLine.id, DateTime.Now));
                 }
 
             }
@@ -98,7 +103,7 @@ namespace Revit_Automation.Source.ModelCreators
         private void ProcessDoubleStud(InputLine inputLine, IOrderedEnumerable<Level> levels)
         {
 
-            ErrorHandler.elemIDbeingProcessed = inputLine.id;
+            Logger.logMessage("Method : ProcessDoubleStud");
 
             try
             {
@@ -157,6 +162,7 @@ namespace Revit_Automation.Source.ModelCreators
 
                 if (inputLine.strDoubleStudType.Contains("At Ends"))
                 {
+                    Logger.logMessage("ProcessDoubleStud - At Ends");
                     ProcessDoubleStudAtEnds(inputLine, pt1, pt2, columnType, topAttachElement, bottomAttachElement, toplevel, baseLevel);
                     if (inputLine.dOnCenter != 0)
                         ProcessStudInputLine(inputLine, levels, true);
@@ -164,13 +170,15 @@ namespace Revit_Automation.Source.ModelCreators
 
                 else if (inputLine.strDoubleStudType == "At Grids")
                 {
+                    Logger.logMessage("ProcessDoubleStud -At Grids");
                     ProcessDoubleStudAtGrids(inputLine, levels, columnType, topAttachElement, bottomAttachElement, toplevel, baseLevel);
                     if (inputLine.dOnCenter != 0)
                         ProcessStudInputLine(inputLine, levels, false);
                 }
 
                 else if (inputLine.strDoubleStudType == "Cont")
-                { 
+                {
+                    Logger.logMessage("ProcessDoubleStud - Continuous");
                     ProcessContinuousDoubleStuds(inputLine, pt1, pt2, columnType, topAttachElement, bottomAttachElement, toplevel, baseLevel, lineType, lineOrientation);
                 }
             }
@@ -188,7 +196,8 @@ namespace Revit_Automation.Source.ModelCreators
         /// <param name="bDoubleStudOnCenter"> If this parameter is true we do not place start and end columns</param>
         private void ProcessStudInputLine(InputLine inputLine, IOrderedEnumerable<Level> levels, bool bDoubleStudOnCenter = false)
         {
-            ErrorHandler.elemIDbeingProcessed = inputLine.id;
+
+            Logger.logMessage("Method - ProcessStudInputLine");
             double dFlangeWidth = GenericUtils.FlangeWidth(inputLine.strStudType);
 
             if (inputLine.dOnCenter == 0)
@@ -270,10 +279,9 @@ namespace Revit_Automation.Source.ModelCreators
 
                         _ = tx.Start("Place Column");
 
-                        _ = CheckForExistingColumns(pt1);
-
                         //Place Column at start
                         FamilyInstance startcolumn = m_Document.Create.NewFamilyInstance(pt1, columnType, baseLevel, StructuralType.Column);
+                        Logger.logMessage("ProcessStudInputLine - Place Column at Start");
 
                         if (inputLine.dParapetHeight == 0)
                         {
@@ -312,6 +320,7 @@ namespace Revit_Automation.Source.ModelCreators
 
                         // Place column at end
                         FamilyInstance endColumn = m_Document.Create.NewFamilyInstance(pt2, columnType, baseLevel, StructuralType.Column);
+                        Logger.logMessage("ProcessStudInputLine - Place Column at End");
 
                         if (inputLine.dParapetHeight == 0)
                         {
@@ -355,14 +364,20 @@ namespace Revit_Automation.Source.ModelCreators
                     // Reference - Dev Guide - Page 1
                     // At ends the column web should match with grid point. so we compute the adjusted point and move the colum to the desired location
                     UpdateOrientation(startColumnID, startColumnOrientation, pt1, pt2, true);
+                    Logger.logMessage("ProcessStudInputLine - Update Orientation at Start");
+
                     XYZ Adjustedpt1 = AdjustLinePoint(pt1, pt2, lineType, dFlangeWidth / 2);
                     MoveColumn(startColumnID, Adjustedpt1);
+                    Logger.logMessage("ProcessStudInputLine - Move Column at end");
 
                     // Reference - Dev Guide - Page 1
                     // At ends the column web should match with grid point. so we compute the adjusted point and move the colum to the desired location
                     UpdateOrientation(EndColumnID, endColumnOrientation, pt2, pt1, true);
+                    Logger.logMessage("ProcessStudInputLine - Update Orientation at end");
+
                     XYZ Adjustedpt2 = AdjustLinePoint(pt2, pt1, lineType, dFlangeWidth / 2);
                     MoveColumn(EndColumnID, Adjustedpt2);
+                    Logger.logMessage("ProcessStudInputLine - Move Column at end");
 
                     // Collision Handling
 
@@ -372,10 +387,12 @@ namespace Revit_Automation.Source.ModelCreators
                         inputLineID = inputLine.id,
                         collisionElementID = startColumnID
                     };
-                   
+                    
+                    Logger.logMessage("ProcessStudInputLine - Collision at Start");
                     if (collider.HandleCollision(collisionObject))
                         DeleteColumn(startColumnID);
 
+                    
                     CollisionObject collisionObject2 = new CollisionObject
                     {
                         CollisionPoint = pt2,
@@ -383,6 +400,7 @@ namespace Revit_Automation.Source.ModelCreators
                         collisionElementID = EndColumnID
                     };
 
+                    Logger.logMessage("ProcessStudInputLine - Collision at End");
                     if (collider.HandleCollision(collisionObject2))
                         DeleteColumn(EndColumnID);
                 }
@@ -440,6 +458,7 @@ namespace Revit_Automation.Source.ModelCreators
 
                                 _ = tx.Start("Placing posts");
                                 FamilyInstance studColumn = m_Document.Create.NewFamilyInstance(studPoint, columnType, baseLevel, StructuralType.Column);
+                                Logger.logMessage("ProcessStudInputLine - Placing column at On Center");
 
                                 if (inputLine.dParapetHeight == 0)
                                 {
@@ -480,6 +499,7 @@ namespace Revit_Automation.Source.ModelCreators
                                 _ = tx.Commit();
                             }
 
+                            Logger.logMessage("ProcessStudInputLine - Update Orientation at On-Center");
                             UpdateOrientation(StudColumnID, StudColumnOrientation, studPoint, pt2);
 
 
@@ -493,7 +513,7 @@ namespace Revit_Automation.Source.ModelCreators
                             // Figure 2 Dev Guide
                             if (inputLine.dFlangeOfset != 0 && MathUtils.CompareVectors(lineOrientation, newOrientation) == "Parallel")
                             {
-
+                                Logger.logMessage("ProcessStudInputLine - Flange Offset related adjustments");
                                 AdjustedLinePoint = AdjustLinePoint(studPoint, pt2, lineType, -dFlangeWidth);
                                 MoveColumn(StudColumnID, AdjustedLinePoint);
                             }
@@ -504,7 +524,7 @@ namespace Revit_Automation.Source.ModelCreators
                                 inputLineID = inputLine.id,
                                 collisionElementID = StudColumnID
                             };
-
+                            Logger.logMessage("ProcessStudInputLine - Collision detection at On-Center");
                             if (collider.HandleCollision(collisionObject3)) 
                                     DeleteColumn(StudColumnID);
                         }
@@ -538,8 +558,11 @@ namespace Revit_Automation.Source.ModelCreators
             {
                 using (Transaction tx = new Transaction(m_Document))
                 {
+                    Logger.logMessage("Method : Delete Column");
+
                     tx.Start("Deleting Post");
                     m_Document.Delete(elemID);
+                    
                     tx.Commit();
                 }
                 
@@ -588,6 +611,7 @@ namespace Revit_Automation.Source.ModelCreators
                     dAngle = Math.PI * 90 / 180;
                 }
 
+                Logger.logMessage("UpdateOrientation - Making web Perpendicular to the line");
                 ElementTransformUtils.RotateElement(m_Document, columnID, axis, dAngle);
 
                 _ = tx.Commit();
@@ -610,6 +634,7 @@ namespace Revit_Automation.Source.ModelCreators
                     // The web outward normal should be in a direction opposite to that of Input Line For Start and End Lines
                     if (MathUtils.CompareVectors(UnitVectorAlongLine, newOrientation) == "Parallel")
                     {
+                        Logger.logMessage("UpdateOrientation - Making End Columns face each other");
                         ElementTransformUtils.RotateElement(m_Document, columnID, axis, Math.PI);
                     }
                 }
@@ -624,6 +649,7 @@ namespace Revit_Automation.Source.ModelCreators
                     {
                         if (MathUtils.CompareVectors(SlopeDirection, newOrientation) == "Anti-Parallel")
                         {
+                            Logger.logMessage("UpdateOrientation - Open C should point to high eve");
                             ElementTransformUtils.RotateElement(m_Document, columnID, axis, Math.PI);
                         }
                     }
@@ -645,6 +671,7 @@ namespace Revit_Automation.Source.ModelCreators
 
                 _ = tx.Start("Change Orientation");
 
+                Logger.logMessage("Rotate Column - by a given angle");
                 ElementTransformUtils.RotateElement(m_Document, columnID, axis, dAngle);
 
                 _ = tx.Commit();
@@ -653,6 +680,8 @@ namespace Revit_Automation.Source.ModelCreators
 
         private XYZ GetRoofSlopeDirection(XYZ pt1)
         {
+            Logger.logMessage("Method : GetRoofSlopeDirection");
+
             XYZ SlopeDirect = null;
 
             RoofObject targetRoof;
@@ -674,18 +703,21 @@ namespace Revit_Automation.Source.ModelCreators
             }
 
             //we are trying to intersect the point with extended roof
-            foreach (RoofObject roof in RoofUtility.colExtendedRoofs)
+            if (targetRoof.slopeLine == null)
             {
-                double Xmin, Xmax, Ymin, Ymax = 0.0;
-                Xmin = Math.Min(roof.max.X, roof.min.X);
-                Xmax = Math.Max(roof.max.X, roof.min.X);
-                Ymin = Math.Min(roof.max.Y, roof.min.Y);
-                Ymax = Math.Max(roof.max.Y, roof.min.Y);
-
-                if (pt1.X > Xmin && pt1.X < Xmax && pt1.Y > Ymin && pt1.Y < Ymax)
+                foreach (RoofObject roof in RoofUtility.colExtendedRoofs)
                 {
-                    targetRoof = roof;
-                    break;
+                    double Xmin, Xmax, Ymin, Ymax = 0.0;
+                    Xmin = Math.Min(roof.max.X, roof.min.X);
+                    Xmax = Math.Max(roof.max.X, roof.min.X);
+                    Ymin = Math.Min(roof.max.Y, roof.min.Y);
+                    Ymax = Math.Max(roof.max.Y, roof.min.Y);
+
+                    if (pt1.X > Xmin && pt1.X < Xmax && pt1.Y > Ymin && pt1.Y < Ymax)
+                    {
+                        targetRoof = roof;
+                        break;
+                    }
                 }
             }
 
@@ -705,6 +737,8 @@ namespace Revit_Automation.Source.ModelCreators
 
         private Element GetRoofAtPoint(XYZ pt1)
         {
+            Logger.logMessage("Method : GetRoofAtPoint");
+
             RoofObject targetRoof;
             targetRoof.slopeLine = null;
             targetRoof.roofElementID = null;
@@ -736,6 +770,8 @@ namespace Revit_Automation.Source.ModelCreators
         /// <param name="lineType"></param>
         private XYZ AdjustLinePoint(XYZ pt1, XYZ pt2, LineType lineType, double dOffset)
         {
+            Logger.logMessage("Method : GetRoofAtPoint");
+
             if (pt1 == null || pt2 == null)
                 return null;
 
@@ -761,10 +797,10 @@ namespace Revit_Automation.Source.ModelCreators
 
         private void ProcessT62InputLine(InputLine inputLine, IOrderedEnumerable<Level> levels)
         {
-            ErrorHandler.elemIDbeingProcessed = inputLine.id;
-
             try
             {
+                Logger.logMessage("Method : ProcessT62InputLine");
+
                 XYZ pt1 = inputLine.locationCurve.Curve.GetEndPoint(0);
                 XYZ pt2 = inputLine.locationCurve.Curve.GetEndPoint(1);
 
@@ -803,7 +839,15 @@ namespace Revit_Automation.Source.ModelCreators
                     }
                 }
 
+                Logger.logMessage("Method : ProcessT62InputLine");
                 FamilySymbol columnType = SymbolCollector.GetSymbol(inputLine.strT62Type, "T62");
+
+                if (columnType == null)
+                {
+                    Logger.logMessage(" ProcessT62InputLine : Cannot find the T-62 Post family");
+                    return;
+                }
+
                 XYZ T62Orientation = null;
                 ElementId t62ElementId = null;
 
@@ -817,7 +861,7 @@ namespace Revit_Automation.Source.ModelCreators
 
 
                         FamilyInstance column = m_Document.Create.NewFamilyInstance(studPoint, columnType, baseLevel, StructuralType.Column);
-
+                        Logger.logMessage(" ProcessT62InputLine :At Grid Intersection Points");
                         //m_Form.PostMessage(string.Format("Placing T62  {3} at {0} , {1} , {2} \n \n ", studPoint.X, studPoint.Y, studPoint.Z, inputLine.strT62Type));
 
                         if (inputLine.dParapetHeight == 0)
@@ -839,6 +883,7 @@ namespace Revit_Automation.Source.ModelCreators
                     }
 
                     UpdateOrientation(t62ElementId, T62Orientation, studPoint, pt2, false);
+                    Logger.logMessage(" ProcessT62InputLine :Update orientation");
                 }
             }
             catch (Exception) { }
@@ -846,27 +891,18 @@ namespace Revit_Automation.Source.ModelCreators
 
         private void ProcessT62AndStudLine(InputLine inputLine, IOrderedEnumerable<Level> levels)
         {
+            Logger.logMessage("Method : ProcessT62AndStudLine");
             ProcessT62InputLine(inputLine, levels);
             ProcessStudInputLine(inputLine, levels);
         }
 
-        private bool CheckForExistingColumns(XYZ pt)
-        {
-            BoundingBoxContainsPointFilter filter = new BoundingBoxContainsPointFilter(pt);
-
-            // Apply the filter to the elements in the active document
-            // This filter will excludes all objects derived from View and objects derived from ElementType
-            FilteredElementCollector collector = new FilteredElementCollector(m_Document);
-            IList<Element> elements = collector.WherePasses(filter).OfCategory(BuiltInCategory.OST_StructuralColumns).ToElements();
-
-            return elements.Count > 0;
-        }
-
         private void ProcessDoubleStudAtGrids(InputLine inputLine, IOrderedEnumerable<Level> levels, FamilySymbol columnType, Element topAttachElement, Element bottomAttachElement, Level toplevel, Level baseLevel)
         {
+            Logger.logMessage("Method : ProcessDoubleStudAtGrids");
 
             double dFlangeWidth = GenericUtils.FlangeWidth(inputLine.strStudType);
             int iMovementFactor = 1; // This will be used to determine the movement direction of the Second stud before rotation
+            
             try
             {
                 for (int J = 0; J < 2; J++)
@@ -896,9 +932,8 @@ namespace Revit_Automation.Source.ModelCreators
 
 
                             FamilyInstance column = m_Document.Create.NewFamilyInstance(studPoint, columnType, baseLevel, StructuralType.Column);
-
-                            //m_Form.PostMessage(string.Format("Placing T62  {3} at {0} , {1} , {2} \n \n ", studPoint.X, studPoint.Y, studPoint.Z, inputLine.strT62Type));
-
+                            Logger.logMessage("ProcessDoubleStudAtGrids - First Stud");
+                            
                             if (inputLine.dParapetHeight == 0)
                             {
                                 _ = column.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(toplevel.Id);
@@ -937,6 +972,7 @@ namespace Revit_Automation.Source.ModelCreators
                             _ = tx.Commit();
 
                             UpdateOrientation(columnID, column.FacingOrientation, studPoint, pt2, false);
+                            Logger.logMessage("ProcessDoubleStudAtGrids - First Stud - Orientation Update");
 
                             XYZ newOrientation = column.FacingOrientation;
 
@@ -963,6 +999,7 @@ namespace Revit_Automation.Source.ModelCreators
                                 XYZ Adjustedpt1 = AdjustLinePoint(newlocation, pt2, lineType, dFlangeWidth * iMovementFactor);
                                 MoveColumn(columnID, Adjustedpt1);
                                 RotateColumn(columnID, newlocation, pt2, Math.PI);
+                                Logger.logMessage("ProcessDoubleStudAtGrids - Second Stud - Orientation Update");
                             }
                         }
                     }
@@ -986,6 +1023,9 @@ namespace Revit_Automation.Source.ModelCreators
                                                     LineType lineType,
                                                     XYZ lineOrientation)
         {
+
+            Logger.logMessage("Method: ProcessContinuousDoubleStuds");
+
             // Place Two Double Studs at end
             ProcessDoubleStudAtEnds(inputLine, pt1, pt2, columnType, topAttachElement, bottomAttachElement, toplevel, baseLevel);
 
@@ -1009,6 +1049,7 @@ namespace Revit_Automation.Source.ModelCreators
                 XYZ FlangeOffsetYVector = new XYZ(0, dFlangeWidth / 2, 0);
 
 
+                Logger.logMessage("ProcessContinuousDoubleStuds - Computing On Center Start point ");
                 if (lineType == LineType.vertical)
                 {
                     studPoint = ComputeOnCenterStartingPoint(pt1, pt2, inputLine, inputLine.dOnCenter, lineType);
@@ -1052,6 +1093,7 @@ namespace Revit_Automation.Source.ModelCreators
 
                                 _ = tx.Start("Placing posts");
                                 studColumn = m_Document.Create.NewFamilyInstance(studPoint, columnType, baseLevel, StructuralType.Column);
+                                Logger.logMessage("ProcessContinuousDoubleStuds -Placing Columns at on-Center ");
 
                                 if (inputLine.dParapetHeight == 0)
                                 {
@@ -1093,7 +1135,7 @@ namespace Revit_Automation.Source.ModelCreators
                             }
 
                             UpdateOrientation(StudColumnID, StudColumnOrientation, studPoint, pt2);
-
+                            Logger.logMessage("ProcessContinuousDoubleStuds - Update Orientation ");
 
                             // Compute the orientation after rotation. 
                             FamilyInstance column = m_Document.GetElement(StudColumnID) as FamilyInstance;
@@ -1127,6 +1169,7 @@ namespace Revit_Automation.Source.ModelCreators
 
                         if (i != 0 && StudColumnID != null)
                         {
+                            Logger.logMessage("ProcessContinuousDoubleStuds - Rotate second column point ");
                             XYZ newLocation = AdjustedLinePoint == null ? studPoint : AdjustedLinePoint;
 
                             XYZ Adjustedpt1 = AdjustLinePoint(newLocation, pt2, lineType, dFlangeWidth * iMovementFactor);
@@ -1154,6 +1197,8 @@ namespace Revit_Automation.Source.ModelCreators
 
         private void ProcessDoubleStudAtEnds(InputLine inputLine, XYZ pt1, XYZ pt2, FamilySymbol columnType, Element topAttachElement, Element bottomAttachElement, Level toplevel, Level baseLevel)
         {
+            Logger.logMessage("Method : ProcessDoubleStudAtEnds ");
+
             ElementId startColumnID = null, EndColumnID = null;
             XYZ startColumnOrientation = null, endColumnOrientation = null;
 
@@ -1186,12 +1231,11 @@ namespace Revit_Automation.Source.ModelCreators
 
                     _ = tx.Start("Place Column");
 
-                    _ = CheckForExistingColumns(pt1);
-
                     if (bAtStart)
                     {
                         //Place Column at start
                         FamilyInstance startcolumn = m_Document.Create.NewFamilyInstance(pt1, columnType, baseLevel, StructuralType.Column);
+                        Logger.logMessage("Method : ProcessDoubleStudAtEnds - Start Column");
 
                         if (inputLine.dParapetHeight == 0)
                         {
@@ -1234,6 +1278,7 @@ namespace Revit_Automation.Source.ModelCreators
                     {
                         // Place column at end
                         FamilyInstance endColumn = m_Document.Create.NewFamilyInstance(pt2, columnType, baseLevel, StructuralType.Column);
+                        Logger.logMessage("Method : ProcessDoubleStudAtEnds - End Column");
 
                         if (inputLine.dParapetHeight == 0)
                         {
@@ -1277,8 +1322,10 @@ namespace Revit_Automation.Source.ModelCreators
 
                 double dFlangeWidth = GenericUtils.FlangeWidth(inputLine.strStudType);
 
+
                 if (bAtStart)
                 {
+                    Logger.logMessage("Method : ProcessDoubleStudAtEnds - Update Orientation - Start column");
                     UpdateOrientation(startColumnID, startColumnOrientation, pt1, pt2, true);
                     XYZ AdjustedStart = AdjustLinePoint(pt1, pt2, lineType, 1.5 * dFlangeWidth);
                     MoveColumn(startColumnID, AdjustedStart);
@@ -1288,17 +1335,20 @@ namespace Revit_Automation.Source.ModelCreators
                         XYZ Adjustedpt1 = AdjustLinePoint(AdjustedStart, pt2, lineType, dFlangeWidth);
                         MoveColumn(startColumnID, Adjustedpt1);
                         RotateColumn(startColumnID, AdjustedStart, pt2, Math.PI);
+                        Logger.logMessage("Method : ProcessDoubleStudAtEnds - Rotate - Start column");
                     }
                 }
 
                 if (bAtEnd)
                 {
+                    Logger.logMessage("Method : ProcessDoubleStudAtEnds - Update Orientation - End column");
                     UpdateOrientation(EndColumnID, endColumnOrientation, pt2, pt1, true);
                     XYZ AdjustedEnd = AdjustLinePoint(pt2, pt1, lineType, 1.5 * dFlangeWidth);
                     MoveColumn(EndColumnID, AdjustedEnd);
 
                     if (i != 0)
                     {
+                        Logger.logMessage("Method : ProcessDoubleStudAtEnds - Rotate - End column");
                         XYZ Adjustedpt2 = AdjustLinePoint(AdjustedEnd, pt1, lineType, dFlangeWidth);
                         MoveColumn(EndColumnID, Adjustedpt2);
                         RotateColumn(EndColumnID, AdjustedEnd, pt1, Math.PI);
@@ -1309,6 +1359,8 @@ namespace Revit_Automation.Source.ModelCreators
 
         private Element GetNearestFloorOrRoof(Level level, XYZ pt1)
         {
+            Logger.logMessage("Method : GetNearestFloorOrRoof");
+
             List<FloorObject> floorObjects = FloorHelper.colFloors;
 
             Element elemID = null;
@@ -1358,6 +1410,8 @@ namespace Revit_Automation.Source.ModelCreators
 
         private void MoveColumn(ElementId columnId, XYZ newLocation)
         {
+
+            Logger.logMessage("Method : MoveColumn");
             if (columnId == null)
                 return;
 
@@ -1389,6 +1443,7 @@ namespace Revit_Automation.Source.ModelCreators
         // The nearest main grid could be intersecting or not intersectin the line
         private XYZ GetNearestMainGridLocation(XYZ pt1, XYZ pt2, InputLine inputLine, LineType lineType)
         {
+            Logger.logMessage("Method : GetNearestMainGridLocation");
             XYZ nearestMainGridLocation;
             if (inputLine.mainGridIntersectionPoints.Count > 0)
             {
@@ -1415,6 +1470,8 @@ namespace Revit_Automation.Source.ModelCreators
 
         private XYZ GetNearestPoint(List<Tuple<XYZ, XYZ>> gridLinesCollection, XYZ referencePoint, LineType lineType)
         {
+            Logger.logMessage("Method : GetNearestPoint");
+
             XYZ nearestPoint = null;
             double minDistance = double.MaxValue;
             foreach (Tuple<XYZ, XYZ> gridline in gridLinesCollection)
@@ -1437,6 +1494,8 @@ namespace Revit_Automation.Source.ModelCreators
 
         private XYZ ComputeOnCenterStartingPoint(XYZ lineStart, XYZ lineEnd, InputLine inputLine, double dOnCenter, LineType lineType)
         {
+            Logger.logMessage("Method : ComputeOnCenterStartingPoint");
+
             XYZ OnCenterStartPoint = null;
 
             // Temp Vectors

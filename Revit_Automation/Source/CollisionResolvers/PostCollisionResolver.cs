@@ -37,7 +37,8 @@ namespace Revit_Automation.Source.CollisionDetectors
                 new XYZ(collisionObject.CollisionPoint.X + 0.3,
                 collisionObject.CollisionPoint.Y + 0.3,
                 collisionObject.CollisionPoint.Z + 0.3));
-
+            Logger.logMessage("Outline for Collection Objects Created");
+            
             // Create a BoundingBoxIntersects filter with this Outline
             BoundingBoxIntersectsFilter filter = new BoundingBoxIntersectsFilter(myOutLn);
 
@@ -48,7 +49,7 @@ namespace Revit_Automation.Source.CollisionDetectors
             // Apply the filter to the elements in the active document to retrieve Input lines at a point
             FilteredElementCollector collector2 = new FilteredElementCollector(m_Document);
             IList<Element> InputLineElements = collector2.WherePasses(filter).OfCategory(BuiltInCategory.OST_GenericModel).ToElements();
-
+            Logger.logMessage("Bounding Box Filter Applied and Elements Collected");
 
             //Check for HSS at a given location, if present delete the colliding post
             bool bhasHSS = CheckForHSS(postElements);
@@ -61,17 +62,22 @@ namespace Revit_Automation.Source.CollisionDetectors
                 
                 // Identify the continous line and from it the Static Column
                 Element continuousLine = IdentifyContinousLineAtPoint(collisionObject.CollisionPoint, InputLineElements);
-
+                Logger.logMessage("Handle Collision : IdentifyContinousLineAtPoint ");
+                
                 if (continuousLine != null)
                 {
                     Element StaticColumn = IdentifyStaticPost(continuousLine, postElements);
+                    Logger.logMessage("Handle Collision : IdentifyStaticPost ");
 
                     //Obtain the Webwidth from the Static Column
                     double dWebWidth = StaticColumn == null ? 0 : GenericUtils.WebWidth(StaticColumn.Name);
 
                     // Adjust the non static posts accordingly
                     if (dWebWidth > 0)
+                    {
                         MoveNonStaticColumns(InputLineElements, postElements, dWebWidth / 2, continuousLine);
+                        Logger.logMessage("Handle Collision : MoveNonStaticColumns ");
+                    }
                 }
             }
 
@@ -80,11 +86,12 @@ namespace Revit_Automation.Source.CollisionDetectors
 
         private bool CheckForHSS(IList<Element> postElements)
         {
+            Logger.logMessage("Handle Collision : Check for HSS ");
             foreach (Element colElement in postElements)
             {
                 FamilyInstance post = m_Document.GetElement(colElement.Id) as FamilyInstance;
 
-                if (post.Name.Contains("HSS"))
+                if (post != null && post.Name.Contains("HSS"))
                     return true;
             }
 
@@ -102,15 +109,20 @@ namespace Revit_Automation.Source.CollisionDetectors
 
                 if (!MathUtils.IsParallel(postorientation, LineOrientation))
                 {
-                    XYZ AdjustedPostPoint = IdentifyNewPointForThePost(postorientation, post.Location, inputLineElements, distanceToMove);
+                    XYZ AdjustedPostPoint = IdentifyNewPointForThePost(postorientation, post.Location, inputLineElements, distanceToMove, continuousLine);
+                    Logger.logMessage("MoveNonStaticColumns : IdentifyNewPointForThePost");
+
                     MoveColumn(post.Id, AdjustedPostPoint);
+                    Logger.logMessage("MoveNonStaticColumns : MoveColumn");
                 }
             }
         }
 
-        private XYZ IdentifyNewPointForThePost(XYZ postorientation, Location postLocation, IList<Element> inputLineElements, double distanceToMove)
+        private XYZ IdentifyNewPointForThePost(XYZ postorientation, Location postLocation, IList<Element> inputLineElements, double distanceToMove, Element continuousLine)
         {
             XYZ newPoint = null;
+
+            Logger.logMessage("Method : IdentifyNewPointForThePost");
 
             if (postLocation is LocationPoint location)
             {
@@ -128,16 +140,18 @@ namespace Revit_Automation.Source.CollisionDetectors
                     if ((bColumnAtStart && (MathUtils.CompareVectors(lineOrientation, postorientation) == "Anti-Parallel")) ||
                         (bColumnAtEnd && (MathUtils.CompareVectors(lineOrientation, postorientation) == "Parallel")))
                     {
+                        double dDistance = ComputeDistanceToMove(continuousLine, start, end, distanceToMove);
+
                         LineType lineType = MathUtils.ApproximatelyEqual(start.Y, end.Y) ? LineType.Horizontal : LineType.vertical;
 
                         if (bColumnAtEnd && lineType == LineType.Horizontal)
-                            newPoint = location.Point + new XYZ(-distanceToMove, 0, 0);
+                            newPoint = location.Point + new XYZ(-dDistance, 0, 0);
                         else if (bColumnAtEnd && lineType == LineType.vertical)
-                            newPoint = location.Point + new XYZ(0 , -distanceToMove, 0);
+                            newPoint = location.Point + new XYZ(0 , -dDistance, 0);
                         if (bColumnAtStart && lineType == LineType.Horizontal)
-                            newPoint = location.Point + new XYZ(distanceToMove, 0, 0);
+                            newPoint = location.Point + new XYZ(dDistance, 0, 0);
                         if (bColumnAtStart && lineType == LineType.vertical)
-                            newPoint = location.Point + new XYZ(0 , distanceToMove, 0);
+                            newPoint = location.Point + new XYZ(0 , dDistance, 0);
 
                         break;
                     }  
@@ -146,8 +160,39 @@ namespace Revit_Automation.Source.CollisionDetectors
             return newPoint;
         }
 
+        /// <summary>
+        ///  for cases like this --- | 
+        /// </summary>
+        /// <param name="continuousLine"></param>
+        /// <param name="start"></param>
+        /// <param name="end"></param>
+        /// <param name="distanceToMove"></param>
+        /// <returns></returns>
+        private double ComputeDistanceToMove(Element continuousLine, XYZ start, XYZ end, double distanceToMove)
+        {
+            double distToMove = 0;
+            XYZ contStart = null, contEnd = null;
+            GenericUtils.GetlineStartAndEndPoints(continuousLine, out contStart, out contEnd);
+
+            LineType lineType = MathUtils.ApproximatelyEqual(start.Y, end.Y) ? LineType.Horizontal : LineType.vertical;
+
+            if (lineType == LineType.vertical)
+            {
+                double dDist = Math.Min(Math.Abs(start.Y - contStart.Y), Math.Abs(end.Y - contEnd.Y));
+                distToMove = distanceToMove - dDist;
+            }
+            if (lineType == LineType.Horizontal)
+            {
+                double dDist = Math.Min(Math.Abs(start.X - contStart.X), Math.Abs(end.X - contEnd.X));
+                distToMove = distanceToMove - dDist;
+            }
+
+            return distToMove;
+        }
+
         private void MoveColumn(ElementId columnId, XYZ newLocation)
         {
+
             if (newLocation == null || columnId == null)
                 return;
 
@@ -167,6 +212,7 @@ namespace Revit_Automation.Source.CollisionDetectors
                 {
                     // Set the new location for the column
                     locationPoint.Point = newLocation;
+                    Logger.logMessage("MoveColumn : Change Location Point");
                 }
 
                 _ = tx.Commit();
@@ -175,6 +221,8 @@ namespace Revit_Automation.Source.CollisionDetectors
 
         private Element IdentifyStaticPost(Element continuousLine, IList<Element> postElements)
         {
+            Logger.logMessage("Method : IdentifyStaticPost");
+
             Element StaticColumn = null;
 
             XYZ LineOrientation = GenericUtils.GetLineOrientation(continuousLine);
@@ -195,6 +243,9 @@ namespace Revit_Automation.Source.CollisionDetectors
 
         private Element IdentifyContinousLineAtPoint(XYZ collisionPoint, IList<Element> inputLineElements)
         {
+
+            Logger.logMessage("Method : IdentifyContinousLineAtPoint");
+
             Element continousElement = null;
             XYZ TracePoint1;
             XYZ TracePoint2;
@@ -253,6 +304,8 @@ namespace Revit_Automation.Source.CollisionDetectors
 
         private XYZ AdjustCollisionPointIfNecessary(XYZ refPoint, Element genericLine, IList<Element> inputLineElements)
         {
+            Logger.logMessage("Method : AdjustCollisionPointIfNecessary");
+
             XYZ AdjustedPoint = refPoint;
             List<XYZ> IntersectionPoints = new List<XYZ>();
 

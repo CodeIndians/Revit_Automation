@@ -46,6 +46,9 @@ namespace Revit_Automation
             // Clear out all the static vectors
             ClearStatics();
 
+            //Create The logger Object
+            Logger.CreateLogFile();
+
             IOrderedEnumerable<Level> levels = null;
             try
             {
@@ -96,9 +99,16 @@ namespace Revit_Automation
             {
                 _ = TaskDialog.Show("Automation Error", "Failed while processing the Symbols");
             }
-            // 7. Input Lines to be collected
-            InputLineUtility.GatherInputLines(doc, bSelected, selection, commandCode);
 
+            try
+            {
+                // 7. Input Lines to be collected
+                InputLineUtility.GatherInputLines(doc, bSelected, selection, commandCode);
+            }
+            catch (Exception)
+            {
+                _ = TaskDialog.Show("Automation Error", "Failed while processing the Input lines");
+            }
             // 8. Input Lines to be collected
             try
             {
@@ -108,6 +118,7 @@ namespace Revit_Automation
             {
                 _ = TaskDialog.Show("Automation Error", "Failed while processing the Levels");
             }
+
             // 9. Place Columns
             ColumnCreator columnCreator = new ColumnCreator(doc, form);
             columnCreator.CreateModel(InputLineUtility.colInputLines, levels);

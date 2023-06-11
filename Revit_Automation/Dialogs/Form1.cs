@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Revit_Automation.Source.Utils;
+using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
@@ -14,6 +15,9 @@ namespace Revit_Automation
             progressBar1.Value = 0;
             richTextBox1.Text = "Beginning Creation of Model";
             button1.Text = "START";
+            radioButton1.Checked = true;
+            radioButton3.Checked = true;
+            checkedListBox1.SetItemChecked(0, true);
         }
 
         public bool CanCreateModel { get; internal set; }
@@ -43,7 +47,7 @@ namespace Revit_Automation
 
         public void UpdateProgress(int iProgress)
         {
-            progressBar1.Value += iProgress;
+            progressBar1.Value = iProgress;
         }
 
 
@@ -83,7 +87,7 @@ namespace Revit_Automation
         {
             string filePath = "C:\\Temp\\Automation_Log.txt"; // Path to the file to be created
 
-            using (StreamWriter writer = new StreamWriter(filePath))
+            using (StreamWriter writer = new StreamWriter(filePath, true))
             {
                 writer.WriteLine(richTextBox1.Text); // Write a string to the file
 
@@ -93,6 +97,22 @@ namespace Revit_Automation
             {
                 _ = Process.Start(filePath); // Launch the file using the default program
             }
+        }
+
+        private void radioButton4_CheckedChanged(object sender, EventArgs e)
+        {
+            if (radioButton4.Checked)
+                Logger.LoggerLevel = 1;
+            else
+                Logger.LoggerLevel = 0;
+        }
+
+        private void radioButton3_CheckedChanged(object sender, EventArgs e)
+        {
+            if (radioButton3.Checked)
+                Logger.LoggerLevel = 0;
+            else
+                Logger.LoggerLevel = 1;
         }
     }
 }

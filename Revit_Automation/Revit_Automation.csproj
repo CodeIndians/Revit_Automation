@@ -76,12 +76,12 @@
     <Compile Include="Source\Interfaces\CollisionInterface.cs" />
     <Compile Include="Source\ModelCreators\ColumnCreator.cs" />
     <Compile Include="Source\ModelCreators\T62Valiations.cs" />
-    <Compile Include="Source\Utils\ErrorHandler.cs" />
     <Compile Include="Source\Utils\FloorHelper.cs" />
     <Compile Include="Source\Utils\GenericUtils.cs" />
     <Compile Include="Source\Utils\GridCollector.cs" />
     <Compile Include="Source\Utils\InputLineUtility.cs" />
     <Compile Include="Source\Interfaces\CreationInterfaces.cs" />
+    <Compile Include="Source\Utils\Logger.cs" />
     <Compile Include="Source\Utils\MathUtils.cs" />
     <Compile Include="Source\ModelCreators\ModelCreator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
