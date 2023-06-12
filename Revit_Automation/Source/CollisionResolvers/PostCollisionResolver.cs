@@ -198,25 +198,18 @@ namespace Revit_Automation.Source.CollisionDetectors
 
             FamilyInstance column = m_Document.GetElement(columnId) as FamilyInstance;
 
-            using (Transaction tx = new Transaction(m_Document))
+
+            // Get the column's Location property
+            Location location = column.Location;
+
+            // Check if the column's location is a LocationPoint
+            if (location is LocationPoint locationPoint)
             {
-                GenericUtils.SupressWarningsInTransaction(tx);
-
-                _ = tx.Start("Change Orientation");
-
-                // Get the column's Location property
-                Location location = column.Location;
-
-                // Check if the column's location is a LocationPoint
-                if (location is LocationPoint locationPoint)
-                {
-                    // Set the new location for the column
-                    locationPoint.Point = newLocation;
-                    Logger.logMessage("MoveColumn : Change Location Point");
-                }
-
-                _ = tx.Commit();
+                // Set the new location for the column
+                locationPoint.Point = newLocation;
+                Logger.logMessage("MoveColumn : Change Location Point");
             }
+
         }
 
         private Element IdentifyStaticPost(Element continuousLine, IList<Element> postElements)

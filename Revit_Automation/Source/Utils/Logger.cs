@@ -16,6 +16,12 @@ namespace Revit_Automation.Source.Utils
         private static string filePath;
         public static void CreateLogFile()
         {
+
+            if (!Directory.Exists("C:\\Temp")) 
+            {
+                Directory.CreateDirectory("C:\\Temp");
+            }
+
             string fileName = "C:\\Temp\\Revit_Automation"; // Specify the desired file name
             string timestamp = DateTime.Now.ToString("ddMMyyyy_HHmmss"); // Generate timestamp in the desired format
 

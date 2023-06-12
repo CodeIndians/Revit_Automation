@@ -14,7 +14,9 @@ using Revit_Automation.Source;
 using Revit_Automation.Source.ModelCreators;
 using Revit_Automation.Source.Utils;
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading;
 
 namespace Revit_Automation
@@ -31,7 +33,6 @@ namespace Revit_Automation
         /// <param name="form">Address of the overlaying dialog when model creation is in progress </param>
         public static void CreateModel(UIApplication uiapp, Form1 form, bool bSelected = false, CommandCode commandCode = CommandCode.All)
         {
-
             form.Show();
             form.UpdateStarted();
             form.Refresh();
@@ -42,6 +43,19 @@ namespace Revit_Automation
             _ = uiapp.Application;
             Document doc = uidoc.Document;
             Selection selection = uidoc.Selection;
+            
+            View activeView = doc.ActiveView;
+
+            string strActivePhase = null;
+            Parameter phaseCreated = activeView.get_Parameter(BuiltInParameter.VIEW_PHASE);
+            if (phaseCreated != null)
+            {
+                strActivePhase = phaseCreated.AsValueString();
+            }
+
+            FilteredElementCollector phaseCollector = new FilteredElementCollector(doc);
+            phaseCollector.OfClass(typeof(Phase));
+            Phase desiredPhase = phaseCollector.Cast<Phase>().FirstOrDefault(phase => phase.Name == strActivePhase);
 
             // Clear out all the static vectors
             ClearStatics();
@@ -121,8 +135,10 @@ namespace Revit_Automation
 
             // 9. Place Columns
             ColumnCreator columnCreator = new ColumnCreator(doc, form);
+            columnCreator.SetPhase(desiredPhase);
             columnCreator.CreateModel(InputLineUtility.colInputLines, levels);
 
+            //uidoc.ActiveView = activeView;
 
             form.Visible = false;
             form.UpdateCompleted();

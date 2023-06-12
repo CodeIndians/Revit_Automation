@@ -6,6 +6,7 @@ using Revit_Automation.Source.CollisionDetectors;
 using Revit_Automation.Source.Utils;
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
 using System.Windows.Media.Animation;
 using static Revit_Automation.Source.Utils.WarningSwallowers;
@@ -14,6 +15,8 @@ namespace Revit_Automation.Source.ModelCreators
 {
     public class ColumnCreator : IModelCreator
     {
+        private Phase m_phase;
+        public void SetPhase(Phase phase) { m_phase = phase; }
         private enum LineType
         {
             vertical = 0, horizontal = 1
@@ -29,7 +32,13 @@ namespace Revit_Automation.Source.ModelCreators
         }
         public void CreateModel(List<CustomTypes.InputLine> colInputLines, IOrderedEnumerable<Level> levels)
         {
-            ProcessInputLines(colInputLines, levels);
+            using (Transaction tx = new Transaction(m_Document))
+            {
+                GenericUtils.SupressWarningsInTransaction(tx);
+                tx.Start("Generating Model");
+                ProcessInputLines(colInputLines, levels);
+                tx.Commit();
+            }
         }
         private void ProcessInputLines(List<InputLine> inputLinesCollection, IOrderedEnumerable<Level> levels)
         {
@@ -273,93 +282,88 @@ namespace Revit_Automation.Source.ModelCreators
 
                 if (!bDoubleStudOnCenter)
                 {
-                    using (Transaction tx = new Transaction(m_Document))
+
+                    FamilyInstance startcolumn = m_Document.Create.NewFamilyInstance(pt1, columnType, baseLevel, StructuralType.Column);
+                    Logger.logMessage("ProcessStudInputLine - Place Column at Start");
+
+                    if (inputLine.dParapetHeight == 0)
                     {
-                        GenericUtils.SupressWarningsInTransaction(tx);
-
-                        _ = tx.Start("Place Column");
-
-                        //Place Column at start
-                        FamilyInstance startcolumn = m_Document.Create.NewFamilyInstance(pt1, columnType, baseLevel, StructuralType.Column);
-                        Logger.logMessage("ProcessStudInputLine - Place Column at Start");
-
-                        if (inputLine.dParapetHeight == 0)
-                        {
-                            _ = startcolumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(toplevel.Id);
-                            _ = startcolumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM).Set(0);
-                        }
-                        else
-                        {
-                            _ = startcolumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(baseLevel.Id);
-                            _ = startcolumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM).Set(inputLine.dParapetHeight);
-                        }
-                        // If we coulfdn't find a floor, the input line is on top floor
-                        // Need to attach it to roof
-
-                        topAttachElement = GetNearestFloorOrRoof(toplevel, pt1);
-                        bottomAttachElement = GetNearestFloorOrRoof(baseLevel, pt1);
-
-                        if (topAttachElement == null)
-                        {
-                            topAttachElement = GetRoofAtPoint(pt1);
-                        }
-
-                        if (topAttachElement != null)
-                        {
-                            ColumnAttachment.AddColumnAttachment(m_Document, startcolumn, topAttachElement, 1, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
-                        }
-
-                        if (bottomAttachElement != null)
-                        {
-                            ColumnAttachment.AddColumnAttachment(m_Document, startcolumn, bottomAttachElement, 0, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
-                        }
-
-                        //m_Form.PostMessage(string.Format("Placing Post  {3} at {0} , {1} , {2} \n \n ", pt1.X, pt1.Y, pt1.Z, inputLine.strStudType));
-                        startColumnID = startcolumn.Id;
-                        startColumnOrientation = startcolumn.FacingOrientation;
-
-                        // Place column at end
-                        FamilyInstance endColumn = m_Document.Create.NewFamilyInstance(pt2, columnType, baseLevel, StructuralType.Column);
-                        Logger.logMessage("ProcessStudInputLine - Place Column at End");
-
-                        if (inputLine.dParapetHeight == 0)
-                        {
-                            _ = endColumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(toplevel.Id);
-                            _ = endColumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM).Set(0);
-                        }
-                        else
-                        {
-                            _ = endColumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(baseLevel.Id);
-                            _ = endColumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM).Set(inputLine.dParapetHeight);
-                        }
-
-                        // If we coulfdn't find a floor, the input line is on top floor
-                        // Need to attach it to roof
-                        topAttachElement = GetNearestFloorOrRoof(toplevel, pt2);
-                        bottomAttachElement = GetNearestFloorOrRoof(baseLevel, pt2);
-
-                        if (topAttachElement == null)
-                        {
-                            topAttachElement = GetRoofAtPoint(pt2);
-                        }
-
-                        if (topAttachElement != null)
-                        {
-                            ColumnAttachment.AddColumnAttachment(m_Document, endColumn, topAttachElement, 1, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
-                        }
-
-                        if (bottomAttachElement != null)
-                        {
-                            ColumnAttachment.AddColumnAttachment(m_Document, endColumn, bottomAttachElement, 0, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
-                        }
-
-                        //m_Form.PostMessage(string.Format("Placing Post  {3} at {0} , {1} , {2} \n \n ", pt2.X, pt2.Y, pt2.Z, inputLine.strStudType));
-                        EndColumnID = endColumn.Id;
-                        endColumnOrientation = endColumn.FacingOrientation;
-
-
-                        _ = tx.Commit();
+                        _ = startcolumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(toplevel.Id);
+                        _ = startcolumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM).Set(0);
                     }
+                    else
+                    {
+                        _ = startcolumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(baseLevel.Id);
+                        _ = startcolumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM).Set(inputLine.dParapetHeight);
+                    }
+                    // If we coulfdn't find a floor, the input line is on top floor
+                    // Need to attach it to roof
+
+                    startcolumn.get_Parameter(BuiltInParameter.PHASE_CREATED).Set(m_phase.Id);
+
+                    topAttachElement = GetNearestFloorOrRoof(toplevel, pt1);
+                    bottomAttachElement = GetNearestFloorOrRoof(baseLevel, pt1);
+
+                    if (topAttachElement == null)
+                    {
+                        topAttachElement = GetRoofAtPoint(pt1);
+                    }
+
+                    if (topAttachElement != null)
+                    {
+                        ColumnAttachment.AddColumnAttachment(m_Document, startcolumn, topAttachElement, 1, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
+                    }
+
+                    if (bottomAttachElement != null)
+                    {
+                        ColumnAttachment.AddColumnAttachment(m_Document, startcolumn, bottomAttachElement, 0, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
+                    }
+
+                    //m_Form.PostMessage(string.Format("Placing Post  {3} at {0} , {1} , {2} \n \n ", pt1.X, pt1.Y, pt1.Z, inputLine.strStudType));
+                    startColumnID = startcolumn.Id;
+                    startColumnOrientation = startcolumn.FacingOrientation;
+
+                    // Place column at end
+                    FamilyInstance endColumn = m_Document.Create.NewFamilyInstance(pt2, columnType, baseLevel, StructuralType.Column);
+                    Logger.logMessage("ProcessStudInputLine - Place Column at End");
+
+                    if (inputLine.dParapetHeight == 0)
+                    {
+                        _ = endColumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(toplevel.Id);
+                        _ = endColumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM).Set(0);
+                    }
+                    else
+                    {
+                        _ = endColumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(baseLevel.Id);
+                        _ = endColumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM).Set(inputLine.dParapetHeight);
+                    }
+
+                    startcolumn.get_Parameter(BuiltInParameter.PHASE_CREATED).Set(m_phase.Id);
+
+                    // If we coulfdn't find a floor, the input line is on top floor
+                    // Need to attach it to roof
+                    topAttachElement = GetNearestFloorOrRoof(toplevel, pt2);
+                    bottomAttachElement = GetNearestFloorOrRoof(baseLevel, pt2);
+
+                    if (topAttachElement == null)
+                    {
+                        topAttachElement = GetRoofAtPoint(pt2);
+                    }
+
+                    if (topAttachElement != null)
+                    {
+                        ColumnAttachment.AddColumnAttachment(m_Document, endColumn, topAttachElement, 1, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
+                    }
+
+                    if (bottomAttachElement != null)
+                    {
+                        ColumnAttachment.AddColumnAttachment(m_Document, endColumn, bottomAttachElement, 0, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
+                    }
+
+                    //m_Form.PostMessage(string.Format("Placing Post  {3} at {0} , {1} , {2} \n \n ", pt2.X, pt2.Y, pt2.Z, inputLine.strStudType));
+                    EndColumnID = endColumn.Id;
+                    endColumnOrientation = endColumn.FacingOrientation;
+
 
                     // Reference - Dev Guide - Page 1
                     // At ends the column web should match with grid point. so we compute the adjusted point and move the colum to the desired location
@@ -452,52 +456,47 @@ namespace Revit_Automation.Source.ModelCreators
 
                         if ((lineType == LineType.vertical && studPoint.Y > (studStartPoint.Y + dStartCollisionTolerance)) || (lineType == LineType.horizontal && studPoint.X >  (studStartPoint.X + dStartCollisionTolerance))) // This condition ensures there are no collisions at the start
                         { 
-                            using (Transaction tx = new Transaction(m_Document))
+ 
+                            FamilyInstance studColumn = m_Document.Create.NewFamilyInstance(studPoint, columnType, baseLevel, StructuralType.Column);
+                            Logger.logMessage("ProcessStudInputLine - Placing column at On Center");
+
+                            if (inputLine.dParapetHeight == 0)
                             {
-                                GenericUtils.SupressWarningsInTransaction(tx);
-
-                                _ = tx.Start("Placing posts");
-                                FamilyInstance studColumn = m_Document.Create.NewFamilyInstance(studPoint, columnType, baseLevel, StructuralType.Column);
-                                Logger.logMessage("ProcessStudInputLine - Placing column at On Center");
-
-                                if (inputLine.dParapetHeight == 0)
-                                {
-                                    _ = studColumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(toplevel.Id);
-                                    _ = studColumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM).Set(0);
-                                }
-                                else
-                                {
-                                    _ = studColumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(baseLevel.Id);
-                                    _ = studColumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM).Set(inputLine.dParapetHeight);
-                                }
-
-
-                                topAttachElement = GetNearestFloorOrRoof(toplevel, studPoint);
-                                bottomAttachElement = GetNearestFloorOrRoof(baseLevel, studPoint);
-
-                                // If we coulfdn't find a floor, the input line is on top floor
-                                // Need to attach it to roof
-                                if (topAttachElement == null)
-                                {
-                                    topAttachElement = GetRoofAtPoint(studPoint);
-                                }
-
-                                if (topAttachElement != null)
-                                {
-                                    ColumnAttachment.AddColumnAttachment(m_Document, studColumn, topAttachElement, 1, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
-                                }
-
-                                if (bottomAttachElement != null)
-                                {
-                                    ColumnAttachment.AddColumnAttachment(m_Document, studColumn, bottomAttachElement, 0, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
-                                }
-
-
-                                //m_Form.PostMessage(string.Format("Placing Post  {3} at {0} , {1} , {2} \n \n ", studPoint.X, studPoint.Y, studPoint.Z, inputLine.strStudType));
-                                StudColumnID = studColumn.Id;
-                                StudColumnOrientation = studColumn.FacingOrientation;
-                                _ = tx.Commit();
+                                _ = studColumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(toplevel.Id);
+                                _ = studColumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM).Set(0);
                             }
+                            else
+                            {
+                                _ = studColumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(baseLevel.Id);
+                                _ = studColumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM).Set(inputLine.dParapetHeight);
+                            }
+
+                            studColumn.get_Parameter(BuiltInParameter.PHASE_CREATED).Set(m_phase.Id);
+
+                            topAttachElement = GetNearestFloorOrRoof(toplevel, studPoint);
+                            bottomAttachElement = GetNearestFloorOrRoof(baseLevel, studPoint);
+
+                            // If we coulfdn't find a floor, the input line is on top floor
+                            // Need to attach it to roof
+                            if (topAttachElement == null)
+                            {
+                                topAttachElement = GetRoofAtPoint(studPoint);
+                            }
+
+                            if (topAttachElement != null)
+                            {
+                                ColumnAttachment.AddColumnAttachment(m_Document, studColumn, topAttachElement, 1, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
+                            }
+
+                            if (bottomAttachElement != null)
+                            {
+                                ColumnAttachment.AddColumnAttachment(m_Document, studColumn, bottomAttachElement, 0, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
+                            }
+
+                            //m_Form.PostMessage(string.Format("Placing Post  {3} at {0} , {1} , {2} \n \n ", studPoint.X, studPoint.Y, studPoint.Z, inputLine.strStudType));
+                            StudColumnID = studColumn.Id;
+                            StudColumnOrientation = studColumn.FacingOrientation;
+
 
                             Logger.logMessage("ProcessStudInputLine - Update Orientation at On-Center");
                             UpdateOrientation(StudColumnID, StudColumnOrientation, studPoint, pt2);
@@ -556,18 +555,10 @@ namespace Revit_Automation.Source.ModelCreators
         {
             try
             {
-                using (Transaction tx = new Transaction(m_Document))
-                {
-                    Logger.logMessage("Method : Delete Column");
-
-                    tx.Start("Deleting Post");
-                    m_Document.Delete(elemID);
-                    
-                    tx.Commit();
-                }
-                
+                Logger.logMessage("Method : Delete Column");
+                m_Document.Delete(elemID);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
                 
             }
@@ -595,66 +586,49 @@ namespace Revit_Automation.Source.ModelCreators
             Line axis = Line.CreateBound(point1, point2);
 
             // This logic is to rotate the column such that it is perpendicular to Input line
-            using (Transaction tx = new Transaction(m_Document))
+
+            double dAngle = 0;
+
+            XYZ LineOrientation = pt2 - pt1;
+            UnitVectorAlongLine = LineOrientation.Normalize();
+
+            if ((ColumnOrientation.X == 0 && !MathUtils.ApproximatelyEqual(LineOrientation.X, 0)) || (ColumnOrientation.Y == 0 && !MathUtils.ApproximatelyEqual(LineOrientation.Y, 0)))
             {
-                GenericUtils.SupressWarningsInTransaction(tx);
-
-                _ = tx.Start("Change Orientation");
-
-                double dAngle = 0;
-
-                XYZ LineOrientation = pt2 - pt1;
-                UnitVectorAlongLine = LineOrientation.Normalize();
-
-                if ((ColumnOrientation.X == 0 && !MathUtils.ApproximatelyEqual(LineOrientation.X, 0)) || (ColumnOrientation.Y == 0 && !MathUtils.ApproximatelyEqual(LineOrientation.Y, 0)))
-                {
-                    dAngle = Math.PI * 90 / 180;
-                }
-
-                Logger.logMessage("UpdateOrientation - Making web Perpendicular to the line");
-                ElementTransformUtils.RotateElement(m_Document, columnID, axis, dAngle);
-
-                _ = tx.Commit();
+                dAngle = Math.PI * 90 / 180;
             }
 
+            Logger.logMessage("UpdateOrientation - Making web Perpendicular to the line");
+            ElementTransformUtils.RotateElement(m_Document, columnID, axis, dAngle);
 
-            using (Transaction tx = new Transaction(m_Document))
+            // Compute the orientation after rotation. 
+            FamilyInstance column = m_Document.GetElement(columnID) as FamilyInstance;
+            XYZ newOrientation = column.FacingOrientation;
+
+            // End columns should face towards the line and also each other
+            if (bEndingColumns)
             {
-                GenericUtils.SupressWarningsInTransaction(tx);
-
-                _ = tx.Start("Change Orientation2");
-
-                // Compute the orientation after rotation. 
-                FamilyInstance column = m_Document.GetElement(columnID) as FamilyInstance;
-                XYZ newOrientation = column.FacingOrientation;
-
-                // End columns should face towards the line and also each other
-                if (bEndingColumns)
+                // The web outward normal should be in a direction opposite to that of Input Line For Start and End Lines
+                if (MathUtils.CompareVectors(UnitVectorAlongLine, newOrientation) == "Parallel")
                 {
-                    // The web outward normal should be in a direction opposite to that of Input Line For Start and End Lines
-                    if (MathUtils.CompareVectors(UnitVectorAlongLine, newOrientation) == "Parallel")
+                    Logger.logMessage("UpdateOrientation - Making End Columns face each other");
+                    ElementTransformUtils.RotateElement(m_Document, columnID, axis, Math.PI);
+                }
+            }
+
+            // Columns should point to low eve
+            else
+            {
+                XYZ SlopeDirection = GetRoofSlopeDirection(pt1);
+
+                // The web outward normal should be in a direction of slope
+                if (MathUtils.IsParallel(SlopeDirection, newOrientation))
+                {
+                    if (MathUtils.CompareVectors(SlopeDirection, newOrientation) == "Anti-Parallel")
                     {
-                        Logger.logMessage("UpdateOrientation - Making End Columns face each other");
+                        Logger.logMessage("UpdateOrientation - Open C should point to high eve");
                         ElementTransformUtils.RotateElement(m_Document, columnID, axis, Math.PI);
                     }
                 }
-
-                // Columns should point to low eve
-                else
-                {
-                    XYZ SlopeDirection = GetRoofSlopeDirection(pt1);
-
-                    // The web outward normal should be in a direction of slope
-                    if (MathUtils.IsParallel(SlopeDirection, newOrientation))
-                    {
-                        if (MathUtils.CompareVectors(SlopeDirection, newOrientation) == "Anti-Parallel")
-                        {
-                            Logger.logMessage("UpdateOrientation - Open C should point to high eve");
-                            ElementTransformUtils.RotateElement(m_Document, columnID, axis, Math.PI);
-                        }
-                    }
-                }
-                _ = tx.Commit();
             }
 
         }
@@ -665,17 +639,8 @@ namespace Revit_Automation.Source.ModelCreators
             XYZ point2 = new XYZ(pt1.X, pt1.Y, 1);
             Line axis = Line.CreateBound(point1, point2);
 
-            using (Transaction tx = new Transaction(m_Document))
-            {
-                GenericUtils.SupressWarningsInTransaction(tx);
-
-                _ = tx.Start("Change Orientation");
-
-                Logger.logMessage("Rotate Column - by a given angle");
-                ElementTransformUtils.RotateElement(m_Document, columnID, axis, dAngle);
-
-                _ = tx.Commit();
-            }
+            Logger.logMessage("Rotate Column - by a given angle");
+            ElementTransformUtils.RotateElement(m_Document, columnID, axis, dAngle);
         }
 
         private XYZ GetRoofSlopeDirection(XYZ pt1)
@@ -853,34 +818,25 @@ namespace Revit_Automation.Source.ModelCreators
 
                 foreach (XYZ studPoint in inputLine.gridIntersectionPoints)
                 {
-                    using (Transaction tx = new Transaction(m_Document))
+                    FamilyInstance column = m_Document.Create.NewFamilyInstance(studPoint, columnType, baseLevel, StructuralType.Column);
+                    Logger.logMessage(" ProcessT62InputLine :At Grid Intersection Points");
+                    //m_Form.PostMessage(string.Format("Placing T62  {3} at {0} , {1} , {2} \n \n ", studPoint.X, studPoint.Y, studPoint.Z, inputLine.strT62Type));
+
+                    if (inputLine.dParapetHeight == 0)
                     {
-                        GenericUtils.SupressWarningsInTransaction(tx);
-
-                        _ = tx.Start("Place Column");
-
-
-                        FamilyInstance column = m_Document.Create.NewFamilyInstance(studPoint, columnType, baseLevel, StructuralType.Column);
-                        Logger.logMessage(" ProcessT62InputLine :At Grid Intersection Points");
-                        //m_Form.PostMessage(string.Format("Placing T62  {3} at {0} , {1} , {2} \n \n ", studPoint.X, studPoint.Y, studPoint.Z, inputLine.strT62Type));
-
-                        if (inputLine.dParapetHeight == 0)
-                        {
-                            _ = column.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(toplevel.Id);
-                            _ = column.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM).Set(0);
-                        }
-                        else
-                        {
-                            _ = column.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(baseLevel.Id);
-                            _ = column.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM).Set(inputLine.dParapetHeight);
-                        }
-
-                        t62ElementId = column.Id;
-                        T62Orientation = column.FacingOrientation;
-
-                        _ = tx.Commit();
-
+                        _ = column.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(toplevel.Id);
+                        _ = column.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM).Set(0);
                     }
+                    else
+                    {
+                        _ = column.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(baseLevel.Id);
+                        _ = column.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM).Set(inputLine.dParapetHeight);
+                    }
+
+                    column.get_Parameter(BuiltInParameter.PHASE_CREATED).Set(m_phase.Id);
+
+                    t62ElementId = column.Id;
+                    T62Orientation = column.FacingOrientation;
 
                     UpdateOrientation(t62ElementId, T62Orientation, studPoint, pt2, false);
                     Logger.logMessage(" ProcessT62InputLine :Update orientation");
@@ -924,83 +880,76 @@ namespace Revit_Automation.Source.ModelCreators
 
                     foreach (XYZ studPoint in inputLine.gridIntersectionPoints)
                     {
-                        using (Transaction tx = new Transaction(m_Document))
-                        {
-                            GenericUtils.SupressWarningsInTransaction(tx);
-
-                            _ = tx.Start("Place Column");
-
-
-                            FamilyInstance column = m_Document.Create.NewFamilyInstance(studPoint, columnType, baseLevel, StructuralType.Column);
-                            Logger.logMessage("ProcessDoubleStudAtGrids - First Stud");
+                        FamilyInstance column = m_Document.Create.NewFamilyInstance(studPoint, columnType, baseLevel, StructuralType.Column);
+                        Logger.logMessage("ProcessDoubleStudAtGrids - First Stud");
                             
-                            if (inputLine.dParapetHeight == 0)
-                            {
-                                _ = column.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(toplevel.Id);
-                                _ = column.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM).Set(0);
-                            }
-                            else
-                            {
-                                _ = column.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(baseLevel.Id);
-                                _ = column.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM).Set(inputLine.dParapetHeight);
-                            }
+                        if (inputLine.dParapetHeight == 0)
+                        {
+                            _ = column.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(toplevel.Id);
+                            _ = column.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM).Set(0);
+                        }
+                        else
+                        {
+                            _ = column.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(baseLevel.Id);
+                            _ = column.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM).Set(inputLine.dParapetHeight);
+                        }
 
-                            // If we coulfdn't find a floor, the input line is on top floor
-                            // Need to attach it to roof
-                            topAttachElement = GetNearestFloorOrRoof(toplevel, studPoint);
-                            bottomAttachElement = GetNearestFloorOrRoof(baseLevel, studPoint);
+                        column.get_Parameter(BuiltInParameter.PHASE_CREATED).Set(m_phase.Id);
+
+                        // If we coulfdn't find a floor, the input line is on top floor
+                        // Need to attach it to roof
+                        topAttachElement = GetNearestFloorOrRoof(toplevel, studPoint);
+                        bottomAttachElement = GetNearestFloorOrRoof(baseLevel, studPoint);
 
 
-                            if (topAttachElement == null)
-                            {
-                                topAttachElement = GetRoofAtPoint(studPoint);
-                            }
+                        if (topAttachElement == null)
+                        {
+                            topAttachElement = GetRoofAtPoint(studPoint);
+                        }
 
-                            if (topAttachElement != null)
-                            {
-                                ColumnAttachment.AddColumnAttachment(m_Document, column, topAttachElement, 1, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
-                            }
+                        if (topAttachElement != null)
+                        {
+                            ColumnAttachment.AddColumnAttachment(m_Document, column, topAttachElement, 1, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
+                        }
 
-                            // main Stud Should go Under the floor
-                            if (J != 0 && bottomAttachElement != null)
-                            {
-                                ColumnAttachment.AddColumnAttachment(m_Document, column, bottomAttachElement, 0, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
-                            }
+                        // main Stud Should go Under the floor
+                        if (J != 0 && bottomAttachElement != null)
+                        {
+                            ColumnAttachment.AddColumnAttachment(m_Document, column, bottomAttachElement, 0, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
+                        }
 
-                            columnID = column.Id;
+                        columnID = column.Id;
 
-                            _ = tx.Commit();
 
-                            UpdateOrientation(columnID, column.FacingOrientation, studPoint, pt2, false);
-                            Logger.logMessage("ProcessDoubleStudAtGrids - First Stud - Orientation Update");
+                        UpdateOrientation(columnID, column.FacingOrientation, studPoint, pt2, false);
+                        Logger.logMessage("ProcessDoubleStudAtGrids - First Stud - Orientation Update");
 
-                            XYZ newOrientation = column.FacingOrientation;
+                        XYZ newOrientation = column.FacingOrientation;
 
-                            // Figure 3 - Dev Guide
+                        // Figure 3 - Dev Guide
+                        if (MathUtils.CompareVectors(lineOrientation, newOrientation) == "Parallel")
+                                iMovementFactor = -1;
+
+                        //If line orientation and Web orientaion are parallel, we need to move point towards origin
+                        //if Line Orientation and Web orientation are Anti-parallel, we move the point away from origin
+                        if (inputLine.dFlangeOfset != 0)
+                        {
                             if (MathUtils.CompareVectors(lineOrientation, newOrientation) == "Parallel")
-                                    iMovementFactor = -1;
-
-                            //If line orientation and Web orientaion are parallel, we need to move point towards origin
-                            //if Line Orientation and Web orientation are Anti-parallel, we move the point away from origin
-                            if (inputLine.dFlangeOfset != 0)
-                            {
-                                if (MathUtils.CompareVectors(lineOrientation, newOrientation) == "Parallel")
-                                    AdjustedLinePoint = AdjustLinePoint(studPoint, pt2, lineType, -dFlangeWidth/ 2);
-                                else
-                                    AdjustedLinePoint = AdjustLinePoint(studPoint, pt2, lineType, dFlangeWidth / 2);
-                                MoveColumn(columnID, AdjustedLinePoint);
-                            }
+                                AdjustedLinePoint = AdjustLinePoint(studPoint, pt2, lineType, -dFlangeWidth/ 2);
+                            else
+                                AdjustedLinePoint = AdjustLinePoint(studPoint, pt2, lineType, dFlangeWidth / 2);
+                            MoveColumn(columnID, AdjustedLinePoint);
+                        }
 
 
-                            if (J != 0)
-                            {
-                                XYZ newlocation = AdjustedLinePoint == null ? studPoint : AdjustedLinePoint;
+                        if (J != 0)
+                        {
+                            XYZ newlocation = AdjustedLinePoint == null ? studPoint : AdjustedLinePoint;
 
-                                XYZ Adjustedpt1 = AdjustLinePoint(newlocation, pt2, lineType, dFlangeWidth * iMovementFactor);
-                                MoveColumn(columnID, Adjustedpt1);
-                                RotateColumn(columnID, newlocation, pt2, Math.PI);
-                                Logger.logMessage("ProcessDoubleStudAtGrids - Second Stud - Orientation Update");
-                            }
+                            XYZ Adjustedpt1 = AdjustLinePoint(newlocation, pt2, lineType, dFlangeWidth * iMovementFactor);
+                            MoveColumn(columnID, Adjustedpt1);
+                            RotateColumn(columnID, newlocation, pt2, Math.PI);
+                            Logger.logMessage("ProcessDoubleStudAtGrids - Second Stud - Orientation Update");
                         }
                     }
 
@@ -1079,60 +1028,55 @@ namespace Revit_Automation.Source.ModelCreators
                 {
                     ElementId StudColumnID = null;
                     XYZ StudColumnOrientation;
+                    
                     FamilyInstance studColumn = null;
+                    
                     if ((lineType == LineType.vertical && studPoint.Y < (studEndPoint.Y - 1.0)) || (lineType == LineType.horizontal && studPoint.X < (studEndPoint.X - 1.0)))
                     {
-
                         XYZ AdjustedLinePoint = null;
 
                         if ((lineType == LineType.vertical && studPoint.Y > (studStartPoint.Y + 0.64)) || (lineType == LineType.horizontal && studPoint.X > (studStartPoint.X + 0.64))) // This condition ensures there are no collisions at the start
                         {
-                            using (Transaction tx = new Transaction(m_Document))
+                            studColumn = m_Document.Create.NewFamilyInstance(studPoint, columnType, baseLevel, StructuralType.Column);
+                            Logger.logMessage("ProcessContinuousDoubleStuds -Placing Columns at on-Center ");
+
+                            if (inputLine.dParapetHeight == 0)
                             {
-                                GenericUtils.SupressWarningsInTransaction(tx);
-
-                                _ = tx.Start("Placing posts");
-                                studColumn = m_Document.Create.NewFamilyInstance(studPoint, columnType, baseLevel, StructuralType.Column);
-                                Logger.logMessage("ProcessContinuousDoubleStuds -Placing Columns at on-Center ");
-
-                                if (inputLine.dParapetHeight == 0)
-                                {
-                                    _ = studColumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(toplevel.Id);
-                                    _ = studColumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM).Set(0);
-                                }
-                                else
-                                {
-                                    _ = studColumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(baseLevel.Id);
-                                    _ = studColumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM).Set(inputLine.dParapetHeight);
-                                }
-
-
-                                topAttachElement = GetNearestFloorOrRoof(toplevel, studPoint);
-                                bottomAttachElement = GetNearestFloorOrRoof(baseLevel, studPoint);
-
-                                // If we coulfdn't find a floor, the input line is on top floor
-                                // Need to attach it to roof
-                                if (topAttachElement == null)
-                                {
-                                    topAttachElement = GetRoofAtPoint(studPoint);
-                                }
-
-                                if (topAttachElement != null)
-                                {
-                                    ColumnAttachment.AddColumnAttachment(m_Document, studColumn, topAttachElement, 1, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
-                                }
-
-                                if (bottomAttachElement != null)
-                                {
-                                    ColumnAttachment.AddColumnAttachment(m_Document, studColumn, bottomAttachElement, 0, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
-                                }
-
-
-                                //m_Form.PostMessage(string.Format("Placing Post  {3} at {0} , {1} , {2} \n \n ", studPoint.X, studPoint.Y, studPoint.Z, inputLine.strStudType));
-                                StudColumnID = studColumn.Id;
-                                StudColumnOrientation = studColumn.FacingOrientation;
-                                _ = tx.Commit();
+                                _ = studColumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(toplevel.Id);
+                                _ = studColumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM).Set(0);
                             }
+                            else
+                            {
+                                _ = studColumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(baseLevel.Id);
+                                _ = studColumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM).Set(inputLine.dParapetHeight);
+                            }
+
+                            studColumn.get_Parameter(BuiltInParameter.PHASE_CREATED).Set(m_phase.Id);
+
+                            topAttachElement = GetNearestFloorOrRoof(toplevel, studPoint);
+                            bottomAttachElement = GetNearestFloorOrRoof(baseLevel, studPoint);
+
+                            // If we coulfdn't find a floor, the input line is on top floor
+                            // Need to attach it to roof
+                            if (topAttachElement == null)
+                            {
+                                topAttachElement = GetRoofAtPoint(studPoint);
+                            }
+
+                            if (topAttachElement != null)
+                            {
+                                ColumnAttachment.AddColumnAttachment(m_Document, studColumn, topAttachElement, 1, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
+                            }
+
+                            if (bottomAttachElement != null)
+                            {
+                                ColumnAttachment.AddColumnAttachment(m_Document, studColumn, bottomAttachElement, 0, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
+                            }
+
+
+                            //m_Form.PostMessage(string.Format("Placing Post  {3} at {0} , {1} , {2} \n \n ", studPoint.X, studPoint.Y, studPoint.Z, inputLine.strStudType));
+                            StudColumnID = studColumn.Id;
+                            StudColumnOrientation = studColumn.FacingOrientation;
 
                             UpdateOrientation(StudColumnID, StudColumnOrientation, studPoint, pt2);
                             Logger.logMessage("ProcessContinuousDoubleStuds - Update Orientation ");
@@ -1222,102 +1166,92 @@ namespace Revit_Automation.Source.ModelCreators
 
             for (int i = 0; i < 2; i++)
             {
-
-                // Start a new Tranasaction
-                using (Transaction tx = new Transaction(m_Document))
+                if (bAtStart)
                 {
+                    //Place Column at start
+                    FamilyInstance startcolumn = m_Document.Create.NewFamilyInstance(pt1, columnType, baseLevel, StructuralType.Column);
+                    Logger.logMessage("Method : ProcessDoubleStudAtEnds - Start Column");
 
-                    GenericUtils.SupressWarningsInTransaction(tx);
-
-                    _ = tx.Start("Place Column");
-
-                    if (bAtStart)
+                    if (inputLine.dParapetHeight == 0)
                     {
-                        //Place Column at start
-                        FamilyInstance startcolumn = m_Document.Create.NewFamilyInstance(pt1, columnType, baseLevel, StructuralType.Column);
-                        Logger.logMessage("Method : ProcessDoubleStudAtEnds - Start Column");
-
-                        if (inputLine.dParapetHeight == 0)
-                        {
-                            _ = startcolumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(toplevel.Id);
-                            _ = startcolumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM).Set(0);
-                        }
-                        else
-                        {
-                            _ = startcolumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(baseLevel.Id);
-                            _ = startcolumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM).Set(inputLine.dParapetHeight);
-                        }
-
-                        // If we coulfdn't find a floor, the input line is on top floor
-                        // Need to attach it to roof
-
-                        topAttachElement = GetNearestFloorOrRoof(toplevel, pt1);
-                        bottomAttachElement = GetNearestFloorOrRoof(baseLevel, pt1);
-
-                        if (topAttachElement == null)
-                        {
-                            topAttachElement = GetRoofAtPoint(pt1);
-                        }
-
-                        if (topAttachElement != null)
-                        {
-                            ColumnAttachment.AddColumnAttachment(m_Document, startcolumn, topAttachElement, 1, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
-                        }
-
-                        if (i != 0 && bottomAttachElement != null)
-                        {
-                            ColumnAttachment.AddColumnAttachment(m_Document, startcolumn, bottomAttachElement, 0, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
-                        }
-
-                        // m_Form.PostMessage(string.Format("Placing Post  {3} at {0} , {1} , {2} \n \n ", pt1.X, pt1.Y, pt1.Z, inputLine.strStudType));
-                        startColumnID = startcolumn.Id;
-                        startColumnOrientation = startcolumn.FacingOrientation;
+                        _ = startcolumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(toplevel.Id);
+                        _ = startcolumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM).Set(0);
+                    }
+                    else
+                    {
+                        _ = startcolumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(baseLevel.Id);
+                        _ = startcolumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM).Set(inputLine.dParapetHeight);
                     }
 
-                    if (bAtEnd)
+                    // If we coulfdn't find a floor, the input line is on top floor
+                    // Need to attach it to roof
+                    startcolumn.get_Parameter(BuiltInParameter.PHASE_CREATED).Set(m_phase.Id);
+
+                    topAttachElement = GetNearestFloorOrRoof(toplevel, pt1);
+                    bottomAttachElement = GetNearestFloorOrRoof(baseLevel, pt1);
+
+                    if (topAttachElement == null)
                     {
-                        // Place column at end
-                        FamilyInstance endColumn = m_Document.Create.NewFamilyInstance(pt2, columnType, baseLevel, StructuralType.Column);
-                        Logger.logMessage("Method : ProcessDoubleStudAtEnds - End Column");
-
-                        if (inputLine.dParapetHeight == 0)
-                        {
-                            _ = endColumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(toplevel.Id);
-                            _ = endColumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM).Set(0);
-                        }
-                        else
-                        {
-                            _ = endColumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(baseLevel.Id);
-                            _ = endColumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM).Set(inputLine.dParapetHeight);
-                        }
-
-                        // If we coulfdn't find a floor, the input line is on top floor
-                        // Need to attach it to roof
-
-                        topAttachElement = GetNearestFloorOrRoof(toplevel, pt2);
-                        bottomAttachElement = GetNearestFloorOrRoof(baseLevel, pt2);
-
-                        if (topAttachElement == null)
-                        {
-                            topAttachElement = GetRoofAtPoint(pt2);
-                        }
-
-                        if (topAttachElement != null)
-                        {
-                            ColumnAttachment.AddColumnAttachment(m_Document, endColumn, topAttachElement, 1, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
-                        }
-
-                        if (i != 0 && bottomAttachElement != null)
-                        {
-                            ColumnAttachment.AddColumnAttachment(m_Document, endColumn, bottomAttachElement, 0, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
-                        }
-
-                        //m_Form.PostMessage(string.Format("Placing Post  {3} at {0} , {1} , {2} \n \n ", pt2.X, pt2.Y, pt2.Z, inputLine.strStudType));
-                        EndColumnID = endColumn.Id;
-                        endColumnOrientation = endColumn.FacingOrientation;
+                        topAttachElement = GetRoofAtPoint(pt1);
                     }
 
-                    _ = tx.Commit();
+                    if (topAttachElement != null)
+                    {
+                        ColumnAttachment.AddColumnAttachment(m_Document, startcolumn, topAttachElement, 1, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
+                    }
+
+                    if (i != 0 && bottomAttachElement != null)
+                    {
+                        ColumnAttachment.AddColumnAttachment(m_Document, startcolumn, bottomAttachElement, 0, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
+                    }
+
+                    // m_Form.PostMessage(string.Format("Placing Post  {3} at {0} , {1} , {2} \n \n ", pt1.X, pt1.Y, pt1.Z, inputLine.strStudType));
+                    startColumnID = startcolumn.Id;
+                    startColumnOrientation = startcolumn.FacingOrientation;
+                }
+
+                if (bAtEnd)
+                {
+                    // Place column at end
+                    FamilyInstance endColumn = m_Document.Create.NewFamilyInstance(pt2, columnType, baseLevel, StructuralType.Column);
+                    Logger.logMessage("Method : ProcessDoubleStudAtEnds - End Column");
+
+                    if (inputLine.dParapetHeight == 0)
+                    {
+                        _ = endColumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(toplevel.Id);
+                        _ = endColumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM).Set(0);
+                    }
+                    else
+                    {
+                        _ = endColumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(baseLevel.Id);
+                        _ = endColumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM).Set(inputLine.dParapetHeight);
+                    }
+
+                    // If we coulfdn't find a floor, the input line is on top floor
+                    // Need to attach it to roof
+                    endColumn.get_Parameter(BuiltInParameter.PHASE_CREATED).Set(m_phase.Id);
+
+                    topAttachElement = GetNearestFloorOrRoof(toplevel, pt2);
+                    bottomAttachElement = GetNearestFloorOrRoof(baseLevel, pt2);
+
+                    if (topAttachElement == null)
+                    {
+                        topAttachElement = GetRoofAtPoint(pt2);
+                    }
+
+                    if (topAttachElement != null)
+                    {
+                        ColumnAttachment.AddColumnAttachment(m_Document, endColumn, topAttachElement, 1, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
+                    }
+
+                    if (i != 0 && bottomAttachElement != null)
+                    {
+                        ColumnAttachment.AddColumnAttachment(m_Document, endColumn, bottomAttachElement, 0, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
+                    }
+
+                    //m_Form.PostMessage(string.Format("Placing Post  {3} at {0} , {1} , {2} \n \n ", pt2.X, pt2.Y, pt2.Z, inputLine.strStudType));
+                    EndColumnID = endColumn.Id;
+                    endColumnOrientation = endColumn.FacingOrientation;
                 }
 
                 double dFlangeWidth = GenericUtils.FlangeWidth(inputLine.strStudType);
@@ -1417,23 +1351,14 @@ namespace Revit_Automation.Source.ModelCreators
 
             FamilyInstance column = m_Document.GetElement(columnId) as FamilyInstance;
 
-            using (Transaction tx = new Transaction(m_Document))
+            // Get the column's Location property
+            Location location = column.Location;
+
+            // Check if the column's location is a LocationPoint
+            if (location is LocationPoint locationPoint)
             {
-                GenericUtils.SupressWarningsInTransaction(tx);
-
-                _ = tx.Start("Change Orientation");
-
-                // Get the column's Location property
-                Location location = column.Location;
-
-                // Check if the column's location is a LocationPoint
-                if (location is LocationPoint locationPoint)
-                {
-                    // Set the new location for the column
-                    locationPoint.Point = newLocation;
-                }
-
-                _ = tx.Commit();
+                // Set the new location for the column
+                locationPoint.Point = newLocation;
             }
         }
 
