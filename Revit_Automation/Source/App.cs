@@ -38,7 +38,10 @@ namespace Revit_Automation
                 a.CreateRibbonTab(tabName);
 
                 // Add a new ribbon panel
-                RibbonPanel ribbonPanel = a.CreateRibbonPanel(tabName, "Automation");
+                RibbonPanel ribbonPanel = a.CreateRibbonPanel(tabName, "Creation");
+
+                // Add a new ribbon panel
+                //RibbonPanel ribbonPanel2 = a.CreateRibbonPanel(tabName, "Validation");
 
                 // Get dll assembly path
                 string thisAssemblyPath = Assembly.GetExecutingAssembly().Location;
@@ -79,13 +82,13 @@ namespace Revit_Automation
 
                 PushButtonData b3Data = new PushButtonData(
                     "testCMD3",
-                    "Exterior \n || to Slope",
+                    "Walls at \n Selection",
                     thisAssemblyPath,
                     "Revit_Automation.Command3");
 
                 PushButton pb3 = ribbonPanel.AddItem(b3Data) as PushButton;
-                pb3.ToolTip = "Place posts At a selected Input line";
-                string path3 = "C:\\Program Files\\Autodesk\\Revit 2022\\AddIns\\Resources\\ExteriorParallel.png";
+                pb3.ToolTip = "Place Walls At a selected Input line";
+                string path3 = "C:\\Program Files\\Autodesk\\Revit 2022\\AddIns\\Resources\\Walls.png";
                 if (File.Exists(path3))
                 {
                     BitmapImage pb3Image = new BitmapImage(new Uri(path3));
@@ -94,49 +97,18 @@ namespace Revit_Automation
 
                 PushButtonData b4Data = new PushButtonData(
                     "testCMD4",
-                    "Exterior \n _|_ to Slope",
+                    "Botom Tracks \n at Selection",
                     thisAssemblyPath,
                     "Revit_Automation.Command4");
 
                 PushButton pb4 = ribbonPanel.AddItem(b4Data) as PushButton;
-                pb4.ToolTip = "Place posts At a selected Input line";
-                string path4 = "C:\\Program Files\\Autodesk\\Revit 2022\\AddIns\\Resources\\ExteriorPerpendicular.png";
+                pb4.ToolTip = "Place Bottom Tracks At a selected Input line";
+                string path4 = "C:\\Program Files\\Autodesk\\Revit 2022\\AddIns\\Resources\\BottomTrack.png";
                 if (File.Exists(path4))
                 {
                     BitmapImage pb4Image = new BitmapImage(new Uri(path4));
                     pb4.LargeImage = pb4Image;
                 }
-
-                PushButtonData b5Data = new PushButtonData(
-                    "testCMD5",
-                    "Interior \n || to Slope",
-                    thisAssemblyPath,
-                    "Revit_Automation.Command5");
-
-                PushButton pb5 = ribbonPanel.AddItem(b5Data) as PushButton;
-                pb5.ToolTip = "Place posts At a selected Input line";
-                string path5 = "C:\\Program Files\\Autodesk\\Revit 2022\\AddIns\\Resources\\Parallel.png";
-                if (File.Exists(path5))
-                {
-                    BitmapImage pb5Image = new BitmapImage(new Uri(path5));
-                    pb5.LargeImage = pb5Image;
-                }
-
-                PushButtonData b6Data = new PushButtonData(
-                    "testCMD6",
-                    "Interior \n _|_ to Slope",
-                    thisAssemblyPath,
-                    "Revit_Automation.Command6");
-
-                PushButton pb6 = ribbonPanel.AddItem(b6Data) as PushButton;
-                pb6.ToolTip = "Place posts At a selected Input line";
-                string path6 = "C:\\Program Files\\Autodesk\\Revit 2022\\AddIns\\Resources\\Perpendicular.png";
-                if (File.Exists(path6))
-                {
-                    BitmapImage pb6Image = new BitmapImage(new Uri(path6));
-                    pb6.LargeImage = pb6Image;
-                }
-
                 return Result.Succeeded;
             }
             //else

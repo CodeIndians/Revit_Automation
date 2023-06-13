@@ -179,7 +179,7 @@ namespace Revit_Automation.Source
 
                 // Compute if the Line is parallel, or perpendicular to roof slope.
                 XYZ lineDirection = locationCurve.Curve.GetEndPoint(1) - locationCurve.Curve.GetEndPoint(0);
-                XYZ roofSlope = GetRoofSlopeDirection(locationCurve.Curve.GetEndPoint(1));
+                XYZ roofSlope = GenericUtils.GetRoofSlopeDirection(locationCurve.Curve.GetEndPoint(1));
                 iLine.dirWRTRoofSlope = MathUtils.IsParallel(roofSlope, lineDirection)
                     ? DirectionWithRespectToRoofSlope.Parallel
                     : DirectionWithRespectToRoofSlope.Perpendicular;
@@ -191,46 +191,8 @@ namespace Revit_Automation.Source
                 iLine.mainGridIntersectionPoints = GridCollectionHelper.computeIntersectionPoints(linecoords, true);
 
                 //Add the line to the collection 
-                if (CheckIfPassesCondition(iLine, commandcode))
-                {
-                    _ = AddInputLine(iLine);
-                }
+                _ = AddInputLine(iLine);
             }
-        }
-
-        public static bool CheckIfPassesCondition(InputLine iLine, CommandCode commandcode)
-        {
-            if (commandcode == CommandCode.All)
-            {
-                return true;
-            }
-
-            if (iLine.strWallType == null)
-            {
-                return true;
-            }
-            else if (commandcode == CommandCode.ExteriorParallel)
-            {
-                return iLine.strWallType.Contains("Ex") &&
-                    iLine.dirWRTRoofSlope == DirectionWithRespectToRoofSlope.Parallel;
-            }
-            else if (commandcode == CommandCode.ExteriorPerpendicular)
-            {
-                return iLine.strWallType.Contains("Ex") &&
-                    iLine.dirWRTRoofSlope == DirectionWithRespectToRoofSlope.Perpendicular;
-            }
-            else if (commandcode == CommandCode.InteriorParallel)
-            {
-                return !iLine.strWallType.Contains("Ex") &&
-                    iLine.dirWRTRoofSlope == DirectionWithRespectToRoofSlope.Parallel;
-            }
-            else if (commandcode == CommandCode.InteriorPerpendicular)
-            {
-                return !iLine.strWallType.Contains("Ex") &&
-                    iLine.dirWRTRoofSlope == DirectionWithRespectToRoofSlope.Perpendicular;
-            }
-
-            return false;
         }
 
         /// <summary>
@@ -244,40 +206,6 @@ namespace Revit_Automation.Source
             return true;
         }
 
-        public static XYZ GetRoofSlopeDirection(XYZ pt1)
-        {
-            XYZ SlopeDirect = null;
-
-            RoofObject targetRoof;
-            targetRoof.slopeLine = null;
-
-            foreach (RoofObject roof in RoofUtility.colRoofs)
-            {
-                double Xmin, Xmax, Ymin, Ymax = 0.0;
-                Xmin = Math.Min(roof.max.X, roof.min.X);
-                Xmax = Math.Max(roof.max.X, roof.min.X);
-                Ymin = Math.Min(roof.max.Y, roof.min.Y);
-                Ymax = Math.Max(roof.max.Y, roof.min.Y);
-
-                if (pt1.X > Xmin && pt1.X < Xmax && pt1.Y > Ymin && pt1.Y < Ymax)
-                {
-                    targetRoof = roof;
-                    break;
-                }
-            }
-
-            Curve SlopeCurve = targetRoof.slopeLine;
-
-            if (SlopeCurve != null)
-            {
-                XYZ start = SlopeCurve.GetEndPoint(0);
-                XYZ end = SlopeCurve.GetEndPoint(1);
-
-                XYZ slope = start.Z > end.Z ? (end - start) : (start - end);
-
-                SlopeDirect = new XYZ(slope.X, slope.Y, 0.0);
-            }
-            return SlopeDirect;
-        }
+        
     }
 }

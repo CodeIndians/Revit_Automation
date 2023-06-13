@@ -204,5 +204,92 @@ namespace Revit_Automation.Source.Utils
                 end = pt1.Y > pt2.Y ? pt1 : pt2;
             }
         }
+
+        public static Element GetNearestFloorOrRoof(Level level, XYZ pt1, Document m_Document)
+        {
+            Logger.logMessage("Method : GetNearestFloorOrRoof");
+
+            List<FloorObject> floorObjects = FloorHelper.colFloors;
+
+            Element elemID = null;
+
+            // match the building name as the level
+            List<FloorObject> filteredFloors = new List<FloorObject>();
+
+            foreach (FloorObject floorObject in floorObjects)
+            {
+                if (level.Name.Contains(floorObject.strBuildingName))
+                {
+                    filteredFloors.Add(floorObject);
+                }
+            }
+
+
+            foreach (FloorObject floor in filteredFloors)
+            {
+                if (floor.min == null || floor.max == null)
+                {
+                    continue;
+                }
+
+                // match the bounding box of the point with the Floor Range
+                double Xmin, Xmax, Ymin, Ymax = 0.0;
+                Xmin = Math.Min(floor.max.X, floor.min.X);
+                Xmax = Math.Max(floor.max.X, floor.min.X);
+                Ymin = Math.Min(floor.max.Y, floor.min.Y);
+                Ymax = Math.Max(floor.max.Y, floor.min.Y);
+
+                if (pt1.X >= Xmin && pt1.X <= Xmax && pt1.Y >= Ymin && pt1.Y <= Ymax)
+                {
+                    Element levelElement = m_Document.GetElement(floor.levelID);
+                    Parameter elevationParam = levelElement.get_Parameter(BuiltInParameter.LEVEL_ELEV);
+                    if (elevationParam != null)
+                    {
+                        if (MathUtils.IsWithInRange(elevationParam.AsDouble(), level.Elevation + 3, level.Elevation - 3))
+                        {
+                            elemID = m_Document.GetElement(floor.elemID);
+                            break;
+                        }
+                    }
+                }
+            }
+            return elemID;
+        }
+
+        public static XYZ GetRoofSlopeDirection(XYZ pt1)
+        {
+            XYZ SlopeDirect = null;
+
+            RoofObject targetRoof;
+            targetRoof.slopeLine = null;
+
+            foreach (RoofObject roof in RoofUtility.colRoofs)
+            {
+                double Xmin, Xmax, Ymin, Ymax = 0.0;
+                Xmin = Math.Min(roof.max.X, roof.min.X);
+                Xmax = Math.Max(roof.max.X, roof.min.X);
+                Ymin = Math.Min(roof.max.Y, roof.min.Y);
+                Ymax = Math.Max(roof.max.Y, roof.min.Y);
+
+                if (pt1.X > Xmin && pt1.X < Xmax && pt1.Y > Ymin && pt1.Y < Ymax)
+                {
+                    targetRoof = roof;
+                    break;
+                }
+            }
+
+            Curve SlopeCurve = targetRoof.slopeLine;
+
+            if (SlopeCurve != null)
+            {
+                XYZ start = SlopeCurve.GetEndPoint(0);
+                XYZ end = SlopeCurve.GetEndPoint(1);
+
+                XYZ slope = start.Z > end.Z ? (end - start) : (start - end);
+
+                SlopeDirect = new XYZ(slope.X, slope.Y, 0.0);
+            }
+            return SlopeDirect;
+        }
     }
 }

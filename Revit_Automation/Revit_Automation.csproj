@@ -76,6 +76,7 @@
     <Compile Include="Source\Interfaces\CollisionInterface.cs" />
     <Compile Include="Source\ModelCreators\ColumnCreator.cs" />
     <Compile Include="Source\ModelCreators\T62Valiations.cs" />
+    <Compile Include="Source\ModelCreators\WallCreator.cs" />
     <Compile Include="Source\Utils\FloorHelper.cs" />
     <Compile Include="Source\Utils\GenericUtils.cs" />
     <Compile Include="Source\Utils\GridCollector.cs" />
@@ -96,6 +97,7 @@
     <Compile Include="Source\Utils\WarningSwallowers.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Resources\Walls.png" />
     <Resource Include="Resources\Revit.png" />
     <None Include="Docs\Dev_Notes.pdf" />
     <None Include="Resources\check-mark.png" />
