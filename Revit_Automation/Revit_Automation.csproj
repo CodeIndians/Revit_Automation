@@ -97,6 +97,7 @@
     <Compile Include="Source\Utils\WarningSwallowers.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Resources\BottomTrack.png" />
     <Content Include="Resources\Walls.png" />
     <Resource Include="Resources\Revit.png" />
     <None Include="Docs\Dev_Notes.pdf" />
