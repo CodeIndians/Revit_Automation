@@ -160,7 +160,7 @@ namespace Revit_Automation.Source.ModelCreators
 
                 // Get the Family symbol of the respective post
                 string strFamilySymbol = inputLine.strStudType.ToString() + string.Format(" x {0}ga", inputLine.strStudGuage);
-                FamilySymbol columnType = SymbolCollector.GetSymbol(strFamilySymbol, "Post");
+                FamilySymbol columnType = SymbolCollector.GetSymbol(strFamilySymbol, "Post", SymbolCollector.FamilySymbolType.posts);
 
 
                 // We have 3 types of Double Stud Conditions. 
@@ -273,7 +273,7 @@ namespace Revit_Automation.Source.ModelCreators
 
 
                string strFamilySymbol = inputLine.strStudType.ToString() + string.Format(" x {0}ga", inputLine.strStudGuage);
-                FamilySymbol columnType = SymbolCollector.GetSymbol(strFamilySymbol, "Post");
+                FamilySymbol columnType = SymbolCollector.GetSymbol(strFamilySymbol, "Post", SymbolCollector.FamilySymbolType.posts);
 
                 if (columnType == null)
                 {
@@ -301,8 +301,8 @@ namespace Revit_Automation.Source.ModelCreators
 
                     startcolumn.get_Parameter(BuiltInParameter.PHASE_CREATED).Set(m_phase.Id);
 
-                    topAttachElement = GetNearestFloorOrRoof(toplevel, pt1);
-                    bottomAttachElement = GetNearestFloorOrRoof(baseLevel, pt1);
+                    topAttachElement = GenericUtils.GetNearestFloorOrRoof(toplevel, pt1, m_Document);
+                    bottomAttachElement = GenericUtils.GetNearestFloorOrRoof(baseLevel, pt1, m_Document);
 
                     if (topAttachElement == null)
                     {
@@ -342,8 +342,8 @@ namespace Revit_Automation.Source.ModelCreators
 
                     // If we coulfdn't find a floor, the input line is on top floor
                     // Need to attach it to roof
-                    topAttachElement = GetNearestFloorOrRoof(toplevel, pt2);
-                    bottomAttachElement = GetNearestFloorOrRoof(baseLevel, pt2);
+                    topAttachElement = GenericUtils.GetNearestFloorOrRoof(toplevel, pt2, m_Document);
+                    bottomAttachElement = GenericUtils.GetNearestFloorOrRoof(baseLevel, pt2, m_Document);
 
                     if (topAttachElement == null)
                     {
@@ -473,8 +473,8 @@ namespace Revit_Automation.Source.ModelCreators
 
                             studColumn.get_Parameter(BuiltInParameter.PHASE_CREATED).Set(m_phase.Id);
 
-                            topAttachElement = GetNearestFloorOrRoof(toplevel, studPoint);
-                            bottomAttachElement = GetNearestFloorOrRoof(baseLevel, studPoint);
+                            topAttachElement = GenericUtils.GetNearestFloorOrRoof(toplevel, studPoint, m_Document);
+                            bottomAttachElement = GenericUtils.GetNearestFloorOrRoof(baseLevel, studPoint, m_Document);
 
                             // If we coulfdn't find a floor, the input line is on top floor
                             // Need to attach it to roof
@@ -805,7 +805,7 @@ namespace Revit_Automation.Source.ModelCreators
                 }
 
                 Logger.logMessage("Method : ProcessT62InputLine");
-                FamilySymbol columnType = SymbolCollector.GetSymbol(inputLine.strT62Type, "T62");
+                FamilySymbol columnType = SymbolCollector.GetSymbol(inputLine.strT62Type, "T62", SymbolCollector.FamilySymbolType.posts);
 
                 if (columnType == null)
                 {
@@ -898,8 +898,8 @@ namespace Revit_Automation.Source.ModelCreators
 
                         // If we coulfdn't find a floor, the input line is on top floor
                         // Need to attach it to roof
-                        topAttachElement = GetNearestFloorOrRoof(toplevel, studPoint);
-                        bottomAttachElement = GetNearestFloorOrRoof(baseLevel, studPoint);
+                        topAttachElement = GenericUtils.GetNearestFloorOrRoof(toplevel, studPoint, m_Document);
+                        bottomAttachElement = GenericUtils.GetNearestFloorOrRoof(baseLevel, studPoint, m_Document);
 
 
                         if (topAttachElement == null)
@@ -1053,8 +1053,8 @@ namespace Revit_Automation.Source.ModelCreators
 
                             studColumn.get_Parameter(BuiltInParameter.PHASE_CREATED).Set(m_phase.Id);
 
-                            topAttachElement = GetNearestFloorOrRoof(toplevel, studPoint);
-                            bottomAttachElement = GetNearestFloorOrRoof(baseLevel, studPoint);
+                            topAttachElement = GenericUtils.GetNearestFloorOrRoof(toplevel, studPoint, m_Document);
+                            bottomAttachElement = GenericUtils.GetNearestFloorOrRoof(baseLevel, studPoint, m_Document);
 
                             // If we coulfdn't find a floor, the input line is on top floor
                             // Need to attach it to roof
@@ -1187,8 +1187,8 @@ namespace Revit_Automation.Source.ModelCreators
                     // Need to attach it to roof
                     startcolumn.get_Parameter(BuiltInParameter.PHASE_CREATED).Set(m_phase.Id);
 
-                    topAttachElement = GetNearestFloorOrRoof(toplevel, pt1);
-                    bottomAttachElement = GetNearestFloorOrRoof(baseLevel, pt1);
+                    topAttachElement = GenericUtils.GetNearestFloorOrRoof(toplevel, pt1, m_Document);
+                    bottomAttachElement = GenericUtils.GetNearestFloorOrRoof(baseLevel, pt1, m_Document);
 
                     if (topAttachElement == null)
                     {
@@ -1231,8 +1231,8 @@ namespace Revit_Automation.Source.ModelCreators
                     // Need to attach it to roof
                     endColumn.get_Parameter(BuiltInParameter.PHASE_CREATED).Set(m_phase.Id);
 
-                    topAttachElement = GetNearestFloorOrRoof(toplevel, pt2);
-                    bottomAttachElement = GetNearestFloorOrRoof(baseLevel, pt2);
+                    topAttachElement = GenericUtils.GetNearestFloorOrRoof(toplevel, pt2, m_Document);
+                    bottomAttachElement = GenericUtils.GetNearestFloorOrRoof(baseLevel, pt2, m_Document);
 
                     if (topAttachElement == null)
                     {
@@ -1291,56 +1291,7 @@ namespace Revit_Automation.Source.ModelCreators
             }
         }
 
-        private Element GetNearestFloorOrRoof(Level level, XYZ pt1)
-        {
-            Logger.logMessage("Method : GetNearestFloorOrRoof");
-
-            List<FloorObject> floorObjects = FloorHelper.colFloors;
-
-            Element elemID = null;
-
-            // match the building name as the level
-            List<FloorObject> filteredFloors = new List<FloorObject>();
-
-            foreach (FloorObject floorObject in floorObjects)
-            {
-                if (level.Name.Contains(floorObject.strBuildingName))
-                {
-                    filteredFloors.Add(floorObject);
-                }
-            }
-
-
-            foreach (FloorObject floor in filteredFloors)
-            {
-                if (floor.min == null || floor.max == null)
-                {
-                    continue;
-                }
-
-                // match the bounding box of the point with the Floor Range
-                double Xmin, Xmax, Ymin, Ymax = 0.0;
-                Xmin = Math.Min(floor.max.X, floor.min.X);
-                Xmax = Math.Max(floor.max.X, floor.min.X);
-                Ymin = Math.Min(floor.max.Y, floor.min.Y);
-                Ymax = Math.Max(floor.max.Y, floor.min.Y);
-
-                if (pt1.X >= Xmin && pt1.X <= Xmax && pt1.Y >= Ymin && pt1.Y <= Ymax)
-                {
-                    Element levelElement = m_Document.GetElement(floor.levelID);
-                    Parameter elevationParam = levelElement.get_Parameter(BuiltInParameter.LEVEL_ELEV);
-                    if (elevationParam != null)
-                    {
-                        if (MathUtils.IsWithInRange(elevationParam.AsDouble(), level.Elevation + 3, level.Elevation - 3))
-                        {
-                            elemID = m_Document.GetElement(floor.elemID);
-                            break;
-                        }
-                    }
-                }
-            }
-            return elemID;
-        }
+        
 
         private void MoveColumn(ElementId columnId, XYZ newLocation)
         {

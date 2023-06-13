@@ -26,17 +26,22 @@ namespace Revit_Automation.Source.CollisionDetectors
         
         public PostCollisionResolver(Document doc) { m_Document = doc; }
 
+        /// <summary>
+        /// Handles the collisions at a given location represented by the collission object
+        /// </summary>
+        /// <param name="collisionObject"></param>
+        /// <returns></returns>
         public bool HandleCollision(CollisionObject collisionObject)
         {
             
             // Create a Outline, uses a minimum and maximum XYZ point to initialize the Bounding Box. 
             Outline myOutLn = new Outline(
-                new XYZ(collisionObject.CollisionPoint.X - 0.3,
-                collisionObject.CollisionPoint.Y - 0.3,
-                collisionObject.CollisionPoint.Z - 0.3),
-                new XYZ(collisionObject.CollisionPoint.X + 0.3,
-                collisionObject.CollisionPoint.Y + 0.3,
-                collisionObject.CollisionPoint.Z + 0.3));
+                new XYZ(collisionObject.CollisionPoint.X - 0.5,
+                collisionObject.CollisionPoint.Y - 0.5,
+                collisionObject.CollisionPoint.Z - 0.5),
+                new XYZ(collisionObject.CollisionPoint.X + 0.5,
+                collisionObject.CollisionPoint.Y + 0.5,
+                collisionObject.CollisionPoint.Z + 0.5));
             Logger.logMessage("Outline for Collection Objects Created");
             
             // Create a BoundingBoxIntersects filter with this Outline
@@ -198,7 +203,6 @@ namespace Revit_Automation.Source.CollisionDetectors
 
             FamilyInstance column = m_Document.GetElement(columnId) as FamilyInstance;
 
-
             // Get the column's Location property
             Location location = column.Location;
 
@@ -209,7 +213,6 @@ namespace Revit_Automation.Source.CollisionDetectors
                 locationPoint.Point = newLocation;
                 Logger.logMessage("MoveColumn : Change Location Point");
             }
-
         }
 
         private Element IdentifyStaticPost(Element continuousLine, IList<Element> postElements)
@@ -253,12 +256,7 @@ namespace Revit_Automation.Source.CollisionDetectors
                 XYZ pt1 = locationCurve.Curve.GetEndPoint(0);
                 XYZ pt2 = locationCurve.Curve.GetEndPoint(1);
 
-                LineType lineType = LineType.vertical;
-
-                if (MathUtils.ApproximatelyEqual(pt1.Y, pt2.Y))
-                {
-                    lineType = LineType.Horizontal;
-                }
+                LineType lineType = MathUtils.ApproximatelyEqual(pt1.Y, pt2.Y) ? LineType.Horizontal : LineType.vertical;
 
                 if (lineType == LineType.Horizontal)
                 {

@@ -24,10 +24,10 @@ namespace Revit_Automation
     public enum CommandCode
     {
         All = 0,
-        ExteriorParallel = 1,
-        ExteriorPerpendicular = 2,
-        InteriorParallel = 3,
-        InteriorPerpendicular
+        Posts = 1,
+        Walls = 2,
+        BottomTracks = 3,
+        Beams
     }
 
     [Transaction(TransactionMode.Manual)]
@@ -79,7 +79,7 @@ namespace Revit_Automation
 
             if (form.CanCreateModel)
             {
-                ModelCreator.CreateModel(uiapp, form, true);
+                ModelCreator.CreateModel(uiapp, form, true, CommandCode.Posts);
             }
 
             return Result.Succeeded;
@@ -107,7 +107,7 @@ namespace Revit_Automation
 
             if (form.CanCreateModel)
             {
-                ModelCreator.CreateModel(uiapp, form, false, CommandCode.ExteriorParallel);
+                ModelCreator.CreateModel(uiapp, form, true, CommandCode.Walls);
             }
 
             return Result.Succeeded;
@@ -135,67 +135,10 @@ namespace Revit_Automation
 
             if (form.CanCreateModel)
             {
-                ModelCreator.CreateModel(uiapp, form, false, CommandCode.ExteriorPerpendicular);
+                ModelCreator.CreateModel(uiapp, form, true, CommandCode.BottomTracks);
             }
 
             return Result.Succeeded;
         }
     }
-
-    [Transaction(TransactionMode.Manual)]
-    public class Command5 : IExternalCommand
-    {
-        public Result Execute(
-          ExternalCommandData commandData,
-          ref string message,
-          ElementSet elements)
-        {
-
-
-            UIApplication uiapp = commandData.Application;
-
-            Form1 form = new Form1
-            {
-                StartPosition = FormStartPosition.CenterScreen
-            };
-            //form.TopMost= true;
-            _ = form.ShowDialog();
-
-            if (form.CanCreateModel)
-            {
-                ModelCreator.CreateModel(uiapp, form, false, CommandCode.InteriorParallel);
-            }
-
-            return Result.Succeeded;
-        }
-    }
-
-    [Transaction(TransactionMode.Manual)]
-    public class Command6 : IExternalCommand
-    {
-        public Result Execute(
-          ExternalCommandData commandData,
-          ref string message,
-          ElementSet elements)
-        {
-
-
-            UIApplication uiapp = commandData.Application;
-
-            Form1 form = new Form1
-            {
-                StartPosition = FormStartPosition.CenterScreen
-            };
-            //form.TopMost= true;
-            _ = form.ShowDialog();
-
-            if (form.CanCreateModel)
-            {
-                ModelCreator.CreateModel(uiapp, form, false, CommandCode.InteriorPerpendicular);
-            }
-
-            return Result.Succeeded;
-        }
-    }
-
 }

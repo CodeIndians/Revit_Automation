@@ -108,6 +108,7 @@ namespace Revit_Automation
             {
                 // 6. Collect the necessary symbols
                 SymbolCollector.CollectColumnSymbols(doc);
+                SymbolCollector.CollectWallSymbols(doc);
             }
             catch (Exception)
             {
@@ -123,6 +124,7 @@ namespace Revit_Automation
             {
                 _ = TaskDialog.Show("Automation Error", "Failed while processing the Input lines");
             }
+            
             // 8. Input Lines to be collected
             try
             {
@@ -134,10 +136,17 @@ namespace Revit_Automation
             }
 
             // 9. Place Columns
-            ColumnCreator columnCreator = new ColumnCreator(doc, form);
-            columnCreator.SetPhase(desiredPhase);
-            columnCreator.CreateModel(InputLineUtility.colInputLines, levels);
-
+            if (commandCode == CommandCode.Posts)
+            {
+                ColumnCreator columnCreator = new ColumnCreator(doc, form);
+                columnCreator.SetPhase(desiredPhase);
+                columnCreator.CreateModel(InputLineUtility.colInputLines, levels);
+            }
+            else if (commandCode == CommandCode.Walls)
+            {
+                WallCreator wallCreator = new WallCreator(doc, form);
+                wallCreator.CreateModel(InputLineUtility.colInputLines, levels);
+            }
             //uidoc.ActiveView = activeView;
 
             form.Visible = false;
