@@ -162,6 +162,8 @@ namespace Revit_Automation.Source.ModelCreators
                 string strFamilySymbol = inputLine.strStudType.ToString() + string.Format(" x {0}ga", inputLine.strStudGuage);
                 FamilySymbol columnType = SymbolCollector.GetSymbol(strFamilySymbol, "Post", SymbolCollector.FamilySymbolType.posts);
 
+                if (!columnType.IsActive)
+                    columnType.Activate();
 
                 // We have 3 types of Double Stud Conditions. 
                 // 1 - At Ends - Place Double Stud at Start and End
@@ -274,6 +276,9 @@ namespace Revit_Automation.Source.ModelCreators
 
                string strFamilySymbol = inputLine.strStudType.ToString() + string.Format(" x {0}ga", inputLine.strStudGuage);
                 FamilySymbol columnType = SymbolCollector.GetSymbol(strFamilySymbol, "Post", SymbolCollector.FamilySymbolType.posts);
+
+                if (!columnType.IsActive)
+                    columnType.Activate();
 
                 if (columnType == null)
                 {
@@ -806,6 +811,9 @@ namespace Revit_Automation.Source.ModelCreators
 
                 Logger.logMessage("Method : ProcessT62InputLine");
                 FamilySymbol columnType = SymbolCollector.GetSymbol(inputLine.strT62Type, "T62", SymbolCollector.FamilySymbolType.posts);
+
+                if (!columnType.IsActive)
+                    columnType.Activate();
 
                 if (columnType == null)
                 {

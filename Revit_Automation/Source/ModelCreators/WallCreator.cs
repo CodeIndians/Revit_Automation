@@ -179,7 +179,7 @@ namespace Revit_Automation.Source.ModelCreators
             double dwebWidth = GenericUtils.WebWidth(inputLine.strStudType);
 
             // Add a factor of half of panel width
-            dwebWidth += 0.03125;
+            dwebWidth += 0.06250;
             // Compute the wall line points based on the relation and also flip
             switch (relation)
             {
