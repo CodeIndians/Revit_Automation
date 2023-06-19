@@ -43,6 +43,9 @@
     <SignAssembly>true</SignAssembly>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="RevitAPI">
       <HintPath>..\..\..\..\..\..\Program Files\Autodesk\Revit 2022\RevitAPI.dll</HintPath>
@@ -74,6 +77,7 @@
     </Compile>
     <Compile Include="Source\CustomTypes.cs" />
     <Compile Include="Source\Interfaces\CollisionInterface.cs" />
+    <Compile Include="Source\Licensing\LicenseValidator.cs" />
     <Compile Include="Source\ModelCreators\ColumnCreator.cs" />
     <Compile Include="Source\ModelCreators\T62Valiations.cs" />
     <Compile Include="Source\ModelCreators\WallCreator.cs" />
@@ -101,6 +105,7 @@
     <Content Include="Resources\Walls.png" />
     <Resource Include="Resources\Revit.png" />
     <None Include="Docs\Dev_Notes.pdf" />
+    <None Include="packages.config" />
     <None Include="Resources\check-mark.png" />
     <Content Include="Resources\Bitmap1.bmp" />
     <Content Include="Resources\CodeIndians.ico" />
