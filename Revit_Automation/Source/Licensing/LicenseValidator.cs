@@ -46,7 +46,7 @@ namespace Revit_Automation.Source.Licensing
             try
             {
                 // Set the server's IP address and port number
-                IPAddress serverIp = IPAddress.Parse("192.168.0.155");
+                IPAddress serverIp = IPAddress.Parse("192.168.29.10");
                 int serverPort = 8080;
 
                 // Create a TCP client and connect to the server
