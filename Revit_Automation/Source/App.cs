@@ -37,14 +37,31 @@ namespace Revit_Automation
                 string tabName = "Automation Toolkit";
                 a.CreateRibbonTab(tabName);
 
+                // Get dll assembly path
+                string thisAssemblyPath = Assembly.GetExecutingAssembly().Location;
+
+                RibbonPanel ribbonPanel2 = a.CreateRibbonPanel(tabName, "Settings");
+
+                PushButtonData b5Data = new PushButtonData(
+                    "testCMD5",
+                    "Project \n Settings",
+                    thisAssemblyPath,
+                    "Revit_Automation.Command5");
+
+                PushButton pb5 = ribbonPanel2.AddItem(b5Data) as PushButton;
+                pb5.ToolTip = "Project Settings";
+                string path5 = "C:\\Program Files\\Autodesk\\Revit 2022\\AddIns\\Resources\\ProjectSettings.png";
+                if (File.Exists(path5))
+                {
+                    BitmapImage pb5Image = new BitmapImage(new Uri(path5));
+                    pb5.LargeImage = pb5Image;
+                }
+
                 // Add a new ribbon panel
                 RibbonPanel ribbonPanel = a.CreateRibbonPanel(tabName, "Creation");
 
                 // Add a new ribbon panel
-                //RibbonPanel ribbonPanel2 = a.CreateRibbonPanel(tabName, "Validation");
-
-                // Get dll assembly path
-                string thisAssemblyPath = Assembly.GetExecutingAssembly().Location;
+                //RibbonPanel ribbonPanel2 = a.CreateRibbonPanel(tabName, "Validation")
 
                 // create push button for CurveTotalLength
                 PushButtonData b1Data = new PushButtonData(
@@ -109,6 +126,7 @@ namespace Revit_Automation
                     BitmapImage pb4Image = new BitmapImage(new Uri(path4));
                     pb4.LargeImage = pb4Image;
                 }
+
                 return Result.Succeeded;
             }
             //else

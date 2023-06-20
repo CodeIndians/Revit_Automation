@@ -6,8 +6,8 @@
     <Assembly>Revit_Automation.dll</Assembly>
     <FullClassName>Revit_Automation.Command</FullClassName>
     <ClientId>e06d61a8-27fd-4dc4-b3fd-f75b7f6f5e5b</ClientId>
-    <VendorId>com.typepad.thebuildingcoder</VendorId>
-    <VendorDescription>The Building Coder, http://thebuildingcoder.typepad.com</VendorDescription>
+    <VendorId>www.codeIndians.com</VendorId>
+    <VendorDescription>Code Indian Technologies Private Limited, www.codeIndians.com</VendorDescription>
   </AddIn>
   <AddIn Type="Application">
     <Name>Application Revit_Automation</Name>
@@ -15,6 +15,6 @@
     <FullClassName>Revit_Automation.App</FullClassName>
     <ClientId>0e1f49c9-dd31-4663-9fa7-39e5c7753027</ClientId>
     <VendorId>com.typepad.thebuildingcoder</VendorId>
-    <VendorDescription>The Building Coder, http://thebuildingcoder.typepad.com</VendorDescription>
+    <VendorDescription>Code Indian Technologies Private Limited, www.codeIndians.com</VendorDescription>
   </AddIn>
 </RevitAddIns>

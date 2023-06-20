@@ -66,6 +66,21 @@
 			<Component Id="RevitBatchFileRemoveComponent" Guid="{7AB7DA5C-B1F1-4EBF-B702-928B86DCC566}">
 				<File Id="RemoveFiles" KeyPath="yes" Source="..\Revit_Automation\removefiles.bat" Checksum="yes"/>
 			</Component>
+      <Component Id="RevitResourcesPrjSettings" Guid="{478F04D8-2D66-489F-B802-B742CFFB23D9}">
+        <File Id="IcnPrjSettings" KeyPath="yes" Source="..\Revit_Automation\Resources\ProjectSettings.png" Checksum="yes"/>
+      </Component>
+      <Component Id="RevitResourcesGenModel" Guid="{23876934-157A-47B8-AD94-F19A8EFAAE23}">
+        <File Id="IcnGenModel" KeyPath="yes" Source="..\Revit_Automation\Resources\Model.png" Checksum="yes"/>
+      </Component>
+      <Component Id="RevitResourcesGenModelAtSelection" Guid="{E2482DD4-7171-4081-8630-E1AFDEB9C3C2}">
+        <File Id="IcnGenModelSel" KeyPath="yes" Source="..\Revit_Automation\Resources\Posts.png" Checksum="yes"/>
+      </Component>
+      <Component Id="RevitResourcesGenWalls" Guid="{ECFFFE13-B5D1-4207-947C-19E3B9CDF0D3}">
+        <File Id="IcnGenWalls" KeyPath="yes" Source="..\Revit_Automation\Resources\Walls.png" Checksum="yes"/>
+      </Component>
+      <Component Id="RevitResourcesGenBT" Guid="{727D34C3-129E-4B37-92B3-262395B7B686}">
+        <File Id="IcnGenBTs" KeyPath="yes" Source="..\Revit_Automation\Resources\BottomTrack.png" Checksum="yes"/>
+      </Component>
 		</ComponentGroup>
 	</Fragment>
 </Wix>

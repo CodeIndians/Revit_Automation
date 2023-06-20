@@ -95,22 +95,24 @@ namespace Revit_Automation
           ElementSet elements)
         {
 
+            TaskDialog.Show("Walls Command", "Place Walls Command is not implemented");
+            return Result.Succeeded; ;
 
-            UIApplication uiapp = commandData.Application;
+            //UIApplication uiapp = commandData.Application;
 
-            Form1 form = new Form1
-            {
-                StartPosition = FormStartPosition.CenterScreen
-            };
-            //form.TopMost= true;
-            _ = form.ShowDialog();
+            //Form1 form = new Form1
+            //{
+            //    StartPosition = FormStartPosition.CenterScreen
+            //};
+            ////form.TopMost= true;
+            //_ = form.ShowDialog();
 
-            if (form.CanCreateModel)
-            {
-                ModelCreator.CreateModel(uiapp, form, true, CommandCode.Walls);
-            }
+            //if (form.CanCreateModel)
+            //{
+            //    ModelCreator.CreateModel(uiapp, form, true, CommandCode.Walls);
+            //}
 
-            return Result.Succeeded;
+            //return Result.Succeeded;
         }
     }
 
@@ -122,21 +124,48 @@ namespace Revit_Automation
           ref string message,
           ElementSet elements)
         {
+            TaskDialog.Show("Bottom Track Command", "Place Bottom Tracks Command is not implemented");
+            return Result.Succeeded; ;
 
+            //UIApplication uiapp = commandData.Application;
 
+            //Form1 form = new Form1
+            //{
+            //    StartPosition = FormStartPosition.CenterScreen
+            //};
+            ////form.TopMost= true;
+            //_ = form.ShowDialog();
+
+            //if (form.CanCreateModel)
+            //{
+            //    ModelCreator.CreateModel(uiapp, form, true, CommandCode.BottomTracks);
+            //}
+
+            //return Result.Succeeded;
+        }
+    }
+
+    [Transaction(TransactionMode.Manual)]
+    public class Command5 : IExternalCommand
+    {
+        public Result Execute(
+          ExternalCommandData commandData,
+          ref string message,
+          ElementSet elements)
+        {
             UIApplication uiapp = commandData.Application;
 
-            Form1 form = new Form1
+            // Walls will be needed for the Properties Dialog
+            UIDocument uidoc = uiapp.ActiveUIDocument;
+            Document doc = uidoc.Document;
+            SymbolCollector.CollectWallSymbols(doc);
+
+            ProjectProperties form = new ProjectProperties()
             {
                 StartPosition = FormStartPosition.CenterScreen
             };
-            //form.TopMost= true;
+            
             _ = form.ShowDialog();
-
-            if (form.CanCreateModel)
-            {
-                ModelCreator.CreateModel(uiapp, form, true, CommandCode.BottomTracks);
-            }
 
             return Result.Succeeded;
         }
