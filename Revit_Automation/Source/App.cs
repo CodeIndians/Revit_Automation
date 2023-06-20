@@ -10,6 +10,7 @@
 #region Namespaces
 using Autodesk.Revit.UI;
 using Revit_Automation.Dialogs;
+using Revit_Automation.Source.Licensing;
 using System;
 using System.IO;
 using System.Reflection;
@@ -24,14 +25,7 @@ namespace Revit_Automation
     {
         public Result OnStartup(UIControlledApplication a)
         {
-            _ = new Form2
-            {
-                StartPosition = FormStartPosition.CenterScreen,
-                TopMost = true
-            };
-            //form.ShowDialog();
-
-            //if (form.ValidLicense)
+            if (LicenseValidator.ValidateLicense())
             {
                 // Create a custom ribbon tab
                 string tabName = "Automation Toolkit";
@@ -129,10 +123,11 @@ namespace Revit_Automation
 
                 return Result.Succeeded;
             }
-            //else
-            //{
-            //    return Result.Failed;
-            //}
+            else
+            {
+                MessageBox.Show("Revit Plugin license verification failed", "License Error");
+                return Result.Failed;
+            }
         }
 
         public Result OnShutdown(UIControlledApplication a)
