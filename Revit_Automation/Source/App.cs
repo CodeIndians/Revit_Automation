@@ -25,7 +25,7 @@ namespace Revit_Automation
     {
         public Result OnStartup(UIControlledApplication a)
         {
-            if (LicenseValidator.ValidateLicense())
+            //if (LicenseValidator.ValidateLicense())
             {
                 // Create a custom ribbon tab
                 string tabName = "Automation Toolkit";
@@ -121,13 +121,32 @@ namespace Revit_Automation
                     pb4.LargeImage = pb4Image;
                 }
 
+                // Sheeting Related Commands
+
+                RibbonPanel ribbonPanel3 = a.CreateRibbonPanel(tabName, "Sheeting");
+
+                PushButtonData b6Data = new PushButtonData(
+                    "testCMD4",
+                    "Create Sheets",
+                    thisAssemblyPath,
+                    "Revit_Automation.Command6");
+
+                PushButton pb6 = ribbonPanel3.AddItem(b6Data) as PushButton;
+                pb6.ToolTip = "Create Sheets";
+                string path6 = "C:\\Program Files\\Autodesk\\Revit 2022\\AddIns\\Resources\\Sheets.png";
+                if (File.Exists(path6))
+                {
+                    BitmapImage pb6Image = new BitmapImage(new Uri(path6));
+                    pb6.LargeImage = pb6Image;
+                }
+
                 return Result.Succeeded;
             }
-            else
-            {
-                MessageBox.Show("Revit Plugin license verification failed", "License Error");
-                return Result.Failed;
-            }
+            //else
+            //{
+            //    MessageBox.Show("Revit Plugin license verification failed", "License Error");
+            //    return Result.Failed;
+            //}
         }
 
         public Result OnShutdown(UIControlledApplication a)

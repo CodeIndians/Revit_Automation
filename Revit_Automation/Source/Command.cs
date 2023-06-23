@@ -10,6 +10,9 @@
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
+using Revit_Automation.Dialogs;
+using Revit_Automation.Source;
+using Revit_Automation.Source.Utils;
 using System.Windows.Forms;
 
 #endregion
@@ -158,13 +161,52 @@ namespace Revit_Automation
             // Walls will be needed for the Properties Dialog
             UIDocument uidoc = uiapp.ActiveUIDocument;
             Document doc = uidoc.Document;
+
+            // Set the document object on the utilities
+            FloorHelper.m_Document = doc;
+            InputLineUtility.m_Document = doc;
+            SymbolCollector.m_Document = doc;
+            RoofUtility.m_Document = doc;
+
             SymbolCollector.CollectWallSymbols(doc);
+            InputLineUtility.GatherWallTypesFromInputLines(doc);
 
             ProjectProperties form = new ProjectProperties()
             {
                 StartPosition = FormStartPosition.CenterScreen
             };
             
+            _ = form.ShowDialog();
+
+            return Result.Succeeded;
+        }
+    }
+
+    [Transaction(TransactionMode.Manual)]
+    public class Command6 : IExternalCommand
+    {
+        public Result Execute(
+          ExternalCommandData commandData,
+          ref string message,
+          ElementSet elements)
+        {
+            //TaskDialog.Show("Sheet Creation Command", "Sheet Created Command is not implemented");
+            //return Result.Succeeded; ;
+
+            UIApplication uiapp = commandData.Application;
+
+            // Walls will be needed for the Properties Dialog
+            UIDocument uidoc = uiapp.ActiveUIDocument;
+            Document doc = uidoc.Document;
+
+            SheetUtils.m_Document = doc;    
+
+            SheetingConfiguration form = new SheetingConfiguration()
+            {
+                StartPosition = FormStartPosition.CenterScreen
+            };
+            
+
             _ = form.ShowDialog();
 
             return Result.Succeeded;

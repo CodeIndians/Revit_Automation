@@ -11,6 +11,9 @@ namespace Revit_Automation.Source.Utils
         public static List<RoofObject> colRoofs = new List<RoofObject>();
 
         public static List<RoofObject> colExtendedRoofs = new List<RoofObject>();
+
+        public static Document m_Document;
+
         public static void computeRoofSlopes(Document doc)
         {
             // Create a filter to get roof elements

@@ -20,6 +20,8 @@ namespace Revit_Automation
     ///</summary>
     public class SymbolCollector
     {
+        public static Document m_Document;
+
         public enum FamilySymbolType
         {
             posts = 0, 
@@ -65,6 +67,26 @@ namespace Revit_Automation
 
             return symbol;
 
+        }
+
+        public static FamilySymbol GetProjectSpecificationLineSymbol()
+        {
+            FamilySymbol familySymbol = null;
+            FilteredElementCollector genericLineCollection = new FilteredElementCollector(m_Document);
+
+            genericLineCollection.OfClass(typeof(FamilySymbol))
+                    .OfCategory(BuiltInCategory.OST_GenericModel);
+
+            foreach (FamilySymbol famSymbol in genericLineCollection)
+            {
+                if (famSymbol.FamilyName == "Project Settings Line" && famSymbol.Name == "Project Settings Line")
+                {
+                    familySymbol = famSymbol;
+                    break;
+                }
+            }
+
+            return familySymbol;
         }
 
         public static WallType GetWall(string strSymbolName, string strFamilyName)

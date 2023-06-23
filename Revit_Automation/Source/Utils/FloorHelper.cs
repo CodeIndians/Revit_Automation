@@ -12,6 +12,8 @@ namespace Revit_Automation.Source.Utils
         /// </summary>
         public static List<FloorObject> colFloors = new List<FloorObject>();
 
+        public static Document m_Document;
+
         /// <summary>
         /// This function is used to collect all input lines in the model
         /// </summary>

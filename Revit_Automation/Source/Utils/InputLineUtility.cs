@@ -7,11 +7,16 @@
 */
 
 using Autodesk.Revit.DB;
+using Autodesk.Revit.DB.Structure;
 using Autodesk.Revit.UI.Selection;
 using Revit_Automation.CustomTypes;
 using Revit_Automation.Source.Utils;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Windows;
+using System.Windows.Forms;
 
 namespace Revit_Automation.Source
 {
@@ -25,10 +30,34 @@ namespace Revit_Automation.Source
         /// </summary>
         public static List<InputLine> colInputLines = new List<InputLine>();
 
+        public static HashSet<string> wallTypes = new HashSet<string>();
+
+        public static Document m_Document;
+        public static void GatherWallTypesFromInputLines(Document doc)
+        {
+            wallTypes?.Clear();
+
+            FilteredElementCollector locationCurvedCol = null;
+
+            locationCurvedCol
+                  = new FilteredElementCollector(doc)
+                    .WhereElementIsNotElementType()
+                    .OfCategory(BuiltInCategory.OST_GenericModel);
+
+            foreach (Element locCurve in locationCurvedCol)
+            {
+                Parameter WallTypeParam = locCurve.LookupParameter("Panel Type");
+                if (WallTypeParam != null)
+                {
+                   wallTypes.Add(WallTypeParam.AsString()); 
+                }
+            }
+        }
         /// <summary>
         /// This function is used to collect all input lines in the model
         /// </summary>
         /// <param name="doc"> Pointer to the Active document</param>
+        /// 
         public static void GatherInputLines(Document doc, bool bSelected, Selection selection, CommandCode commandcode)
         {
             colInputLines?.Clear();
@@ -206,6 +235,97 @@ namespace Revit_Automation.Source
             return true;
         }
 
-        
+        public static string GetProjectSettings()
+        {
+            Element prjSettingsLine = GetProjectSettingsLine();
+            string strProjectSettings = string.Empty;
+
+            if (prjSettingsLine != null)
+            {
+                Parameter ProjectSettingParam = prjSettingsLine.LookupParameter("Project Settings");
+                if (ProjectSettingParam != null)
+                {
+                    strProjectSettings = ProjectSettingParam.AsString();
+                }
+            }
+
+            return strProjectSettings;
+        }
+
+        public static void SetProjectSettings(string strProjectSettings)
+        {
+            Element prjSettingsLine = GetProjectSettingsLine();
+
+            if (prjSettingsLine != null)
+            {
+                ParameterSet parameters = prjSettingsLine.Parameters;
+
+                // Find the parameter by its name
+                Parameter parameter = parameters.OfType<Parameter>()
+                                                .FirstOrDefault(p => p.Definition.Name == "Project Settings");
+
+                if (parameter != null)
+                {
+                    // Set the value of the parameter based on its data type
+                    if (parameter.Definition.ParameterType == ParameterType.Text)
+                    {
+                        using (Transaction tx = new Transaction(m_Document))
+                        {
+                            tx.Start("Setting Project Parameters");
+                            parameter.Set(strProjectSettings);
+                            tx.Commit();    
+                        }
+                    }
+                }
+            }
+        }
+
+        private static Element GetProjectSettingsLine()
+        {
+            FilteredElementCollector locationCurvedCol = new FilteredElementCollector(m_Document)
+                                                            .WhereElementIsNotElementType()
+                                                            .OfCategory(BuiltInCategory.OST_GenericModel); ;
+
+            Element projectSettingsLine = null;
+            foreach (Element elem in locationCurvedCol)
+            {
+                if (elem.Name == "Project Settings Line")
+                {
+                    projectSettingsLine = elem;
+                    break;
+                }
+            }
+
+            if (projectSettingsLine == null)
+            {
+                projectSettingsLine = CreateProjectSettingLine();
+            }
+
+            return projectSettingsLine;
+        }
+
+
+
+        public static Element CreateProjectSettingLine()
+        {
+            Element prjSettingsLine = null;
+            FamilySymbol prjSettingsLineSym = SymbolCollector.GetProjectSpecificationLineSymbol();
+
+            FilteredElementCollector levels = new FilteredElementCollector(m_Document);
+            levels.WherePasses(new ElementClassFilter(typeof(Level), false))
+                        .Cast<Level>()
+                        .OrderBy(e => e.Elevation);
+
+            using (Transaction tx = new Transaction(m_Document))
+            {
+                tx.Start("Creating Project Specifications Line");
+
+                XYZ position = new XYZ(0, 0, 0);
+                prjSettingsLine = m_Document.Create.NewFamilyInstance(position, prjSettingsLineSym, levels.ElementAt(0), StructuralType.NonStructural);
+                tx.Commit();
+            }
+
+            return prjSettingsLine;
+        }
     }
 }
