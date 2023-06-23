@@ -66,11 +66,17 @@
     <Compile Include="Dialogs\Form2.Designer.cs">
       <DependentUpon>Form2.cs</DependentUpon>
     </Compile>
-    <Compile Include="ProjectProperties.cs">
+    <Compile Include="Dialogs\ProjectProperties.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="ProjectProperties.Designer.cs">
+    <Compile Include="Dialogs\ProjectProperties.Designer.cs">
       <DependentUpon>ProjectProperties.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\SheetingConfiguration.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Dialogs\SheetingConfiguration.Designer.cs">
+      <DependentUpon>SheetingConfiguration.cs</DependentUpon>
     </Compile>
     <Compile Include="Source\App.cs" />
     <Compile Include="Source\CollisionResolvers\PostCollisionResolver.cs" />
@@ -87,6 +93,7 @@
     <Compile Include="Source\ModelCreators\ColumnCreator.cs" />
     <Compile Include="Source\ModelCreators\T62Valiations.cs" />
     <Compile Include="Source\ModelCreators\WallCreator.cs" />
+    <Compile Include="Source\Sheets\SheetCreator.cs" />
     <Compile Include="Source\Utils\FloorHelper.cs" />
     <Compile Include="Source\Utils\GenericUtils.cs" />
     <Compile Include="Source\Utils\GridCollector.cs" />
@@ -102,6 +109,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="Source\Utils\RoofUtility.cs" />
+    <Compile Include="Source\Utils\SheetUtils.cs" />
     <Compile Include="Source\Utils\SymbolCollector.cs" />
     <Compile Include="Source\Interfaces\ValidationInterface.cs" />
     <Compile Include="Source\Utils\WarningSwallowers.cs" />
@@ -109,6 +117,7 @@
   <ItemGroup>
     <Content Include="Resources\BottomTrack.png" />
     <Content Include="Resources\ProjectSettings.png" />
+    <Content Include="Resources\Sheets.png" />
     <Content Include="Resources\Walls.png" />
     <Resource Include="Resources\Revit.png" />
     <None Include="Docs\Dev_Notes.pdf" />
@@ -129,8 +138,11 @@
     <EmbeddedResource Include="Dialogs\Form2.resx">
       <DependentUpon>Form2.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="ProjectProperties.resx">
+    <EmbeddedResource Include="Dialogs\ProjectProperties.resx">
       <DependentUpon>ProjectProperties.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Dialogs\SheetingConfiguration.resx">
+      <DependentUpon>SheetingConfiguration.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
