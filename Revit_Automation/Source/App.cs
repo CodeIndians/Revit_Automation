@@ -16,6 +16,7 @@ using System.IO;
 using System.Reflection;
 using System.Windows.Forms;
 using System.Windows.Media.Imaging;
+using Sheeting_Automation;
 
 #endregion
 
@@ -28,7 +29,7 @@ namespace Revit_Automation
             //if (LicenseValidator.ValidateLicense())
             {
                 // Create a custom ribbon tab
-                string tabName = "Automation Toolkit";
+                string tabName = "Modelling Automation";
                 a.CreateRibbonTab(tabName);
 
                 // Get dll assembly path
@@ -152,25 +153,6 @@ namespace Revit_Automation
                 {
                     BitmapImage pb4Image = new BitmapImage(new Uri(path4));
                     pb4.LargeImage = pb4Image;
-                }
-
-                // Sheeting Related Commands
-
-                RibbonPanel ribbonPanel3 = a.CreateRibbonPanel(tabName, "Sheeting");
-
-                PushButtonData b6Data = new PushButtonData(
-                    "testCMD4",
-                    "Create Sheets",
-                    thisAssemblyPath,
-                    "Revit_Automation.Command6");
-
-                PushButton pb6 = ribbonPanel3.AddItem(b6Data) as PushButton;
-                pb6.ToolTip = "Create Sheets";
-                string path6 = "C:\\Program Files\\Autodesk\\Revit 2022\\AddIns\\Resources\\Sheets.png";
-                if (File.Exists(path6))
-                {
-                    BitmapImage pb6Image = new BitmapImage(new Uri(path6));
-                    pb6.LargeImage = pb6Image;
                 }
 
                 return Result.Succeeded;

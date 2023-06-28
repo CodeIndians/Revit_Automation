@@ -14,7 +14,15 @@
     <Assembly>Revit_Automation.dll</Assembly>
     <FullClassName>Revit_Automation.App</FullClassName>
     <ClientId>0e1f49c9-dd31-4663-9fa7-39e5c7753027</ClientId>
-    <VendorId>com.typepad.thebuildingcoder</VendorId>
+    <VendorId>www.codeIndians.com</VendorId>
+    <VendorDescription>Code Indian Technologies Private Limited, www.codeIndians.com</VendorDescription>
+  </AddIn>
+    <AddIn Type="Application">
+    <Name>Application Sheeting_Automation</Name>
+    <Assembly>Sheeting_Automation.dll</Assembly>
+    <FullClassName>Sheeting_Automation.App</FullClassName>
+    <ClientId>1188BE81-0F54-4DF7-B493-79B20AB729DB</ClientId>
+    <VendorId>www.codeIndians.com</VendorId>
     <VendorDescription>Code Indian Technologies Private Limited, www.codeIndians.com</VendorDescription>
   </AddIn>
 </RevitAddIns>

@@ -250,37 +250,6 @@ namespace Revit_Automation
     }
 
     [Transaction(TransactionMode.Manual)]
-    public class Command6 : IExternalCommand
-    {
-        public Result Execute(
-          ExternalCommandData commandData,
-          ref string message,
-          ElementSet elements)
-        {
-            //TaskDialog.Show("Sheet Creation Command", "Sheet Created Command is not implemented");
-            //return Result.Succeeded; ;
-
-            UIApplication uiapp = commandData.Application;
-
-            // Walls will be needed for the Properties Dialog
-            UIDocument uidoc = uiapp.ActiveUIDocument;
-            Document doc = uidoc.Document;
-
-            SheetUtils.m_Document = doc;    
-
-            SheetingConfiguration form = new SheetingConfiguration()
-            {
-                StartPosition = FormStartPosition.CenterScreen
-            };
-            
-
-            _ = form.ShowDialog();
-
-            return Result.Succeeded;
-        }
-    }
-
-    [Transaction(TransactionMode.Manual)]
     public class Command7 : IExternalCommand
     {
         public Result Execute(

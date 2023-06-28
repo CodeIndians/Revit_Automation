@@ -78,12 +78,6 @@
     <Compile Include="Dialogs\ProjectProperties.Designer.cs">
       <DependentUpon>ProjectProperties.cs</DependentUpon>
     </Compile>
-    <Compile Include="Dialogs\SheetingConfiguration.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Dialogs\SheetingConfiguration.Designer.cs">
-      <DependentUpon>SheetingConfiguration.cs</DependentUpon>
-    </Compile>
     <Compile Include="Source\App.cs" />
     <Compile Include="Source\CollisionResolvers\PostCollisionResolver.cs" />
     <Compile Include="Source\Command.cs" />
@@ -118,7 +112,6 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="Source\Utils\RoofUtility.cs" />
-    <Compile Include="Source\Utils\SheetUtils.cs" />
     <Compile Include="Source\Utils\SymbolCollector.cs" />
     <Compile Include="Source\Interfaces\ValidationInterface.cs" />
     <Compile Include="Source\Utils\WarningSwallowers.cs" />
@@ -154,9 +147,6 @@
     <EmbeddedResource Include="Dialogs\ProjectProperties.resx">
       <DependentUpon>ProjectProperties.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Dialogs\SheetingConfiguration.resx">
-      <DependentUpon>SheetingConfiguration.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
@@ -165,6 +155,12 @@
   <ItemGroup>
     <None Include="Docs\License.rtf" />
     <None Include="Docs\RevitHelp.pdf" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Sheeting_Automation\Sheeting_Automation.csproj">
+      <Project>{396a191c-2bc4-4c1f-bf41-6d92f79952fd}</Project>
+      <Name>Sheeting_Automation</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

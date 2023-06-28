@@ -17,4 +17,13 @@
     <VendorId>com.typepad.thebuildingcoder</VendorId>
     <VendorDescription>The Building Coder, http://thebuildingcoder.typepad.com</VendorDescription>
   </AddIn>
+  <AddIn Type="Command">
+    <Text>Command Sheeting_Automation</Text>
+    <Description>For Detailing Automation</Description>
+    <Assembly>Sheeting_Automation.dll</Assembly>
+    <FullClassName>Sheeting_Automation.Command</FullClassName>
+    <ClientId>1443D2C3-C87F-4AEF-A7E9-0F05941CCDED</ClientId>
+    <VendorId>com.typepad.thebuildingcoder</VendorId>
+    <VendorDescription>The Building Coder, http://thebuildingcoder.typepad.com</VendorDescription>
+  </AddIn>
 </RevitAddIns>

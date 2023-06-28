@@ -1,5 +1,4 @@
-﻿using Revit_Automation.Source.Utils;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -8,8 +7,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Sheeting_Automation.Utils;
 
-namespace Revit_Automation.Dialogs
+namespace Sheeting_Automation.Dialogs
 {
     public partial class SheetingConfiguration : Form
     {
@@ -29,19 +29,21 @@ namespace Revit_Automation.Dialogs
                 comboBox1.Items.Add(strScales);
             }
 
-            radioButton1.Enabled = true;
+            radioButton1.Checked = true;
 
         }
 
         private void radioButton1_CheckedChanged(object sender, EventArgs e)
         {
-            if (radioButton1.Enabled == false)
+            if (radioButton1.Checked == false)
             {
                 groupBox2.Enabled = false;
+                comboBox1.Enabled = true;
             }
             else
             {
                 comboBox1.Enabled = false;
+                groupBox2.Enabled = true;
             }
         }
     }

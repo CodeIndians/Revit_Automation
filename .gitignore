@@ -51,3 +51,5 @@
 # NuGet v3's project.json files produces more ignorable files
 *.nuget.props
 *.nuget.targets
+/Sheeting_Automation/obj/Debug
+/Sheeting_Automation/bin/Debug

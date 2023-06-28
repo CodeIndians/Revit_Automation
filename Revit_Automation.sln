@@ -4,8 +4,17 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.4.33110.190
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Revit_Automation", "Revit_Automation\Revit_Automation.csproj", "{5D498C75-2165-489F-B6F1-28697BDF314F}"
+	ProjectSection(ProjectDependencies) = postProject
+		{396A191C-2BC4-4C1F-BF41-6D92F79952FD} = {396A191C-2BC4-4C1F-BF41-6D92F79952FD}
+	EndProjectSection
 EndProject
 Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "RevitInstaller", "RevitInstaller\RevitInstaller.wixproj", "{952AF5CF-40E4-40F8-83CD-B6127AA6CAC0}"
+	ProjectSection(ProjectDependencies) = postProject
+		{396A191C-2BC4-4C1F-BF41-6D92F79952FD} = {396A191C-2BC4-4C1F-BF41-6D92F79952FD}
+		{5D498C75-2165-489F-B6F1-28697BDF314F} = {5D498C75-2165-489F-B6F1-28697BDF314F}
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sheeting_Automation", "Sheeting_Automation\Sheeting_Automation.csproj", "{396A191C-2BC4-4C1F-BF41-6D92F79952FD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -31,6 +40,14 @@ Global
 		{952AF5CF-40E4-40F8-83CD-B6127AA6CAC0}.Release|Any CPU.Build.0 = Release|x86
 		{952AF5CF-40E4-40F8-83CD-B6127AA6CAC0}.Release|x86.ActiveCfg = Release|x86
 		{952AF5CF-40E4-40F8-83CD-B6127AA6CAC0}.Release|x86.Build.0 = Release|x86
+		{396A191C-2BC4-4C1F-BF41-6D92F79952FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{396A191C-2BC4-4C1F-BF41-6D92F79952FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{396A191C-2BC4-4C1F-BF41-6D92F79952FD}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{396A191C-2BC4-4C1F-BF41-6D92F79952FD}.Debug|x86.Build.0 = Debug|Any CPU
+		{396A191C-2BC4-4C1F-BF41-6D92F79952FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{396A191C-2BC4-4C1F-BF41-6D92F79952FD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{396A191C-2BC4-4C1F-BF41-6D92F79952FD}.Release|x86.ActiveCfg = Release|Any CPU
+		{396A191C-2BC4-4C1F-BF41-6D92F79952FD}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
