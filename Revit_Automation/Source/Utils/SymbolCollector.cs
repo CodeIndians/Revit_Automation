@@ -89,6 +89,26 @@ namespace Revit_Automation
             return familySymbol;
         }
 
+        public static FamilySymbol GetInputLineSymbol()
+        {
+            FamilySymbol familySymbol = null;
+            FilteredElementCollector genericLineCollection = new FilteredElementCollector(m_Document);
+
+            genericLineCollection.OfClass(typeof(FamilySymbol))
+                    .OfCategory(BuiltInCategory.OST_GenericModel);
+
+            foreach (FamilySymbol famSymbol in genericLineCollection)
+            {
+                if (famSymbol.FamilyName == "Line" && famSymbol.Name == "Line")
+                {
+                    familySymbol = famSymbol;
+                    break;
+                }
+            }
+
+            return familySymbol;
+        }
+
         public static WallType GetWall(string strSymbolName, string strFamilyName)
         {
             WallType wallType = null;

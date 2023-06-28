@@ -1299,8 +1299,6 @@ namespace Revit_Automation.Source.ModelCreators
             }
         }
 
-        
-
         private void MoveColumn(ElementId columnId, XYZ newLocation)
         {
 
@@ -1320,8 +1318,6 @@ namespace Revit_Automation.Source.ModelCreators
                 locationPoint.Point = newLocation;
             }
         }
-
-        
 
         // This method returns the location of the nearest main grid to the given line.
         // The nearest main grid could be intersecting or not intersectin the line

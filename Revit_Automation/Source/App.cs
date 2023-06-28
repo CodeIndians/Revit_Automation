@@ -54,10 +54,40 @@ namespace Revit_Automation
                 // Add a new ribbon panel
                 RibbonPanel ribbonPanel = a.CreateRibbonPanel(tabName, "Creation");
 
-                // Add a new ribbon panel
-                //RibbonPanel ribbonPanel2 = a.CreateRibbonPanel(tabName, "Validation")
+                // create push button for Processing Input Lines
+                PushButtonData b7Data = new PushButtonData(
+                    "testCMD7",
+                    "Pre Process \n Input Lines",
+                    thisAssemblyPath,
+                    "Revit_Automation.Command7");
 
-                // create push button for CurveTotalLength
+                PushButton pb7 = ribbonPanel.AddItem(b7Data) as PushButton;
+                pb7.ToolTip = "Extend and Trim Input Lines";
+                string path7 = "C:\\Program Files\\Autodesk\\Revit 2022\\AddIns\\Resources\\ProcessLines.png";
+                if (File.Exists(path7))
+                {
+                    BitmapImage pb7Image = new BitmapImage(new Uri(path7));
+                    pb7.LargeImage = pb7Image;
+                }
+
+                // create push button for Processing Selected Input Lines
+                PushButtonData b8Data = new PushButtonData(
+                    "testCMD8",
+                    "Pre Process \n Selected Lines",
+                    thisAssemblyPath,
+                    "Revit_Automation.Command8");
+
+                PushButton pb8 = ribbonPanel.AddItem(b8Data) as PushButton;
+                pb8.ToolTip = "Extend and Trim Input Lines";
+                string path8 = "C:\\Program Files\\Autodesk\\Revit 2022\\AddIns\\Resources\\ProcessLines2.png";
+                if (File.Exists(path8))
+                {
+                    BitmapImage pb8Image = new BitmapImage(new Uri(path8));
+                    pb8.LargeImage = pb8Image;
+                }
+
+
+                // create push button for Model Creation
                 PushButtonData b1Data = new PushButtonData(
                     "testCMD",
                     "Generate \n Model",
@@ -76,6 +106,7 @@ namespace Revit_Automation
                 // Create source.
 
 
+                // create push button for Post Creation at selected Lines
                 PushButtonData b2Data = new PushButtonData(
                     "testCMD2",
                     "Posts At \n Selection",
@@ -91,6 +122,7 @@ namespace Revit_Automation
                     pb2.LargeImage = pb2Image;
                 }
 
+                // create push button for Panels Creation
                 PushButtonData b3Data = new PushButtonData(
                     "testCMD3",
                     "Walls at \n Selection",
@@ -106,6 +138,7 @@ namespace Revit_Automation
                     pb3.LargeImage = pb3Image;
                 }
 
+                // create push button for Bottom Tracks Creation
                 PushButtonData b4Data = new PushButtonData(
                     "testCMD4",
                     "Botom Tracks \n at Selection",

@@ -10,8 +10,10 @@
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
+using Autodesk.Revit.UI.Selection;
 using Revit_Automation.Dialogs;
 using Revit_Automation.Source;
+using Revit_Automation.Source.Preprocessors;
 using Revit_Automation.Source.Utils;
 using System.Windows.Forms;
 
@@ -42,8 +44,23 @@ namespace Revit_Automation
           ElementSet elements)
         {
 
-
             UIApplication uiapp = commandData.Application;
+
+           // Get the active Document
+            UIDocument uidoc = uiapp.ActiveUIDocument;
+            Document doc = uidoc.Document;
+
+            // Set the document object on the utilities
+            FloorHelper.m_Document = doc;
+            InputLineUtility.m_Document = doc;
+            SymbolCollector.m_Document = doc;
+            RoofUtility.m_Document = doc;
+
+            if (!GlobalSettings.PopulateGlobalSettings())
+            {
+                TaskDialog.Show("Command", "Project Settings are not Present");
+                return Result.Succeeded;
+            }
 
             Form1 form = new Form1
             {
@@ -70,8 +87,23 @@ namespace Revit_Automation
           ElementSet elements)
         {
 
-
             UIApplication uiapp = commandData.Application;
+
+            // Get the active Document
+            UIDocument uidoc = uiapp.ActiveUIDocument;
+            Document doc = uidoc.Document;
+
+            // Set the document object on the utilities
+            FloorHelper.m_Document = doc;
+            InputLineUtility.m_Document = doc;
+            SymbolCollector.m_Document = doc;
+            RoofUtility.m_Document = doc;
+
+            if (!GlobalSettings.PopulateGlobalSettings())
+            {
+                TaskDialog.Show("Command", "Project Settings are not Present");
+                return Result.Succeeded;
+            }
 
             Form1 form = new Form1
             {
@@ -97,6 +129,23 @@ namespace Revit_Automation
           ref string message,
           ElementSet elements)
         {
+            UIApplication uiapp = commandData.Application;
+
+            // Get the active Document
+            UIDocument uidoc = uiapp.ActiveUIDocument;
+            Document doc = uidoc.Document;
+
+            // Set the document object on the utilities
+            FloorHelper.m_Document = doc;
+            InputLineUtility.m_Document = doc;
+            SymbolCollector.m_Document = doc;
+            RoofUtility.m_Document = doc;
+
+            if (!GlobalSettings.PopulateGlobalSettings())
+            {
+                TaskDialog.Show("Command", "Project Settings are not Present");
+                return Result.Succeeded;
+            }
 
             TaskDialog.Show("Walls Command", "Place Walls Command is not implemented");
             return Result.Succeeded; ;
@@ -127,6 +176,24 @@ namespace Revit_Automation
           ref string message,
           ElementSet elements)
         {
+            UIApplication uiapp = commandData.Application;
+
+            // Get the active Document
+            UIDocument uidoc = uiapp.ActiveUIDocument;
+            Document doc = uidoc.Document;
+
+            // Set the document object on the utilities
+            FloorHelper.m_Document = doc;
+            InputLineUtility.m_Document = doc;
+            SymbolCollector.m_Document = doc;
+            RoofUtility.m_Document = doc;
+
+            if (!GlobalSettings.PopulateGlobalSettings())
+            {
+                TaskDialog.Show("Command", "Project Settings are not Present");
+                return Result.Succeeded;
+            }
+
             TaskDialog.Show("Bottom Track Command", "Place Bottom Tracks Command is not implemented");
             return Result.Succeeded; ;
 
@@ -208,6 +275,71 @@ namespace Revit_Automation
             
 
             _ = form.ShowDialog();
+
+            return Result.Succeeded;
+        }
+    }
+
+    [Transaction(TransactionMode.Manual)]
+    public class Command7 : IExternalCommand
+    {
+        public Result Execute(
+          ExternalCommandData commandData,
+          ref string message,
+          ElementSet elements)
+        {
+            UIApplication uiapp = commandData.Application;
+
+            // Get the active Document
+            UIDocument uidoc = uiapp.ActiveUIDocument;
+            Document doc = uidoc.Document;
+
+            // Set the document object on the utilities
+            FloorHelper.m_Document = doc;
+            InputLineUtility.m_Document = doc;
+            SymbolCollector.m_Document = doc;
+            RoofUtility.m_Document = doc;
+
+            LineProcessing form = new LineProcessing()
+            {
+                StartPosition = FormStartPosition.CenterScreen
+            };
+
+            LineExtender lineExtender = new LineExtender(doc, form, false);
+            lineExtender.Preprocess();
+
+            return Result.Succeeded;
+        }
+    }
+
+    [Transaction(TransactionMode.Manual)]
+    public class Command8 : IExternalCommand
+    {
+        public Result Execute(
+          ExternalCommandData commandData,
+          ref string message,
+          ElementSet elements)
+        {
+            UIApplication uiapp = commandData.Application;
+
+            // Get the active Document
+            UIDocument uidoc = uiapp.ActiveUIDocument;
+            Document doc = uidoc.Document;
+            Selection selection = uidoc.Selection;
+            
+            // Set the document object on the utilities
+            FloorHelper.m_Document = doc;
+            InputLineUtility.m_Document = doc;
+            SymbolCollector.m_Document = doc;
+            RoofUtility.m_Document = doc;
+
+            LineProcessing form = new LineProcessing()
+            {
+                StartPosition = FormStartPosition.CenterScreen
+            };
+
+            LineExtender lineExtender = new LineExtender(doc, form, true, selection);
+            lineExtender.Preprocess();
 
             return Result.Succeeded;
         }

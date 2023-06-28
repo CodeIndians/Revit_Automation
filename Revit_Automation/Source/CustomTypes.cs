@@ -13,6 +13,21 @@ namespace Revit_Automation.CustomTypes
         public XYZ startpoint;
         public XYZ endpoint;
         public ElementId id;
+        public string strAdditionalPanelGuage;
+        public string strAdditionalPanel;
+        public string strBeamSize;
+        public string strBracing;
+        public string strCHeaderGuage;
+        public string strCHeaderQuantity;
+        public string strCHeaderSize;
+        public string strColor;
+        public string strHSSType;
+        public string strPanelType;
+        public string strMaterial;
+        public string strPartitionPanelGuage;
+        public string strRoofSystem;
+        public string strRowName;
+        public string strColorDoorHeader;
         public string strT62Guage;
         public string strT62Type;
         public string strStudGuage;
@@ -26,11 +41,17 @@ namespace Revit_Automation.CustomTypes
         public string strDoubleStudType;
         public string strMaterialType;
         public int dFlangeOfset;
+        public int dPartitionPanelEachSide;
         public double dOnCenter;
+        public double dPanelOffsetHeight;
+        public double dMaterialThickness;
+        public double dMaterialHeight;
+        public double dHSSHeight;
         public double dParapetHeight;
         public DirectionWithRespectToRoofSlope dirWRTRoofSlope;
         public List<XYZ> gridIntersectionPoints;
         public List<XYZ> mainGridIntersectionPoints;
+        public bool bLineExtendedOrTrimmed;
     }
 
     public struct FloorObject
@@ -62,5 +83,35 @@ namespace Revit_Automation.CustomTypes
         Parallel = 0,
         Perpendicular
     }
+
+    public struct PanelTypeGlobalParams
+    {
+        public string strWallName;
+        public bool bIsUNO;
+        public int iPanelGuage;
+        public int iPanelClearance;
+        public int iPanelMaxLap;
+        public int iPanelMinLap;
+        public string strPanelOrientation;
+        public int iPanelPreferredLength;
+        public int iPanelMaxLength;
+        public int iPanelHeightOffset;
+        public string strPanelHorizontalDirection;
+        public string strPanelVerticalDirection;
+        public int iPanelHourRate;
+    }
+
+    public enum WallPriority
+    {
+        Fire = 7,
+        ExWithoutInsulation = 6,
+        Insulation = 5,
+        Ex =4,
+        LB = 3,
+        LBS = 2,
+        NLBS = 1,
+        NLB = 0
+    }
+
 }
 

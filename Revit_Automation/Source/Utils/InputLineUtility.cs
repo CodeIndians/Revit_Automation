@@ -58,7 +58,7 @@ namespace Revit_Automation.Source
         /// </summary>
         /// <param name="doc"> Pointer to the Active document</param>
         /// 
-        public static void GatherInputLines(Document doc, bool bSelected, Selection selection, CommandCode commandcode)
+        public static void GatherInputLines(Document doc, bool bSelected, Selection selection, CommandCode commandcode, bool bComputeRoofSlope = true)
         {
             colInputLines?.Clear();
 
@@ -100,15 +100,186 @@ namespace Revit_Automation.Source
                     continue;
                 }
 
-                InputLine iLine = new InputLine
+                InputLine iLine = new InputLine();
+
+                if (locCurve.Location is LocationCurve location)
                 {
-                    locationCurve = (LocationCurve)locCurve.Location
-                };
+                    iLine.locationCurve = location;
+                }
+                else
+                {
+                    continue;
+                }  
 
                 iLine.startpoint = iLine.locationCurve.Curve.GetEndPoint(0);
                 iLine.endpoint = iLine.locationCurve.Curve.GetEndPoint(1);
 
                 iLine.id = locCurve.Id;
+                
+                Parameter tempParam;
+
+                // Whether give line is extended or trimmed;
+                iLine.bLineExtendedOrTrimmed = false;
+
+                // Additional Panel
+                tempParam = locCurve.LookupParameter("Additional Panel");
+                if (tempParam != null)
+                {
+                    iLine.strAdditionalPanel = tempParam.AsString();
+                }
+                tempParam = null;
+
+                // Additional Panel Gauge
+                tempParam = locCurve.LookupParameter("Additional Panel Gauge");
+                if (tempParam != null)
+                {
+                    iLine.strAdditionalPanelGuage = tempParam.AsString();
+                }
+                tempParam = null;
+
+                // Beam Size
+                tempParam = locCurve.LookupParameter("Beam Size");
+                if (tempParam != null)
+                {
+                    iLine.strBeamSize = tempParam.AsString();
+                }
+                tempParam = null;
+
+                // Bracing
+                tempParam = locCurve.LookupParameter("Bracing");
+                if (tempParam != null)
+                {
+                    iLine.strBracing = tempParam.AsString();
+                }
+                tempParam = null;
+
+                // Cee Header Gauge
+                tempParam = locCurve.LookupParameter("Cee Header Gauge");
+                if (tempParam != null)
+                {
+                    iLine.strCHeaderGuage = tempParam.AsString();
+                }
+                tempParam = null;
+
+                // Cee Header Quantity
+                tempParam = locCurve.LookupParameter("Cee Header Quantity");
+                if (tempParam != null)
+                {
+                    iLine.strCHeaderQuantity = tempParam.AsString();
+                }
+                tempParam = null;
+
+                // Cee Header Size
+                tempParam = locCurve.LookupParameter("Cee Header Size");
+                if (tempParam != null)
+                {
+                    iLine.strCHeaderSize = tempParam.AsString();
+                }
+                tempParam = null;
+
+                // Color
+                tempParam = locCurve.LookupParameter("Color");
+                if (tempParam != null)
+                {
+                    iLine.strColor = tempParam.AsString();
+                }
+                tempParam = null;
+
+                // HSS Type
+                tempParam = locCurve.LookupParameter("HSS Type");
+                if (tempParam != null)
+                {
+                    iLine.strHSSType = tempParam.AsString();
+                }
+                tempParam = null;
+
+                // Material
+                tempParam = locCurve.LookupParameter("Material");
+                if (tempParam != null)
+                {
+                    iLine.strMaterial = tempParam.AsString();
+                }
+                tempParam = null;
+
+                // Panel Type
+                tempParam = locCurve.LookupParameter("Panel Type");
+                if (tempParam != null)
+                {
+                    iLine.strPanelType = tempParam.AsString();
+                }
+                tempParam = null;
+
+                // Partition Panel Gauge
+                tempParam = locCurve.LookupParameter("Partition Panel Gauge");
+                if (tempParam != null)
+                {
+                    iLine.strPartitionPanelGuage = tempParam.AsString();
+                }
+                tempParam = null;
+
+                // Roof System
+                tempParam = locCurve.LookupParameter("Roof System");
+                if (tempParam != null)
+                {
+                    iLine.strRoofSystem = tempParam.AsString();
+                }
+                tempParam = null;
+
+                // Row Name
+                tempParam = locCurve.LookupParameter("Row Name");
+                if (tempParam != null)
+                {
+                    iLine.strRowName = tempParam.AsString();
+                }
+                tempParam = null;
+
+                // Color (Door Header)
+                tempParam = locCurve.LookupParameter("Color (Door Header)");
+                if (tempParam != null)
+                {
+                    iLine.strColorDoorHeader = tempParam.AsString();
+                }
+                tempParam = null;
+
+                // HSS Height
+                tempParam = locCurve.LookupParameter("HSS Height");
+                if (tempParam != null)
+                {
+                    iLine.dHSSHeight = tempParam.AsDouble();
+                }
+                tempParam = null;
+
+                // Material Height
+                tempParam = locCurve.LookupParameter("Material Height");
+                if (tempParam != null)
+                {
+                    iLine.dMaterialHeight = tempParam.AsDouble();
+                }
+                tempParam = null;
+
+                // Material Thickness
+                tempParam = locCurve.LookupParameter("Material Thickness");
+                if (tempParam != null)
+                {
+                    iLine.dMaterialThickness = tempParam.AsDouble();
+                }
+                tempParam = null;
+
+                // Panel Offset Height
+                tempParam = locCurve.LookupParameter("Panel Offset Height");
+                if (tempParam != null)
+                {
+                    iLine.dPanelOffsetHeight = tempParam.AsDouble();
+                }
+                tempParam = null;
+
+                // Panel Offset Height
+                tempParam = locCurve.LookupParameter("Partition Panel Each Side (Y/N)");
+                if (tempParam != null)
+                {
+                    iLine.dPartitionPanelEachSide = tempParam.AsInteger();
+                }
+                tempParam = null;
 
                 Parameter studGuageParam = locCurve.LookupParameter("Stud Gauge");
                 if (studGuageParam != null)
@@ -200,24 +371,28 @@ namespace Revit_Automation.Source
                     iLine.strMaterialType = MaterialTypeParameter.AsString();
                 }
 
-                // Compute Intersection Points with Grids. 
-                GridCollector GridCollectionHelper = new GridCollector(doc);
+                // For Trim and extend we do not need grid intersection points and Direction wrt roof slope
+                if (bComputeRoofSlope)
+                {
+                    // Compute Intersection Points with Grids. 
+                    GridCollector GridCollectionHelper = new GridCollector(doc);
 
-                LocationCurve locationCurve = (LocationCurve)locCurve.Location;
-                Tuple<XYZ, XYZ> linecoords = Tuple.Create(locationCurve.Curve.GetEndPoint(0), locationCurve.Curve.GetEndPoint(1));
+                    LocationCurve locationCurve = (LocationCurve)locCurve.Location;
+                    Tuple<XYZ, XYZ> linecoords = Tuple.Create(locationCurve.Curve.GetEndPoint(0), locationCurve.Curve.GetEndPoint(1));
 
-                // Compute if the Line is parallel, or perpendicular to roof slope.
-                XYZ lineDirection = locationCurve.Curve.GetEndPoint(1) - locationCurve.Curve.GetEndPoint(0);
-                XYZ roofSlope = GenericUtils.GetRoofSlopeDirection(locationCurve.Curve.GetEndPoint(1));
-                iLine.dirWRTRoofSlope = MathUtils.IsParallel(roofSlope, lineDirection)
-                    ? DirectionWithRespectToRoofSlope.Parallel
-                    : DirectionWithRespectToRoofSlope.Perpendicular;
+                    // Compute if the Line is parallel, or perpendicular to roof slope.
+                    XYZ lineDirection = locationCurve.Curve.GetEndPoint(1) - locationCurve.Curve.GetEndPoint(0);
+                    XYZ roofSlope = GenericUtils.GetRoofSlopeDirection(locationCurve.Curve.GetEndPoint(1));
+                    iLine.dirWRTRoofSlope = MathUtils.IsParallel(roofSlope, lineDirection)
+                        ? DirectionWithRespectToRoofSlope.Parallel
+                        : DirectionWithRespectToRoofSlope.Perpendicular;
 
-                // Compute Grid Intersections for T62 Placement
-                iLine.gridIntersectionPoints = GridCollectionHelper.computeIntersectionPoints(linecoords);
+                    // Compute Grid Intersections for T62 Placement
+                    iLine.gridIntersectionPoints = GridCollectionHelper.computeIntersectionPoints(linecoords);
 
-                // Compute Main intesection points for Stud placement offset
-                iLine.mainGridIntersectionPoints = GridCollectionHelper.computeIntersectionPoints(linecoords, true);
+                    // Compute Main intesection points for Stud placement offset
+                    iLine.mainGridIntersectionPoints = GridCollectionHelper.computeIntersectionPoints(linecoords, true);
+                }
 
                 //Add the line to the collection 
                 _ = AddInputLine(iLine);
@@ -309,16 +484,20 @@ namespace Revit_Automation.Source
         public static Element CreateProjectSettingLine()
         {
             Element prjSettingsLine = null;
-            FamilySymbol prjSettingsLineSym = SymbolCollector.GetProjectSpecificationLineSymbol();
-
-            FilteredElementCollector levels = new FilteredElementCollector(m_Document);
-            levels.WherePasses(new ElementClassFilter(typeof(Level), false))
-                        .Cast<Level>()
-                        .OrderBy(e => e.Elevation);
 
             using (Transaction tx = new Transaction(m_Document))
             {
                 tx.Start("Creating Project Specifications Line");
+
+                FamilySymbol prjSettingsLineSym = SymbolCollector.GetProjectSpecificationLineSymbol();
+
+                if (prjSettingsLineSym != null && !prjSettingsLineSym.IsActive)
+                prjSettingsLineSym.Activate();
+
+                FilteredElementCollector levels = new FilteredElementCollector(m_Document);
+                levels.WherePasses(new ElementClassFilter(typeof(Level), false))
+                        .Cast<Level>()
+                        .OrderBy(e => e.Elevation);
 
                 XYZ position = new XYZ(0, 0, 0);
                 prjSettingsLine = m_Document.Create.NewFamilyInstance(position, prjSettingsLineSym, levels.ElementAt(0), StructuralType.NonStructural);

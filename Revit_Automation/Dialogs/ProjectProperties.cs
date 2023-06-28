@@ -39,7 +39,7 @@ namespace Revit_Automation
             dataTable.Columns.Add("Panel Clearance", typeof(int));
             dataTable.Columns.Add("Panel Max. Lap", typeof(int));
             dataTable.Columns.Add("Panel Min. Lap", typeof(int));
-            dataTable.Columns.Add("Panel Orientation (H/V)", typeof(int));
+            dataTable.Columns.Add("Panel Orientation (H/V)", typeof(string));
             dataTable.Columns.Add("Preferred panel length", typeof(int));
             dataTable.Columns.Add("Max Panel Length", typeof(int));
             dataTable.Columns.Add("Panel Height Offset", typeof(int));
@@ -291,7 +291,7 @@ namespace Revit_Automation
             {
                 if (strWallType == "" || strWallType == " ")
                     continue;
-                tempdataTable.Rows.Add(strWallType, 0, 0, 0, 0, 0, 0, 0, 0, " ", " ", 0);
+                tempdataTable.Rows.Add(strWallType, 0, 0, 0, 0, " ", 0, 0, 0, " ", " ", 0);
             }
 
             // Set the data source on the Data Grid
