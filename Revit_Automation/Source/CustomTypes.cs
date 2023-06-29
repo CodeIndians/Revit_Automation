@@ -88,17 +88,17 @@ namespace Revit_Automation.CustomTypes
     {
         public string strWallName;
         public bool bIsUNO;
-        public int iPanelGuage;
-        public int iPanelClearance;
-        public int iPanelMaxLap;
-        public int iPanelMinLap;
+        public double iPanelGuage;
+        public double iPanelClearance;
+        public double iPanelMaxLap;
+        public double iPanelMinLap;
         public string strPanelOrientation;
-        public int iPanelPreferredLength;
-        public int iPanelMaxLength;
-        public int iPanelHeightOffset;
+        public double iPanelPreferredLength;
+        public double iPanelMaxLength;
+        public double iPanelHeightOffset;
         public string strPanelHorizontalDirection;
         public string strPanelVerticalDirection;
-        public int iPanelHourRate;
+        public double iPanelHourRate;
     }
 
     public enum WallPriority

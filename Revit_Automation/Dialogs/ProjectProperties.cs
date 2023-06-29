@@ -35,17 +35,17 @@ namespace Revit_Automation
             radioButtonColumn.Name = "RadioButtonColumn";
 
             dataTable.Columns.Add("Panel Type", typeof(string));
-            dataTable.Columns.Add("Panel Gauge", typeof(string));
-            dataTable.Columns.Add("Panel Clearance", typeof(int));
-            dataTable.Columns.Add("Panel Max. Lap", typeof(int));
-            dataTable.Columns.Add("Panel Min. Lap", typeof(int));
+            dataTable.Columns.Add("Panel Gauge", typeof(double));
+            dataTable.Columns.Add("Panel Clearance", typeof(double));
+            dataTable.Columns.Add("Panel Max. Lap", typeof(double));
+            dataTable.Columns.Add("Panel Min. Lap", typeof(double));
             dataTable.Columns.Add("Panel Orientation (H/V)", typeof(string));
-            dataTable.Columns.Add("Preferred panel length", typeof(int));
-            dataTable.Columns.Add("Max Panel Length", typeof(int));
-            dataTable.Columns.Add("Panel Height Offset", typeof(int));
+            dataTable.Columns.Add("Preferred panel length", typeof(double));
+            dataTable.Columns.Add("Max Panel Length", typeof(double));
+            dataTable.Columns.Add("Panel Height Offset", typeof(double));
             dataTable.Columns.Add("Horizontal Panel Dir (U/D/B)", typeof(string));
             dataTable.Columns.Add("Vertical Panel Dir (L/R/B)", typeof(string));
-            dataTable.Columns.Add("Hour rate", typeof(int));
+            dataTable.Columns.Add("Hour rate", typeof(double));
             dataGridView1.Columns.Add(radioButtonColumn);
             dataGridView1.CellContentClick += dataGridView_CellContentClick;
             dataGridView1.DataSource = dataTable;

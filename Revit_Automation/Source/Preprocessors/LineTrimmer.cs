@@ -1,37 +1,35 @@
 ﻿// This file is part of the  R A N O R E X  Project. | http://www.ranorex.com
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Structure;
+using Autodesk.Revit.DB;
 using Autodesk.Revit.UI.Selection;
-using Newtonsoft.Json.Serialization;
 using Revit_Automation.CustomTypes;
 using Revit_Automation.Dialogs;
 using Revit_Automation.Source.Interfaces;
 using Revit_Automation.Source.Utils;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Security.Policy;
 
 namespace Revit_Automation.Source.Preprocessors
 {
-    public  class LineExtender : IPreprocessInterface 
+    public class LineTrimmer : IPreprocessInterface
     {
         public Document m_Document;
 
         private LineProcessing m_LineProcessing;
         private Selection m_Selection;
         private bool m_bProcessSelected;
-        public LineExtender(Document doc, LineProcessing form, bool bProcessSelected, Selection selection = null) { m_Document = doc; m_LineProcessing = form; m_bProcessSelected = bProcessSelected; m_Selection = selection; }
+        public LineTrimmer(Document doc, LineProcessing form, bool bProcessSelected, Selection selection = null) { m_Document = doc; m_LineProcessing = form; m_bProcessSelected = bProcessSelected; m_Selection = selection; }
 
 
         public enum IntersectionType
         {
-            TIntersection = 0, 
+            TIntersection = 0,
             LIntersection,
             NonIntesecting
         }
@@ -42,29 +40,29 @@ namespace Revit_Automation.Source.Preprocessors
         /// </summary>
         public void Preprocess()
         {
-            using (Transaction tx = new Transaction (m_Document))
-            { 
-                
+            using (Transaction tx = new Transaction(m_Document))
+            {
+
                 // Gather all Input Lines
                 InputLineUtility.GatherInputLines(m_Document, m_bProcessSelected, m_Selection, CommandCode.Posts, false);
 
-                tx.Start("Extending Lines");
+                tx.Start("Trimming Lines ");
 
                 m_LineProcessing.Show();
                 m_LineProcessing.Visible = true;
                 Thread.Sleep(2000);
 
-                m_LineProcessing.LineExtendingMessage(string.Format("Executing Line Extension Algorithm \n "), 0);
+                m_LineProcessing.LineTrimmingMessage(string.Format("Executing Line Trimming Algorithm \n "), 0);
 
                 // Iterate through the collection and Identify the Intersecting Lines
-                for (int i = 0; i < InputLineUtility.colInputLines.Count; i ++)
+                for (int i = 0; i < InputLineUtility.colInputLines.Count; i++)
                 {
                     InputLine inputLine1 = InputLineUtility.colInputLines[i];
                     m_LineProcessing.Refresh();
-                    m_LineProcessing.LineExtendingMessage(string.Format("\n Now Processing Line : {0} \n", inputLine1.id), 1);
+                    m_LineProcessing.LineTrimmingMessage(string.Format("\n Now Processing Line : {0} \n", inputLine1.id), 1);
 
                     bool bHasLIntersections = false;
-                    for ( int j = i+1; j < InputLineUtility.colInputLines.Count; j++)
+                    for (int j = i + 1; j < InputLineUtility.colInputLines.Count; j++)
                     {
                         InputLine inputLine2 = InputLineUtility.colInputLines[j];
                         LineType lt1 = MathUtils.ApproximatelyEqual(inputLine1.startpoint.X, inputLine1.endpoint.X) ? LineType.vertical : LineType.Horizontal;
@@ -74,13 +72,14 @@ namespace Revit_Automation.Source.Preprocessors
                         if ((lt1 == LineType.vertical && lt2 == LineType.Horizontal) || (lt2 == LineType.vertical && lt1 == LineType.Horizontal))
                         {
                             XYZ intersectionPT = null;
-                            IntersectionType intesection = IdentifyRelationShip(inputLine1, inputLine2, out intersectionPT);
+                            ElementId iContinousLine = null;
+                            IntersectionType intesection = IdentifyRelationShip(inputLine1, inputLine2, out intersectionPT, out iContinousLine);
 
                             // Only in case of L-Intersection we extend lines
-                            if (intesection == IntersectionType.LIntersection)
+                            if (intesection == IntersectionType.TIntersection)
                             {
-                                m_LineProcessing.LineExtendingMessage(string.Format("There is an L-Intersection Between {0} ({2}) and {1} ({3}) lines \n", inputLine1.id, inputLine2.id, inputLine1.strWallType, inputLine2.strWallType), 2);
-                                ExtendPriorityLine(ref inputLine1, ref inputLine2, intersectionPT);
+                                m_LineProcessing.LineTrimmingMessage(string.Format("There is an T-Intersection Between {0} ({2}) and {1} ({3}) lines \n", inputLine1.id, inputLine2.id, inputLine1.strWallType, inputLine2.strWallType), 2);
+                                TrimNonContinuousLine (ref inputLine1, ref inputLine2, intersectionPT, iContinousLine);
                                 bHasLIntersections = true;
 
                                 InputLineUtility.colInputLines[i] = inputLine1;
@@ -90,43 +89,53 @@ namespace Revit_Automation.Source.Preprocessors
                     }
 
                     if (!bHasLIntersections)
-                        m_LineProcessing.LineExtendingMessage(string.Format("No L-Intersections. Nothing to do \n", inputLine1.id), 4);
+                        m_LineProcessing.LineTrimmingMessage(string.Format("No T-Intersections. Nothing to do \n", inputLine1.id), 4);
                 }
 
                 // Clone Line
                 UpdateParametersForNewLines();
 
-                m_LineProcessing.LineExtendingMessage(" \n 😊 😀 😉 😍 Finished Extending  😂 😄 😎  \n", 3);
+                m_LineProcessing.LineTrimmingMessage(" \n 😊 😀 😉 😍 Finished Trimming  😂 😄 😎  \n", 3);
 
                 tx.Commit();
             }
         }
 
-        private void ExtendPriorityLine(ref InputLine inputLine1, ref InputLine inputLine2, XYZ intersectionPT)
+        private void TrimNonContinuousLine(ref InputLine inputLine1, ref InputLine inputLine2, XYZ intersectionPT, ElementId elemID)
         {
-            WallPriority wall1 = GetWallType(inputLine1);
-            WallPriority wall2 = GetWallType(inputLine2);
+            ElementId elemID1 = inputLine1.id;
+            ElementId elemID2 = inputLine2.id;
 
-            ref InputLine lineToExtend = ref inputLine1;
+            ref InputLine lineToTrim = ref inputLine1;
             ref InputLine lineToRemain = ref inputLine2;
-            if (wall1 < wall2)
-            { 
-                lineToExtend = ref inputLine2;
+            
+            if (elemID == elemID1)
+            {
+                lineToTrim = ref inputLine2;
                 lineToRemain = ref inputLine1;
             }
 
-            ExtendLine(ref lineToExtend, ref lineToRemain, intersectionPT);
+            TrimLine(ref lineToTrim, ref lineToRemain, intersectionPT);
         }
 
-        private void ExtendLine(ref InputLine lineToExtend, ref InputLine lineToRemain, XYZ intersectionPT)
-        {   
-            m_LineProcessing.LineExtendingMessage(string.Format("Extending Line {0} as it has higher priority among {1} , {2} \n", lineToExtend.id, lineToExtend.strWallType, lineToRemain.strWallType), 4);
-                
-            // Get web width of non-Extending line 
-            double dWebWidth =  GenericUtils.WebWidth(lineToRemain.strStudType) / 2;
+        private void TrimLine(ref InputLine lineToTrim, ref InputLine lineToRemain, XYZ intersectionPT)
+        {
+            m_LineProcessing.LineTrimmingMessage(string.Format("Trimming Line {0} as it is non-continuous among {1} , {2} \n", lineToTrim.id, lineToTrim.id, lineToRemain.id), 4);
 
+            // Total length of trimming
+            double dTrimDistance = 0.0;
+
+            // Get web width of non-Trimming line 
+            double dWebWidth = GenericUtils.WebWidth(lineToRemain.strStudType) / 2;
+
+            // Get Panel Trim Distance
+            double dPanelTrim = GetPanelTrimDistance(lineToTrim,  lineToRemain, intersectionPT);
+
+            // Final trim accounts for both stud width and Panel width
+            dTrimDistance = dWebWidth + dPanelTrim;
+            
             // Get the Element
-            FamilyInstance lineElement = m_Document.GetElement(lineToExtend.id) as FamilyInstance;
+            FamilyInstance lineElement = m_Document.GetElement(lineToTrim.id) as FamilyInstance;
 
             // Get the End points
             LocationCurve locCurve = lineElement.Location as LocationCurve;
@@ -138,13 +147,13 @@ namespace Revit_Automation.Source.Preprocessors
 
             XYZ updatedStartPt = null, updatedEndPt = null;
 
-            // See which end needs to be extended.
+            // See which end needs to be trimmed.
             if (MathUtils.ApproximatelyEqual(startpoint.X, intersectionPT.X) && MathUtils.ApproximatelyEqual(startpoint.Y, intersectionPT.Y))
             {
                 if (lineType == LineType.Horizontal)
-                    updatedStartPt = new XYZ(startpoint.X - dWebWidth, startpoint.Y, startpoint.Z);
+                    updatedStartPt = new XYZ(startpoint.X + dTrimDistance, startpoint.Y, startpoint.Z);
                 else
-                    updatedStartPt = new XYZ(startpoint.X, startpoint.Y - dWebWidth, startpoint.Z);
+                    updatedStartPt = new XYZ(startpoint.X, startpoint.Y + dTrimDistance, startpoint.Z);
 
                 updatedEndPt = endpoint;
             }
@@ -153,9 +162,9 @@ namespace Revit_Automation.Source.Preprocessors
                 updatedStartPt = startpoint;
 
                 if (lineType == LineType.Horizontal)
-                    updatedEndPt = new XYZ(endpoint.X + dWebWidth, endpoint.Y, endpoint.Z);
+                    updatedEndPt = new XYZ(endpoint.X - dTrimDistance, endpoint.Y, endpoint.Z);
                 else
-                    updatedEndPt = new XYZ(endpoint.X, endpoint.Y + dWebWidth, endpoint.Z);
+                    updatedEndPt = new XYZ(endpoint.X, endpoint.Y - dTrimDistance, endpoint.Z);
             }
 
             //Create a new line with given end points
@@ -174,24 +183,115 @@ namespace Revit_Automation.Source.Preprocessors
             locCurve.Curve = newInputLine;
 
             // Delete the line
-            m_Document.Delete(lineToExtend.id);
+            m_Document.Delete(lineToTrim.id);
 
             // update the Input Line
-            lineToExtend.locationCurve = locCurve;
-            lineToExtend.id = extendedLine.Id;
-            lineToExtend.bLineExtendedOrTrimmed = true;
-            lineToExtend.startpoint = updatedStartPt;
-            lineToExtend.endpoint = updatedEndPt;            
+            lineToTrim.locationCurve = locCurve;
+            lineToTrim.id = extendedLine.Id;
+            lineToTrim.bLineExtendedOrTrimmed = true;
+            lineToTrim.startpoint = updatedStartPt;
+            lineToTrim.endpoint = updatedEndPt;
 
+        }
+
+        private double GetPanelTrimDistance(InputLine lineToTrim, InputLine lineToRemain, XYZ intersectionPT)
+        {
+            double dTrimDistance = 0.0;
+            double dPanelThickness = 0.0;
+            string strPanelDirection = "";
+            string strLineDirection = "";
+
+            //Two wall lines are of same type and are either Fire, Insulation or Ex w/ Insulation
+            if (lineToTrim.strWallType == lineToRemain.strWallType
+                && (lineToTrim.strWallType == "Fire" ||
+                    lineToTrim.strWallType == "Insultation" ||
+                    lineToTrim.strWallType == "Ex w/ Insulation")
+                    )
+            {
+                return 0.0;
+            }
+
+            // For Exteriror or Fire wall or Insulating wall, panels will be placed on both sides
+            if (lineToTrim.strWallType == "Fire" ||
+                lineToTrim.strWallType == "Insultation" ||
+                lineToTrim.strWallType == "Ex w/ Insulation")
+            {
+                strPanelDirection = "B";
+            }
+
+            
+            //Panel Thickness and direction based on the Panel type parameter
+            // if empty - Take the values from UNO row
+            // else take the values from the corresponding row in the global settings
+
+            PanelTypeGlobalParams pg = string.IsNullOrEmpty(lineToRemain.strPanelType) ?
+                                        GlobalSettings.lstPanelParams.Find(panelParams => panelParams.bIsUNO == true) :
+                                        GlobalSettings.lstPanelParams.Find(panelParams => panelParams.strWallName == lineToRemain.strPanelType);
+            
+            // Panel Thickness
+            dPanelThickness = GetThickness(pg.iPanelHourRate);
+
+            // Panel Direction 
+            strPanelDirection = pg.strPanelOrientation;
+            
+            // Trimming line orientation with respect to continuous line
+            strLineDirection = GetTrimLineDirectionWrtContinuousLine(lineToRemain, lineToTrim);
+
+
+            if (strPanelDirection == "B" || (strPanelDirection == strLineDirection))
+            {
+                dTrimDistance = dPanelThickness;
+            }
+
+            return dTrimDistance;
+        }
+
+        private string GetTrimLineDirectionWrtContinuousLine(InputLine lineToRemain, InputLine lineToTrim)
+        {
+            string strRelation = "";
+            if (MathUtils.ApproximatelyEqual(lineToRemain.startpoint.X, lineToRemain.endpoint.X))
+            {
+                if (lineToTrim.startpoint.X < lineToRemain.startpoint.X && lineToTrim.endpoint.X < lineToRemain.endpoint.X)
+                {
+                    strRelation = "L";
+                }
+                else
+                {
+                    strRelation = "R";
+                }
+            }
+            else
+            {
+                if (lineToTrim.startpoint.Y < lineToRemain.startpoint.Y && lineToTrim.endpoint.Y < lineToRemain.endpoint.Y)
+                {
+                    strRelation = "D";
+                }
+                else
+                {
+                    strRelation = "U";
+                }
+            }
+            return strRelation;
+        }
+
+        private double GetThickness(double iPanelHourRate)
+        {
+            if (iPanelHourRate == 0 || iPanelHourRate == 1)
+                return 1.0;
+            if (iPanelHourRate == 2 || iPanelHourRate == 3)
+                return 2.0;
+            if (iPanelHourRate == 4)
+                return 3.0;
+
+            return 1.0;
         }
 
         private void UpdateParametersForNewLines()
         {
-
             foreach (InputLine iLine in InputLineUtility.colInputLines)
             {
                 if (iLine.bLineExtendedOrTrimmed)
-                {   
+                {
                     Element InputLineElem = m_Document.GetElement(iLine.id);
                     InputLineElem.LookupParameter("Additional Panel")?.Set(iLine.strAdditionalPanel);
                     InputLineElem.LookupParameter("Additional Panel Gauge")?.Set(iLine.strAdditionalPanelGuage);
@@ -235,7 +335,7 @@ namespace Revit_Automation.Source.Preprocessors
         {
             if (inputLine.strWallType == "Fire")
                 return WallPriority.Fire;
-            else if (inputLine.strWallType == "Ex w/ Insulation")
+            else if (inputLine.strWallType == "Ex W/ Insulation")
                 return WallPriority.ExWithoutInsulation;
             else if (inputLine.strWallType == "Insulation")
                 return WallPriority.Insulation;
@@ -251,13 +351,15 @@ namespace Revit_Automation.Source.Preprocessors
                 return WallPriority.NLB;
         }
 
-        private IntersectionType IdentifyRelationShip(InputLine inputLine1, InputLine inputLine2, out XYZ IntersectionPt)
+        private IntersectionType IdentifyRelationShip(InputLine inputLine1, InputLine inputLine2, out XYZ IntersectionPt, out ElementId iContinuousLine)
         {
+            // Initialize the out parameters
             IntersectionType intersection = IntersectionType.NonIntesecting;
+            iContinuousLine = null;
 
             IntersectionPt = null;
-            // Define two lines using their end points
 
+            // Define two lines using their end points
             Line line1 = Line.CreateBound(inputLine1.startpoint, inputLine1.endpoint);
             Line line2 = Line.CreateBound(inputLine2.startpoint, inputLine2.endpoint);
 
@@ -269,34 +371,30 @@ namespace Revit_Automation.Source.Preprocessors
                 XYZ intersectionPoint = intersectionResult.get_Item(0).XYZPoint;
 
                 // Compute the continuity of both the lines at a given point.
-                int iContinuousLine = IdentifyContinousLineAtPoint(intersectionPoint, inputLine1, inputLine2);
+                iContinuousLine = IdentifyContinousLineAtPoint(intersectionPoint, inputLine1, inputLine2);
 
-                if (iContinuousLine == 0)
+                if (iContinuousLine == null)
                     intersection = IntersectionType.LIntersection;
                 else
                     intersection = IntersectionType.TIntersection;
-                
+
                 // Return the Intersection point
                 IntersectionPt = intersectionPoint;
-            }
-            else
-            {
-                
             }
 
             return intersection;
         }
 
-        private int IdentifyContinousLineAtPoint(XYZ collisionPoint, InputLine line1, InputLine line2)
+        private ElementId IdentifyContinousLineAtPoint(XYZ collisionPoint, InputLine line1, InputLine line2)
         {
 
             Logger.logMessage("Method : IdentifyContinousLineAtPoint");
-            int iContinuousLine = 0;
+            ElementId iContinuousLine = null;
 
             XYZ TracePoint1;
             XYZ TracePoint2;
 
-            for (int i = 0; i < 2; i++ )
+            for (int i = 0; i < 2; i++)
             {
                 InputLine GenericLine = i == 0 ? line1 : line2;
                 // Get the location curve
@@ -316,7 +414,7 @@ namespace Revit_Automation.Source.Preprocessors
                     if (TracePoint1.X > start.X && TracePoint1.X < end.X &&
                         TracePoint2.X > start.X && TracePoint2.X < end.X)
                     {
-                        iContinuousLine = i+1;
+                        iContinuousLine = i == 0 ? line1.id : line2.id;
                         break;
                     }
                 }
@@ -332,7 +430,7 @@ namespace Revit_Automation.Source.Preprocessors
                     if (TracePoint1.Y > start.Y && TracePoint1.Y < end.Y &&
                         TracePoint2.Y > start.Y && TracePoint2.Y < end.Y)
                     {
-                        iContinuousLine = i + 1;
+                        iContinuousLine = i == 0 ? line1.id : line2.id;
                         break;
                     }
                 }

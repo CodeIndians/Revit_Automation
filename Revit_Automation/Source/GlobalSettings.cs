@@ -57,17 +57,17 @@ namespace Revit_Automation.Source
                     PanelTypeGlobalParams panel = new PanelTypeGlobalParams();
                     panel.bIsUNO = (tempUNORow == rowNumber);
                     panel.strWallName = settings[j];
-                    panel.iPanelGuage = int.Parse(settings[j + 1]);
-                    panel.iPanelClearance = int.Parse(settings[j + 2]);
-                    panel.iPanelMaxLap = int.Parse(settings[j + 3]);
-                    panel.iPanelMinLap = int.Parse(settings[j + 4]);
+                    panel.iPanelGuage = double.Parse(settings[j + 1]);
+                    panel.iPanelClearance = double.Parse(settings[j + 2]);
+                    panel.iPanelMaxLap = double.Parse(settings[j + 3]);
+                    panel.iPanelMinLap = double.Parse(settings[j + 4]);
                     panel.strPanelOrientation = settings[j + 5];
-                    panel.iPanelPreferredLength = int.Parse(settings[j + 6]);
-                    panel.iPanelMaxLength = int.Parse(settings[j + 7]);
-                    panel.iPanelHeightOffset = int.Parse(settings[j + 8]);
+                    panel.iPanelPreferredLength = double.Parse(settings[j + 6]);
+                    panel.iPanelMaxLength = double.Parse(settings[j + 7]);
+                    panel.iPanelHeightOffset = double.Parse(settings[j + 8]);
                     panel.strPanelHorizontalDirection = settings[j + 9];
                     panel.strPanelVerticalDirection = settings[j + 10];
-                    panel.iPanelHourRate = int.Parse(settings[j + 11]);
+                    panel.iPanelHourRate = double.Parse(settings[j + 11]);
 
                     lstPanelParams.Add(panel);
 
