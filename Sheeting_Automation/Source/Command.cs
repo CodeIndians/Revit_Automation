@@ -11,6 +11,7 @@ using Autodesk.Revit.UI.Selection;
 using System.Windows.Forms;
 using Sheeting_Automation.Dialogs;
 using Sheeting_Automation.Utils;
+using Sheeting_Automation.Source.GeometryCollectors;
 
 namespace Sheeting_Automation
 {
@@ -39,6 +40,13 @@ namespace Sheeting_Automation
 
 
             _ = form.ShowDialog();
+
+            if (form.startCollectingData)
+            {
+                // Start the collection logic here
+                FloorGeometryCollector floorGeometry = new FloorGeometryCollector(ref doc);
+                floorGeometry.Collect();
+            }
             return Result.Succeeded;
         }
     }

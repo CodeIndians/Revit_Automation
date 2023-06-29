@@ -60,12 +60,16 @@
     <Compile Include="Source\App.cs" />
     <Compile Include="Source\Command.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Source\GeometryCollectors\FloorGeometryCollector.cs" />
     <Compile Include="Utilities\SheetUtils.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Dialogs\SheetingConfiguration.resx">
       <DependentUpon>SheetingConfiguration.cs</DependentUpon>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

@@ -53,3 +53,4 @@
 *.nuget.targets
 /Sheeting_Automation/obj/Debug
 /Sheeting_Automation/bin/Debug
+Sheeting_Automation/obj/Release/DesignTimeResolveAssemblyReferences.cache
