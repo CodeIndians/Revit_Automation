@@ -61,6 +61,7 @@
     <Compile Include="Source\Command.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Source\GeometryCollectors\FloorGeometryCollector.cs" />
+    <Compile Include="Source\GeometryCollectors\GridCollector.cs" />
     <Compile Include="Utilities\SheetUtils.cs" />
   </ItemGroup>
   <ItemGroup>

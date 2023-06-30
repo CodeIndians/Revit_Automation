@@ -45,7 +45,10 @@ namespace Sheeting_Automation
             {
                 // Start the collection logic here
                 FloorGeometryCollector floorGeometry = new FloorGeometryCollector(ref doc);
-                floorGeometry.Collect();
+                var floorLinesList = floorGeometry.FloorExternalLines;
+
+                GridCollector gridCollection = new GridCollector(ref doc);
+                
             }
             return Result.Succeeded;
         }

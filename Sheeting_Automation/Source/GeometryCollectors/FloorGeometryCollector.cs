@@ -6,6 +6,8 @@ using System.Windows.Forms;
 using System.IO;
 using static Sheeting_Automation.Source.GeometryCollectors.FloorGeometryCollector;
 using System.Drawing;
+using static System.Windows.Forms.LinkLabel;
+using System;
 
 namespace Sheeting_Automation.Source.GeometryCollectors
 {
@@ -29,16 +31,17 @@ namespace Sheeting_Automation.Source.GeometryCollectors
         private List<FloorExternalLine> mAllFloorExternalLines;
 
         // collected external lines are separated floor wise 
-        public List<List<FloorExternalLine>> mFloorExternalLines;
+        public List<List<FloorExternalLine>> FloorExternalLines;
 
         public FloorGeometryCollector(ref Document document)
         {
             mDocument = document;
             mAllFloorExternalLines = new List<FloorExternalLine>();
-            mFloorExternalLines = new List<List<FloorExternalLine>>();
+            FloorExternalLines = new List<List<FloorExternalLine>>();
+            Collect();
         }
 
-        public void Collect()
+        private void Collect()
         {
             FilteredElementCollector collector = new FilteredElementCollector(mDocument);
             IList<Element> floorElements = collector.OfClass(typeof(Floor)).ToElements();
@@ -69,30 +72,76 @@ namespace Sheeting_Automation.Source.GeometryCollectors
             foreach (var group in groupedPoints)
             {
                 List<FloorExternalLine> separatedList = group.ToList();
-                mFloorExternalLines.Add(separatedList);
+                FloorExternalLines.Add(separatedList);
             }
 
-            // sort the floor lists by x and y 
-            SortFloorListsByXY();
+            // sort the floor lines in a circular order
+            SortFloorListsCircular();
 
             //MessageBox.Show(mFloorLists.ToString());
 
-            WriteFloorListsToFile(mFloorExternalLines, @"C:\temp\floor.txt");
+            // TODO: Should be required in the production version 
+            WriteFloorListsToFile(FloorExternalLines, @"C:\temp\floor.txt");
 
         }
 
-        public void SortFloorListsByXY()
+        /// <summary>
+        /// sort the given list of lines based on the condition that the,
+        /// end of each line is the start of the next line
+        /// </summary>
+        public void SortFloorListsCircular()
         {
-
-            foreach (var floorList in mFloorExternalLines)
+            foreach (var floorList in FloorExternalLines)
             {
-                // Sort the XYZ points within each floor list based on X position
-                List<FloorExternalLine> sortedList = floorList.OrderBy(p => p.start.X).ThenBy(p => p.start.Y).ToList();
+                // Sort the XYZ points within each floor list based on X position and then on Y position
+                List<FloorExternalLine> sortedList = SortLineListCircular(floorList);
 
                 // Replace the original floor list with the sorted list
                 floorList.Clear();
                 floorList.AddRange(sortedList);
             }
+        }
+
+        /// <summary>
+        /// sort the given list of lines based on the condition that the,
+        /// end of each line is the start of the next line
+        /// </summary>
+        /// <param name="lines"></param>
+        /// <returns> circular sorted lines</returns>
+        private List<FloorExternalLine> SortLineListCircular(List<FloorExternalLine> lines)
+        {
+            List<FloorExternalLine> sortedLines  = new List<FloorExternalLine>();
+
+            FloorExternalLine startLine = lines[0];
+            sortedLines.Add(startLine);
+            lines.Remove(startLine);
+
+            while (lines.Count > 0)
+            {
+                XYZ lastPoint = sortedLines[sortedLines.Count - 1].end;
+                bool foundNextLine = false;
+
+                for (int i = 0; i < lines.Count; i++)
+                {
+                    FloorExternalLine line = lines[i];
+                    if (line.start.IsAlmostEqualTo(lastPoint))
+                    {
+                        sortedLines.Add(line);
+                        lines.RemoveAt(i);
+                        foundNextLine = true;
+                        break;
+                    }
+                }
+
+                if (!foundNextLine)
+                {
+                    // If no next line is found, the list is not a closed loop
+                    Console.WriteLine("Error: List is not a closed loop.");
+                    break;
+                }
+            }
+
+            return sortedLines;
         }
 
         /// <summary>
