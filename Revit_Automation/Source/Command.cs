@@ -71,7 +71,7 @@ namespace Revit_Automation
 
             if (form.CanCreateModel)
             {
-                ModelCreator.CreateModel(uiapp, form, false, CommandCode.All);
+                ModelCreator.CreateModel(uiapp, form, false, CommandCode.Posts);
             }
 
             return Result.Succeeded;
@@ -147,24 +147,24 @@ namespace Revit_Automation
                 return Result.Succeeded;
             }
 
-            TaskDialog.Show("Walls Command", "Place Walls Command is not implemented");
-            return Result.Succeeded; ;
+            //TaskDialog.Show("Walls Command", "Place Walls Command is not implemented");
+            //return Result.Succeeded; ;
 
             //UIApplication uiapp = commandData.Application;
 
-            //Form1 form = new Form1
-            //{
-            //    StartPosition = FormStartPosition.CenterScreen
-            //};
-            ////form.TopMost= true;
-            //_ = form.ShowDialog();
+            Form1 form = new Form1
+            {
+                StartPosition = FormStartPosition.CenterScreen
+            };
+            //form.TopMost= true;
+            _ = form.ShowDialog();
 
-            //if (form.CanCreateModel)
-            //{
-            //    ModelCreator.CreateModel(uiapp, form, true, CommandCode.Walls);
-            //}
+            if (form.CanCreateModel)
+            {
+                ModelCreator.CreateModel(uiapp, form, false, CommandCode.Walls);
+            }
 
-            //return Result.Succeeded;
+            return Result.Succeeded;
         }
     }
 
@@ -269,6 +269,12 @@ namespace Revit_Automation
             SymbolCollector.m_Document = doc;
             RoofUtility.m_Document = doc;
 
+            if (!GlobalSettings.PopulateGlobalSettings())
+            {
+                TaskDialog.Show("Command", "Project Settings are not Present");
+                return Result.Succeeded;
+            }
+
             LineProcessing form = new LineProcessing()
             {
                 StartPosition = FormStartPosition.CenterScreen
@@ -276,6 +282,9 @@ namespace Revit_Automation
 
             LineExtender lineExtender = new LineExtender(doc, form, false);
             lineExtender.Preprocess();
+
+            LineTrimmer lineTrimmer = new LineTrimmer(doc, form, false);
+            lineTrimmer.Preprocess();
 
             return Result.Succeeded;
         }
@@ -302,6 +311,12 @@ namespace Revit_Automation
             SymbolCollector.m_Document = doc;
             RoofUtility.m_Document = doc;
 
+            if (!GlobalSettings.PopulateGlobalSettings())
+            {
+                TaskDialog.Show("Command", "Project Settings are not Present");
+                return Result.Succeeded;
+            }
+
             LineProcessing form = new LineProcessing()
             {
                 StartPosition = FormStartPosition.CenterScreen
@@ -309,6 +324,9 @@ namespace Revit_Automation
 
             LineExtender lineExtender = new LineExtender(doc, form, true, selection);
             lineExtender.Preprocess();
+
+            LineTrimmer lineTrimmer = new LineTrimmer(doc, form, true, selection);
+            lineTrimmer.Preprocess();
 
             return Result.Succeeded;
         }

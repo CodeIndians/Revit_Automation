@@ -136,7 +136,7 @@ namespace Revit_Automation
             }
 
             // 9. Place Columns
-            if (commandCode == CommandCode.Posts)
+            if (commandCode == CommandCode.Posts )
             {
                 ColumnCreator columnCreator = new ColumnCreator(doc, form);
                 columnCreator.SetPhase(desiredPhase);

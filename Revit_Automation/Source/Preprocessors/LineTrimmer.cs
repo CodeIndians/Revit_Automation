@@ -204,19 +204,11 @@ namespace Revit_Automation.Source.Preprocessors
             //Two wall lines are of same type and are either Fire, Insulation or Ex w/ Insulation
             if (lineToTrim.strWallType == lineToRemain.strWallType
                 && (lineToTrim.strWallType == "Fire" ||
-                    lineToTrim.strWallType == "Insultation" ||
+                    lineToTrim.strWallType == "Insulation" ||
                     lineToTrim.strWallType == "Ex w/ Insulation")
                     )
             {
                 return 0.0;
-            }
-
-            // For Exteriror or Fire wall or Insulating wall, panels will be placed on both sides
-            if (lineToTrim.strWallType == "Fire" ||
-                lineToTrim.strWallType == "Insultation" ||
-                lineToTrim.strWallType == "Ex w/ Insulation")
-            {
-                strPanelDirection = "B";
             }
 
             
@@ -232,12 +224,24 @@ namespace Revit_Automation.Source.Preprocessors
             dPanelThickness = GetThickness(pg.iPanelHourRate);
 
             // Panel Direction 
-            strPanelDirection = pg.strPanelOrientation;
-            
+            if (MathUtils.ApproximatelyEqual(lineToRemain.startpoint.X, lineToRemain.endpoint.X))
+                strPanelDirection = pg.strPanelVerticalDirection.ToString();
+            else
+                strPanelDirection = pg.strPanelHorizontalDirection.ToString();
+
+            // For Exteriror or Fire wall or Insulating wall, panels will be placed on both sides
+            if (lineToRemain.strWallType == "Fire" ||
+                lineToRemain.strWallType == "Insulation" ||
+                lineToRemain.strWallType == "Ex w/ Insulation")
+            {
+                strPanelDirection = "B";
+            }
+
+
             // Trimming line orientation with respect to continuous line
             strLineDirection = GetTrimLineDirectionWrtContinuousLine(lineToRemain, lineToTrim);
 
-
+            // if Trimming line is on the same side as continuous line panel direction add panel thickness to trim distance
             if (strPanelDirection == "B" || (strPanelDirection == strLineDirection))
             {
                 dTrimDistance = dPanelThickness;
@@ -251,7 +255,8 @@ namespace Revit_Automation.Source.Preprocessors
             string strRelation = "";
             if (MathUtils.ApproximatelyEqual(lineToRemain.startpoint.X, lineToRemain.endpoint.X))
             {
-                if (lineToTrim.startpoint.X < lineToRemain.startpoint.X && lineToTrim.endpoint.X < lineToRemain.endpoint.X)
+                if (((lineToTrim.startpoint.X < lineToRemain.startpoint.X) || (MathUtils.ApproximatelyEqual (lineToTrim.startpoint.X, lineToRemain.startpoint.X))) && 
+                    ((lineToTrim.endpoint.X < lineToRemain.endpoint.X) || (MathUtils.ApproximatelyEqual(lineToTrim.endpoint.X, lineToRemain.endpoint.X))))
                 {
                     strRelation = "L";
                 }
@@ -262,7 +267,8 @@ namespace Revit_Automation.Source.Preprocessors
             }
             else
             {
-                if (lineToTrim.startpoint.Y < lineToRemain.startpoint.Y && lineToTrim.endpoint.Y < lineToRemain.endpoint.Y)
+                if (((lineToTrim.startpoint.Y < lineToRemain.startpoint.Y) || (MathUtils.ApproximatelyEqual(lineToTrim.startpoint.Y, lineToRemain.startpoint.Y))) &&
+                    ((lineToTrim.endpoint.Y < lineToRemain.endpoint.Y) || (MathUtils.ApproximatelyEqual(lineToTrim.endpoint.Y, lineToRemain.endpoint.Y))))
                 {
                     strRelation = "D";
                 }
@@ -277,13 +283,13 @@ namespace Revit_Automation.Source.Preprocessors
         private double GetThickness(double iPanelHourRate)
         {
             if (iPanelHourRate == 0 || iPanelHourRate == 1)
-                return 1.0;
+                return 1.0 / 12;
             if (iPanelHourRate == 2 || iPanelHourRate == 3)
-                return 2.0;
+                return 2.0 / 12;
             if (iPanelHourRate == 4)
-                return 3.0;
+                return 3.0 / 12;
 
-            return 1.0;
+            return 1.0 / 12;
         }
 
         private void UpdateParametersForNewLines()
@@ -329,26 +335,6 @@ namespace Revit_Automation.Source.Preprocessors
                     InputLineElem.LookupParameter("Double Stud")?.Set(iLine.strDoubleStudType);
                 }
             }
-        }
-
-        private WallPriority GetWallType(InputLine inputLine)
-        {
-            if (inputLine.strWallType == "Fire")
-                return WallPriority.Fire;
-            else if (inputLine.strWallType == "Ex W/ Insulation")
-                return WallPriority.ExWithoutInsulation;
-            else if (inputLine.strWallType == "Insulation")
-                return WallPriority.Insulation;
-            else if (inputLine.strWallType == "Ex")
-                return WallPriority.Ex;
-            else if (inputLine.strWallType == "LBS")
-                return WallPriority.LBS;
-            else if (inputLine.strWallType == "LB")
-                return WallPriority.LB;
-            else if (inputLine.strWallType == "NLBS")
-                return WallPriority.NLBS;
-            else
-                return WallPriority.NLB;
         }
 
         private IntersectionType IdentifyRelationShip(InputLine inputLine1, InputLine inputLine2, out XYZ IntersectionPt, out ElementId iContinuousLine)

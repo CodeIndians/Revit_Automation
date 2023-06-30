@@ -34,57 +34,57 @@ namespace Revit_Automation.Source.CollisionDetectors
         public bool HandleCollision(CollisionObject collisionObject)
         {
             
-            // Create a Outline, uses a minimum and maximum XYZ point to initialize the Bounding Box. 
-            Outline myOutLn = new Outline(
-                new XYZ(collisionObject.CollisionPoint.X - 0.5,
-                collisionObject.CollisionPoint.Y - 0.5,
-                collisionObject.CollisionPoint.Z - 0.5),
-                new XYZ(collisionObject.CollisionPoint.X + 0.5,
-                collisionObject.CollisionPoint.Y + 0.5,
-                collisionObject.CollisionPoint.Z + 0.5));
-            Logger.logMessage("Outline for Collection Objects Created");
+            //// Create a Outline, uses a minimum and maximum XYZ point to initialize the Bounding Box. 
+            //Outline myOutLn = new Outline(
+            //    new XYZ(collisionObject.CollisionPoint.X - 0.5,
+            //    collisionObject.CollisionPoint.Y - 0.5,
+            //    collisionObject.CollisionPoint.Z - 0.5),
+            //    new XYZ(collisionObject.CollisionPoint.X + 0.5,
+            //    collisionObject.CollisionPoint.Y + 0.5,
+            //    collisionObject.CollisionPoint.Z + 0.5));
+            //Logger.logMessage("Outline for Collection Objects Created");
             
-            // Create a BoundingBoxIntersects filter with this Outline
-            BoundingBoxIntersectsFilter filter = new BoundingBoxIntersectsFilter(myOutLn);
+            //// Create a BoundingBoxIntersects filter with this Outline
+            //BoundingBoxIntersectsFilter filter = new BoundingBoxIntersectsFilter(myOutLn);
 
-            // Apply the filter to the elements in the active document to retrieve posts at a point
-            FilteredElementCollector collector = new FilteredElementCollector(m_Document);
-            IList<Element> postElements = collector.WherePasses(filter).OfCategory(BuiltInCategory.OST_StructuralColumns).ToElements();
+            //// Apply the filter to the elements in the active document to retrieve posts at a point
+            //FilteredElementCollector collector = new FilteredElementCollector(m_Document);
+            //IList<Element> postElements = collector.WherePasses(filter).OfCategory(BuiltInCategory.OST_StructuralColumns).ToElements();
 
-            // Apply the filter to the elements in the active document to retrieve Input lines at a point
-            FilteredElementCollector collector2 = new FilteredElementCollector(m_Document);
-            IList<Element> InputLineElements = collector2.WherePasses(filter).OfCategory(BuiltInCategory.OST_GenericModel).ToElements();
-            Logger.logMessage("Bounding Box Filter Applied and Elements Collected");
+            //// Apply the filter to the elements in the active document to retrieve Input lines at a point
+            //FilteredElementCollector collector2 = new FilteredElementCollector(m_Document);
+            //IList<Element> InputLineElements = collector2.WherePasses(filter).OfCategory(BuiltInCategory.OST_GenericModel).ToElements();
+            //Logger.logMessage("Bounding Box Filter Applied and Elements Collected");
 
-            //Check for HSS at a given location, if present delete the colliding post
-            bool bhasHSS = CheckForHSS(postElements);
-            if (bhasHSS)
-                return true;
+            ////Check for HSS at a given location, if present delete the colliding post
+            //bool bhasHSS = CheckForHSS(postElements);
+            //if (bhasHSS)
+            //    return true;
 
-            //Ideally we should have 2 columns and 2 input lines in collision case.
-            if (InputLineElements.Count >= 2 && postElements.Count >= 2)
-            {
+            ////Ideally we should have 2 columns and 2 input lines in collision case.
+            //if (InputLineElements.Count >= 2 && postElements.Count >= 2)
+            //{
                 
-                // Identify the continous line and from it the Static Column
-                Element continuousLine = IdentifyContinousLineAtPoint(collisionObject.CollisionPoint, InputLineElements);
-                Logger.logMessage("Handle Collision : IdentifyContinousLineAtPoint ");
+            //    // Identify the continous line and from it the Static Column
+            //    Element continuousLine = IdentifyContinousLineAtPoint(collisionObject.CollisionPoint, InputLineElements);
+            //    Logger.logMessage("Handle Collision : IdentifyContinousLineAtPoint ");
                 
-                if (continuousLine != null)
-                {
-                    Element StaticColumn = IdentifyStaticPost(continuousLine, postElements);
-                    Logger.logMessage("Handle Collision : IdentifyStaticPost ");
+            //    if (continuousLine != null)
+            //    {
+            //        Element StaticColumn = IdentifyStaticPost(continuousLine, postElements);
+            //        Logger.logMessage("Handle Collision : IdentifyStaticPost ");
 
-                    //Obtain the Webwidth from the Static Column
-                    double dWebWidth = StaticColumn == null ? 0 : GenericUtils.WebWidth(StaticColumn.Name);
+            //        //Obtain the Webwidth from the Static Column
+            //        double dWebWidth = StaticColumn == null ? 0 : GenericUtils.WebWidth(StaticColumn.Name);
 
-                    // Adjust the non static posts accordingly
-                    if (dWebWidth > 0)
-                    {
-                        MoveNonStaticColumns(InputLineElements, postElements, dWebWidth / 2, continuousLine);
-                        Logger.logMessage("Handle Collision : MoveNonStaticColumns ");
-                    }
-                }
-            }
+            //        // Adjust the non static posts accordingly
+            //        if (dWebWidth > 0)
+            //        {
+            //            MoveNonStaticColumns(InputLineElements, postElements, dWebWidth / 2, continuousLine);
+            //            Logger.logMessage("Handle Collision : MoveNonStaticColumns ");
+            //        }
+            //    }
+            //}
 
             return false;
         }

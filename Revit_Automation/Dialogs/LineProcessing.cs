@@ -49,7 +49,7 @@ namespace Revit_Automation.Dialogs
 
             richTextBox2.AppendText(strMessage);
 
-            richTextBox2.SelectionStart = richTextBox1.Text.Length;
+            richTextBox2.SelectionStart = richTextBox2.Text.Length;
             richTextBox2.ScrollToCaret();
         }
         private void button1_Click(object sender, EventArgs e)
