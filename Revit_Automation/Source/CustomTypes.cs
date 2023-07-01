@@ -37,6 +37,7 @@ namespace Revit_Automation.CustomTypes
         public string strTopTrackSize;
         public string strBottomTrackGuage;
         public string strBottomTrackSize;
+        public string strBottomTrackPunch;
         public string strBuildingName;
         public string strDoubleStudType;
         public string strMaterialType;

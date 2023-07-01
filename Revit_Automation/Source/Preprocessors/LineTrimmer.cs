@@ -46,6 +46,9 @@ namespace Revit_Automation.Source.Preprocessors
                 // Gather all Input Lines
                 InputLineUtility.GatherInputLines(m_Document, m_bProcessSelected, m_Selection, CommandCode.Posts, false);
 
+                if (InputLineUtility.colInputLines.Count == 0)
+                    return;
+
                 tx.Start("Trimming Lines ");
 
                 m_LineProcessing.Show();
@@ -329,6 +332,7 @@ namespace Revit_Automation.Source.Preprocessors
                     InputLineElem.LookupParameter("Building Name")?.Set(iLine.strBuildingName); // str Building Name.Set(iLine.
                     InputLineElem.LookupParameter("Bottom Track Gauge")?.Set(iLine.strBottomTrackGuage);
                     InputLineElem.LookupParameter("Bottom Track Size")?.Set(iLine.strBottomTrackSize);
+                    InputLineElem.LookupParameter("Bottom Track Punch")?.Set(iLine.strBottomTrackPunch);
                     InputLineElem.LookupParameter("Flange Offset")?.Set(iLine.dFlangeOfset);
                     InputLineElem.LookupParameter("Stud O.C.")?.Set(iLine.dOnCenter);
                     InputLineElem.LookupParameter("Parapet Height")?.Set(iLine.dParapetHeight);

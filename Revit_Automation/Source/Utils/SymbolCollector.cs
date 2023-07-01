@@ -89,6 +89,25 @@ namespace Revit_Automation
             return familySymbol;
         }
 
+        public static FamilySymbol GetBottomTrackSymbol(string strSymbolName, string strFamilyName)
+        {
+            FamilySymbol familySymbol = null;
+            FilteredElementCollector structFramingCollection = new FilteredElementCollector(m_Document);
+
+            structFramingCollection.OfClass(typeof(FamilySymbol))
+                    .OfCategory(BuiltInCategory.OST_StructuralFraming);
+
+            foreach (FamilySymbol famSymbol in structFramingCollection)
+            {
+                if (famSymbol.FamilyName == strFamilyName && famSymbol.Name == strSymbolName)
+                {
+                    familySymbol = famSymbol;
+                    break;
+                }
+            }
+
+            return familySymbol;
+        }
         public static FamilySymbol GetInputLineSymbol()
         {
             FamilySymbol familySymbol = null;
