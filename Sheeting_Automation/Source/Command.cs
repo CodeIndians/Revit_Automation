@@ -12,6 +12,8 @@ using System.Windows.Forms;
 using Sheeting_Automation.Dialogs;
 using Sheeting_Automation.Utils;
 using Sheeting_Automation.Source.GeometryCollectors;
+using Sheeting_Automation.Source.Dimensions;
+using Sheeting_Automation.Source.Interfaces;
 
 namespace Sheeting_Automation
 {
@@ -43,13 +45,11 @@ namespace Sheeting_Automation
 
             if (form.startCollectingData)
             {
-                // Start the collection logic here
-                FloorGeometryCollector floorGeometry = new FloorGeometryCollector(ref doc);
-                var floorLinesList = floorGeometry.FloorExternalLines;
+                DimensionManager dm = new DimensionManager(ref doc);
 
-                GridCollector gridCollection = new GridCollector(ref doc);
+                dm.PlaceDimensions();
                 
-            }
+             }
             return Result.Succeeded;
         }
     }

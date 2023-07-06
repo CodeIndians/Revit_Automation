@@ -13,7 +13,7 @@ namespace Sheeting_Automation.Source.GeometryCollectors
 {
     internal class FloorGeometryCollector
     {
-        private Document mDocument;
+        private readonly Document mDocument;
 
         public struct FloorExternalLine
         {
