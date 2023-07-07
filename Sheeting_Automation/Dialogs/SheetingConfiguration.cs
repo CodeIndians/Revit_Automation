@@ -13,6 +13,7 @@ namespace Sheeting_Automation.Dialogs
 {
     public partial class SheetingConfiguration : Form
     {
+        public bool startCollectingData;
         public SheetingConfiguration()
         {
             InitializeComponent();
@@ -31,6 +32,8 @@ namespace Sheeting_Automation.Dialogs
 
             radioButton1.Checked = true;
 
+            startCollectingData = false;
+
         }
 
         private void radioButton1_CheckedChanged(object sender, EventArgs e)
@@ -45,6 +48,12 @@ namespace Sheeting_Automation.Dialogs
                 comboBox1.Enabled = false;
                 groupBox2.Enabled = true;
             }
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            Close();
+            startCollectingData  = true;
         }
     }
 }
