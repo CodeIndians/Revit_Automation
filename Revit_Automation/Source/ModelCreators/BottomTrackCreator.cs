@@ -118,12 +118,11 @@ namespace Revit_Automation.Source.ModelCreators
                 BTPlacementLengths.Add(dLineLength);
             }
 
-            XYZ refPoint = null;
+            XYZ refPoint = pt1;
             
             // Place Bottom tracks. 
             foreach (double length in BTPlacementLengths)
             {
-                refPoint = pt1;
                 XYZ endPoint = null;
 
                 if (lineType == LineType.Horizontal)
