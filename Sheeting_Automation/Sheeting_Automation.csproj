@@ -63,6 +63,7 @@
     <Compile Include="Source\Dimensions\DimensionManager.cs" />
     <Compile Include="Source\Dimensions\GridDimensionPlacement.cs" />
     <Compile Include="Source\GeometryCollectors\CropRegionCollector.cs" />
+    <Compile Include="Source\GeometryCollectors\ExteriorWallsCollector.cs" />
     <Compile Include="Source\GeometryCollectors\FloorGeometryCollector.cs" />
     <Compile Include="Source\GeometryCollectors\GridCollector.cs" />
     <Compile Include="Source\Interfaces\DimensionPlacement.cs" />

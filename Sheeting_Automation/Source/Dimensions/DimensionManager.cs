@@ -32,6 +32,10 @@ namespace Sheeting_Automation.Source.Dimensions
         {
             var gridDimension = new GridDimensionPlacement(new GridCollector(ref mDocument), new CropRegionCollector(ref mDocument)) as DimensionPlacement;
             AddPlacementObject(ref gridDimension);
+
+            var exteriorWalls = new ExteriorWallsCollector(ref mDocument);
+
+            //var floors = new FloorGeometryCollector(ref mDocument);
         }
 
         public void PlaceDimensions()
@@ -50,12 +54,10 @@ namespace Sheeting_Automation.Source.Dimensions
                 // Retrieve the active view for placing the dimension
                 View activeView = mDocument.ActiveView;
 
-
-
                 foreach (var dimLine in mAllDimensionLines)
                 {
                     // create the new dimension
-                   mDocument.Create.NewDimension(mDocument.ActiveView, dimLine.line, dimLine.referencesArray);
+                    mDocument.Create.NewDimension(mDocument.ActiveView, dimLine.line, dimLine.referencesArray);
                 }
 
                 // Commit the transaction

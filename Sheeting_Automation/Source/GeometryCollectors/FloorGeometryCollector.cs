@@ -28,22 +28,18 @@ namespace Sheeting_Automation.Source.GeometryCollectors
         }
 
         // collects all the external lines in the diagram
-        private List<FloorExternalLine> mAllFloorExternalLines;
-
-        // collected external lines are separated floor wise 
-        public List<List<FloorExternalLine>> FloorExternalLines;
+        public  List<FloorExternalLine> FloorExternalLines;
 
         public FloorGeometryCollector(ref Document document)
         {
             mDocument = document;
-            mAllFloorExternalLines = new List<FloorExternalLine>();
-            FloorExternalLines = new List<List<FloorExternalLine>>();
+            FloorExternalLines = new List<FloorExternalLine>();
             Collect();
         }
 
         private void Collect()
         {
-            FilteredElementCollector collector = new FilteredElementCollector(mDocument);
+            FilteredElementCollector collector = new FilteredElementCollector(mDocument,mDocument.ActiveView.Id);
             IList<Element> floorElements = collector.OfClass(typeof(Floor)).ToElements();
 
             //uint count = 0;
@@ -62,25 +58,15 @@ namespace Sheeting_Automation.Source.GeometryCollectors
                     // add all the external lines
                     foreach (Curve curve in curveArray)
                     {
-                        mAllFloorExternalLines.Add(new FloorExternalLine(curve.GetEndPoint(0),curve.GetEndPoint(1)));
+                        FloorExternalLines.Add(new FloorExternalLine(curve.GetEndPoint(0),curve.GetEndPoint(1)));
                     }
                 }
-            }
-            var groupedPoints = mAllFloorExternalLines.GroupBy(p => p.start.Z);
-
-            // Iterate through each group and create a separate list for each Z coordinate
-            foreach (var group in groupedPoints)
-            {
-                List<FloorExternalLine> separatedList = group.ToList();
-                FloorExternalLines.Add(separatedList);
             }
 
             // sort the floor lines in a circular order
             SortFloorListsCircular();
 
-            //MessageBox.Show(mFloorLists.ToString());
-
-            // TODO: Should be required in the production version 
+            // TODO: Should be removed in the production version 
             WriteFloorListsToFile(FloorExternalLines, @"C:\temp\floor.txt");
 
         }
@@ -91,15 +77,14 @@ namespace Sheeting_Automation.Source.GeometryCollectors
         /// </summary>
         public void SortFloorListsCircular()
         {
-            foreach (var floorList in FloorExternalLines)
-            {
-                // Sort the XYZ points within each floor list based on X position and then on Y position
-                List<FloorExternalLine> sortedList = SortLineListCircular(floorList);
+            // Sort the XYZ points within each floor list based on X position and then on Y position
+            List<FloorExternalLine> sortedList = SortLineListCircular(FloorExternalLines);
 
-                // Replace the original floor list with the sorted list
-                floorList.Clear();
-                floorList.AddRange(sortedList);
-            }
+            // clear the unsorted list 
+            FloorExternalLines.Clear();
+
+            // assin the sorted list to the floor lines collection
+            FloorExternalLines = sortedList;
         }
 
         /// <summary>
@@ -151,20 +136,16 @@ namespace Sheeting_Automation.Source.GeometryCollectors
         /// </summary>
         /// <param name="floorLists"></param>
         /// <param name="filePath"></param>
-        private void WriteFloorListsToFile(List<List<FloorExternalLine>> floorLists, string filePath)
+        private void WriteFloorListsToFile(List<FloorExternalLine> floorLists, string filePath)
         {
             // Create a StringBuilder to hold the CSV data
             StringBuilder sb = new StringBuilder();
 
             // Iterate through each floor list
-            foreach (var floorList in floorLists)
+            foreach (var line in floorLists)
             {
-                // Iterate through each XYZ point in the floor list
-                foreach (var points in floorList)
-                {
                     // Append the XYZ coordinates to the StringBuilder
-                    sb.AppendLine($" start = {points.start.X},{points.start.Y},{points.start.Z} , end ={points.end.X},{points.end.Y},{points.end.Z}  ");
-                }
+                    sb.AppendLine($" start = {line.start.X},{line.start.Y},{line.start.Z} , end ={line.end.X},{line.end.Y},{line.end.Z}  ");
             }
 
             // Write the StringBuilder data to the file
