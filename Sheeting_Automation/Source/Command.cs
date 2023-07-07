@@ -11,6 +11,9 @@ using Autodesk.Revit.UI.Selection;
 using System.Windows.Forms;
 using Sheeting_Automation.Dialogs;
 using Sheeting_Automation.Utils;
+using Sheeting_Automation.Source.GeometryCollectors;
+using Sheeting_Automation.Source.Dimensions;
+using Sheeting_Automation.Source.Interfaces;
 
 namespace Sheeting_Automation
 {
@@ -39,6 +42,14 @@ namespace Sheeting_Automation
 
 
             _ = form.ShowDialog();
+
+            if (form.startCollectingData)
+            {
+                DimensionManager dm = new DimensionManager(ref doc);
+
+                dm.PlaceDimensions();
+                
+             }
             return Result.Succeeded;
         }
     }
