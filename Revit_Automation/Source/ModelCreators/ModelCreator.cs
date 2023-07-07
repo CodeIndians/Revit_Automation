@@ -119,6 +119,9 @@ namespace Revit_Automation
             {
                 // 7. Input Lines to be collected
                 InputLineUtility.GatherInputLines(doc, bSelected, selection, commandCode);
+
+                if (InputLineUtility.colInputLines.Count == 0)
+                    return;
             }
             catch (Exception)
             {
@@ -136,7 +139,7 @@ namespace Revit_Automation
             }
 
             // 9. Place Columns
-            if (commandCode == CommandCode.Posts)
+            if (commandCode == CommandCode.Posts )
             {
                 ColumnCreator columnCreator = new ColumnCreator(doc, form);
                 columnCreator.SetPhase(desiredPhase);
@@ -146,6 +149,11 @@ namespace Revit_Automation
             {
                 WallCreator wallCreator = new WallCreator(doc, form);
                 wallCreator.CreateModel(InputLineUtility.colInputLines, levels);
+            }
+            else if (commandCode == CommandCode.BottomTracks)
+            {
+                BottomTrackCreator bottomTrackCreator = new BottomTrackCreator(doc, form);
+                bottomTrackCreator.CreateModel(InputLineUtility.colInputLines, levels);
             }
             //uidoc.ActiveView = activeView;
 

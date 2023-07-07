@@ -8,6 +8,7 @@
 
 using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Structure;
+using Autodesk.Revit.UI;
 using Autodesk.Revit.UI.Selection;
 using Revit_Automation.CustomTypes;
 using Revit_Automation.Source.Utils;
@@ -74,6 +75,12 @@ namespace Revit_Automation.Source
 
             else
             {
+                if (selection == null || selection.GetElementIds().Count == 0)
+                { 
+                    TaskDialog.Show("Automation Error", "Please Select Atleast 1 Input line to Proceed");
+                    return;
+                }
+
                 // Check if any elements are selected
                 if (selection.GetElementIds().Count > 0)
                 {
@@ -339,6 +346,12 @@ namespace Revit_Automation.Source
                 if (BottomTrackSizeParam != null)
                 {
                     iLine.strBottomTrackSize = BottomTrackSizeParam.AsString();
+                }
+
+                Parameter BottomTrackPunchParam = locCurve.LookupParameter("Bottom Track Punch");
+                if (BottomTrackPunchParam != null)
+                {
+                    iLine.strBottomTrackPunch = BottomTrackPunchParam.AsString();
                 }
 
                 Parameter FlangeOffsetParam = locCurve.LookupParameter("Flange Offset");

@@ -41,9 +41,16 @@ namespace Revit_Automation.Dialogs
                 return Color.Orange;
         }
 
-        public void LineTrimmingMessage(string strMessage)
+        public void LineTrimmingMessage(string strMessage, int messageCode)
         {
-            this.label2.Text = strMessage;
+            Refresh();
+
+            richTextBox2.SelectionColor = GetColorByMessageCode(messageCode);
+
+            richTextBox2.AppendText(strMessage);
+
+            richTextBox2.SelectionStart = richTextBox2.Text.Length;
+            richTextBox2.ScrollToCaret();
         }
         private void button1_Click(object sender, EventArgs e)
         {

@@ -96,6 +96,7 @@
     <Compile Include="Source\ModelCreators\T62Valiations.cs" />
     <Compile Include="Source\ModelCreators\WallCreator.cs" />
     <Compile Include="Source\Preprocessors\LineExtender.cs" />
+    <Compile Include="Source\Preprocessors\LineTrimmer.cs" />
     <Compile Include="Source\Sheets\SheetCreator.cs" />
     <Compile Include="Source\Utils\FloorHelper.cs" />
     <Compile Include="Source\Utils\GenericUtils.cs" />

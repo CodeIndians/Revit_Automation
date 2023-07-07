@@ -21,72 +21,10 @@ using System.Windows.Forms;
 
 namespace Revit_Automation
 {
-    public enum LineType
+    public class PrepareCommandClass
     {
-        Horizontal = 0,
-        vertical
-    }
-    public enum CommandCode
-    {
-        All = 0,
-        Posts = 1,
-        Walls = 2,
-        BottomTracks = 3,
-        Beams
-    }
-
-    [Transaction(TransactionMode.Manual)]
-    public class Command : IExternalCommand
-    {
-        public Result Execute(
-          ExternalCommandData commandData,
-          ref string message,
-          ElementSet elements)
+        public static void PrepareCommand(ExternalCommandData commandData)
         {
-
-            UIApplication uiapp = commandData.Application;
-
-           // Get the active Document
-            UIDocument uidoc = uiapp.ActiveUIDocument;
-            Document doc = uidoc.Document;
-
-            // Set the document object on the utilities
-            FloorHelper.m_Document = doc;
-            InputLineUtility.m_Document = doc;
-            SymbolCollector.m_Document = doc;
-            RoofUtility.m_Document = doc;
-
-            if (!GlobalSettings.PopulateGlobalSettings())
-            {
-                TaskDialog.Show("Command", "Project Settings are not Present");
-                return Result.Succeeded;
-            }
-
-            Form1 form = new Form1
-            {
-                StartPosition = FormStartPosition.CenterScreen
-            };
-            //form.TopMost= true;
-            _ = form.ShowDialog();
-
-            if (form.CanCreateModel)
-            {
-                ModelCreator.CreateModel(uiapp, form, false, CommandCode.All);
-            }
-
-            return Result.Succeeded;
-        }
-    }
-
-    [Transaction(TransactionMode.Manual)]
-    public class Command2 : IExternalCommand
-    {
-        public Result Execute(
-          ExternalCommandData commandData,
-          ref string message,
-          ElementSet elements)
-        {
-
             UIApplication uiapp = commandData.Application;
 
             // Get the active Document
@@ -102,8 +40,64 @@ namespace Revit_Automation
             if (!GlobalSettings.PopulateGlobalSettings())
             {
                 TaskDialog.Show("Command", "Project Settings are not Present");
-                return Result.Succeeded;
             }
+        }
+    }
+    public enum LineType
+    {
+        Horizontal = 0,
+        vertical
+    }
+    public enum CommandCode
+    {
+        All = 0,
+        Posts = 1,
+        Walls = 2,
+        BottomTracks = 3,
+        Beams
+    }
+
+
+    [Transaction(TransactionMode.Manual)]
+    public class PostsAtAllLines : IExternalCommand
+    {
+        public Result Execute(
+          ExternalCommandData commandData,
+          ref string message,
+          ElementSet elements)
+        {
+
+            UIApplication uiapp = commandData.Application;
+            PrepareCommandClass.PrepareCommand(commandData);
+
+            Form1 form = new Form1
+            {
+                StartPosition = FormStartPosition.CenterScreen
+            };
+            //form.TopMost= true;
+            _ = form.ShowDialog();
+
+            if (form.CanCreateModel)
+            {
+                ModelCreator.CreateModel(uiapp, form, false, CommandCode.Posts);
+            }
+
+            return Result.Succeeded;
+        }
+    }
+
+    [Transaction(TransactionMode.Manual)]
+    public class PostsAtSelectedLines : IExternalCommand
+    {
+        public Result Execute(
+          ExternalCommandData commandData,
+          ref string message,
+          ElementSet elements)
+        {
+
+            UIApplication uiapp = commandData.Application;
+
+            PrepareCommandClass.PrepareCommand(commandData);
 
             Form1 form = new Form1
             {
@@ -122,7 +116,7 @@ namespace Revit_Automation
     }
 
     [Transaction(TransactionMode.Manual)]
-    public class Command3 : IExternalCommand
+    public class PanelsAtAllLines : IExternalCommand
     {
         public Result Execute(
           ExternalCommandData commandData,
@@ -131,45 +125,52 @@ namespace Revit_Automation
         {
             UIApplication uiapp = commandData.Application;
 
-            // Get the active Document
-            UIDocument uidoc = uiapp.ActiveUIDocument;
-            Document doc = uidoc.Document;
+            PrepareCommandClass.PrepareCommand(commandData);
 
-            // Set the document object on the utilities
-            FloorHelper.m_Document = doc;
-            InputLineUtility.m_Document = doc;
-            SymbolCollector.m_Document = doc;
-            RoofUtility.m_Document = doc;
-
-            if (!GlobalSettings.PopulateGlobalSettings())
+            Form1 form = new Form1
             {
-                TaskDialog.Show("Command", "Project Settings are not Present");
-                return Result.Succeeded;
+                StartPosition = FormStartPosition.CenterScreen
+            };
+            //form.TopMost= true;
+            _ = form.ShowDialog();
+
+            if (form.CanCreateModel)
+            {
+                ModelCreator.CreateModel(uiapp, form, false, CommandCode.Walls);
             }
 
-            TaskDialog.Show("Walls Command", "Place Walls Command is not implemented");
-            return Result.Succeeded; ;
-
-            //UIApplication uiapp = commandData.Application;
-
-            //Form1 form = new Form1
-            //{
-            //    StartPosition = FormStartPosition.CenterScreen
-            //};
-            ////form.TopMost= true;
-            //_ = form.ShowDialog();
-
-            //if (form.CanCreateModel)
-            //{
-            //    ModelCreator.CreateModel(uiapp, form, true, CommandCode.Walls);
-            //}
-
-            //return Result.Succeeded;
+            return Result.Succeeded;
         }
     }
 
     [Transaction(TransactionMode.Manual)]
-    public class Command4 : IExternalCommand
+    public class PanelsAtSelectedLines : IExternalCommand
+    {
+        public Result Execute(
+          ExternalCommandData commandData,
+          ref string message,
+          ElementSet elements)
+        {
+            UIApplication uiapp = commandData.Application;
+            PrepareCommandClass.PrepareCommand(commandData);
+
+            Form1 form = new Form1
+            {
+                StartPosition = FormStartPosition.CenterScreen
+            };
+            //form.TopMost= true;
+            _ = form.ShowDialog();
+
+            if (form.CanCreateModel)
+            {
+                ModelCreator.CreateModel(uiapp, form, true, CommandCode.Walls);
+            }
+
+            return Result.Succeeded;
+        }
+    }
+    [Transaction(TransactionMode.Manual)]
+    public class BTAtAllLines : IExternalCommand
     {
         public Result Execute(
           ExternalCommandData commandData,
@@ -178,45 +179,55 @@ namespace Revit_Automation
         {
             UIApplication uiapp = commandData.Application;
 
-            // Get the active Document
-            UIDocument uidoc = uiapp.ActiveUIDocument;
-            Document doc = uidoc.Document;
+            PrepareCommandClass.PrepareCommand(commandData);
 
-            // Set the document object on the utilities
-            FloorHelper.m_Document = doc;
-            InputLineUtility.m_Document = doc;
-            SymbolCollector.m_Document = doc;
-            RoofUtility.m_Document = doc;
-
-            if (!GlobalSettings.PopulateGlobalSettings())
+            Form1 form = new Form1
             {
-                TaskDialog.Show("Command", "Project Settings are not Present");
-                return Result.Succeeded;
+                StartPosition = FormStartPosition.CenterScreen
+            };
+            //form.TopMost= true;
+            _ = form.ShowDialog();
+
+            if (form.CanCreateModel)
+            {
+                ModelCreator.CreateModel(uiapp, form, false, CommandCode.BottomTracks);
             }
 
-            TaskDialog.Show("Bottom Track Command", "Place Bottom Tracks Command is not implemented");
-            return Result.Succeeded; ;
-
-            //UIApplication uiapp = commandData.Application;
-
-            //Form1 form = new Form1
-            //{
-            //    StartPosition = FormStartPosition.CenterScreen
-            //};
-            ////form.TopMost= true;
-            //_ = form.ShowDialog();
-
-            //if (form.CanCreateModel)
-            //{
-            //    ModelCreator.CreateModel(uiapp, form, true, CommandCode.BottomTracks);
-            //}
-
-            //return Result.Succeeded;
+            return Result.Succeeded;
         }
     }
 
     [Transaction(TransactionMode.Manual)]
-    public class Command5 : IExternalCommand
+    public class BTAtSelectedLines : IExternalCommand
+    {
+        public Result Execute(
+          ExternalCommandData commandData,
+          ref string message,
+          ElementSet elements)
+        {
+            UIApplication uiapp = commandData.Application;
+
+            PrepareCommandClass.PrepareCommand(commandData);
+
+            Form1 form = new Form1
+            {
+                StartPosition = FormStartPosition.CenterScreen
+            };
+            //form.TopMost= true;
+            _ = form.ShowDialog();
+
+            if (form.CanCreateModel)
+            {
+                ModelCreator.CreateModel(uiapp, form, true, CommandCode.BottomTracks);
+            }
+
+            return Result.Succeeded;
+        }
+    }
+
+
+    [Transaction(TransactionMode.Manual)]
+    public class ProjectSettings : IExternalCommand
     {
         public Result Execute(
           ExternalCommandData commandData,
@@ -235,6 +246,13 @@ namespace Revit_Automation
             SymbolCollector.m_Document = doc;
             RoofUtility.m_Document = doc;
 
+            // Check if a Project Settings line is present or not
+            if (SymbolCollector.GetProjectSpecificationLineSymbol() == null)
+            {
+                TaskDialog.Show("Automation Error", "Project Settings line Family is not Present");
+                return Result.Succeeded;
+            }
+            
             SymbolCollector.CollectWallSymbols(doc);
             InputLineUtility.GatherWallTypesFromInputLines(doc);
 
@@ -250,7 +268,7 @@ namespace Revit_Automation
     }
 
     [Transaction(TransactionMode.Manual)]
-    public class Command7 : IExternalCommand
+    public class PreProcessAllLines : IExternalCommand
     {
         public Result Execute(
           ExternalCommandData commandData,
@@ -258,16 +276,11 @@ namespace Revit_Automation
           ElementSet elements)
         {
             UIApplication uiapp = commandData.Application;
-
-            // Get the active Document
             UIDocument uidoc = uiapp.ActiveUIDocument;
             Document doc = uidoc.Document;
+            Selection selection = uidoc.Selection;
 
-            // Set the document object on the utilities
-            FloorHelper.m_Document = doc;
-            InputLineUtility.m_Document = doc;
-            SymbolCollector.m_Document = doc;
-            RoofUtility.m_Document = doc;
+            PrepareCommandClass.PrepareCommand(commandData);
 
             LineProcessing form = new LineProcessing()
             {
@@ -277,12 +290,15 @@ namespace Revit_Automation
             LineExtender lineExtender = new LineExtender(doc, form, false);
             lineExtender.Preprocess();
 
+            LineTrimmer lineTrimmer = new LineTrimmer(doc, form, false);
+            lineTrimmer.Preprocess();
+
             return Result.Succeeded;
         }
     }
 
     [Transaction(TransactionMode.Manual)]
-    public class Command8 : IExternalCommand
+    public class PreProcessSelectedLines : IExternalCommand
     {
         public Result Execute(
           ExternalCommandData commandData,
@@ -290,17 +306,11 @@ namespace Revit_Automation
           ElementSet elements)
         {
             UIApplication uiapp = commandData.Application;
-
-            // Get the active Document
             UIDocument uidoc = uiapp.ActiveUIDocument;
             Document doc = uidoc.Document;
             Selection selection = uidoc.Selection;
-            
-            // Set the document object on the utilities
-            FloorHelper.m_Document = doc;
-            InputLineUtility.m_Document = doc;
-            SymbolCollector.m_Document = doc;
-            RoofUtility.m_Document = doc;
+
+            PrepareCommandClass.PrepareCommand(commandData);
 
             LineProcessing form = new LineProcessing()
             {
@@ -309,6 +319,9 @@ namespace Revit_Automation
 
             LineExtender lineExtender = new LineExtender(doc, form, true, selection);
             lineExtender.Preprocess();
+
+            LineTrimmer lineTrimmer = new LineTrimmer(doc, form, true, selection);
+            lineTrimmer.Preprocess();
 
             return Result.Succeeded;
         }
