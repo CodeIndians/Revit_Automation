@@ -56,6 +56,7 @@ namespace Revit_Automation
                 RibbonPanel settingsRB = a.CreateRibbonPanel(tabName, "Settings");
                 RibbonPanel SelectedModellingRB = a.CreateRibbonPanel(tabName, "Selected Modelling");
                 RibbonPanel FullModellingRB = a.CreateRibbonPanel(tabName, "General Modelling");
+                RibbonPanel HallWayRB = a.CreateRibbonPanel(tabName, "HallWays");
 
                 AddRevitCommand(settingsRB,
                     "ProjectSettingsCMD",
@@ -133,6 +134,27 @@ namespace Revit_Automation
                     "Revit_Automation.PanelsAtAllLines",
                     "Place Panels at All Input Lines",
                     "Walls.png");
+                // 
+                AddRevitCommand(HallWayRB,
+                   "HallWayCreateHatch",
+                   "Create Hatch \n for Hallway",
+                   "Revit_Automation.CreateHatchForHallway",
+                   "Place Hatch at Rooms",
+                   "Hallway2.png");
+
+                AddRevitCommand(HallWayRB,
+                   "HallWayEditHatch",
+                   "Edit Hatch \n Selected",
+                   "Revit_Automation.EditHatchForHallway",
+                   "DeleEditte Hatch at Rooms",
+                   "Hallway2.png");
+
+                AddRevitCommand(HallWayRB,
+                   "HallwayLines",
+                   "Draw HallWay \n Lines",
+                   "Revit_Automation.DrawHallWayLines",
+                   "Draw HallWay",
+                   "Hallway.png");
                 #endregion
 
                 return Result.Succeeded;
