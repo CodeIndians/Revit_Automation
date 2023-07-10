@@ -13,6 +13,7 @@ using Autodesk.Revit.UI;
 using Autodesk.Revit.UI.Selection;
 using Revit_Automation.Dialogs;
 using Revit_Automation.Source;
+using Revit_Automation.Source.Hallway;
 using Revit_Automation.Source.Preprocessors;
 using Revit_Automation.Source.Utils;
 using System.Windows.Forms;
@@ -335,6 +336,12 @@ namespace Revit_Automation
           ref string message,
           ElementSet elements)
         {
+            UIApplication uiapp = commandData.Application;
+            UIDocument uidoc = uiapp.ActiveUIDocument;
+            Document doc = uidoc.Document;
+
+            var lineCollector = new LineCollector(ref doc);
+
             return Result.Succeeded;
         }
     }

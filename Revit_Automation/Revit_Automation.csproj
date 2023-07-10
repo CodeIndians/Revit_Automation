@@ -89,6 +89,7 @@
     </Compile>
     <Compile Include="Source\CustomTypes.cs" />
     <Compile Include="Source\GlobalSettings.cs" />
+    <Compile Include="Source\Hallway\LineCollector.cs" />
     <Compile Include="Source\Interfaces\CollisionInterface.cs" />
     <Compile Include="Source\Interfaces\PreprocessInterface.cs" />
     <Compile Include="Source\Licensing\LicenseValidator.cs" />
