@@ -340,7 +340,9 @@ namespace Revit_Automation
             UIDocument uidoc = uiapp.ActiveUIDocument;
             Document doc = uidoc.Document;
 
-            var lineCollector = new LineCollector(ref doc);
+            var hallwayManager = new HallwayManager(ref doc);
+
+            hallwayManager.PlaceHatches();
 
             return Result.Succeeded;
         }
