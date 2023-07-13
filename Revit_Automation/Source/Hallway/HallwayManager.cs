@@ -51,6 +51,9 @@ namespace Revit_Automation.Source.Hallway
         {
             var hatch = new ExternalHatch(ref mDocument, ref ExternalLines, ref InternalInputLines);
             hatch.CreateHatching();
+
+            var internalHatch = new InternalHatch(ref mDocument, ref IntersectingInternalLines);
+            internalHatch.CreateHatching();
         }
     }
 }

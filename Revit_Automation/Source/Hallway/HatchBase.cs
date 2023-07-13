@@ -8,8 +8,8 @@ namespace Revit_Automation.Source.Hallway
 {
     internal abstract class HatchBase
     {
-        protected virtual void PlaceHatches() { }
-        protected virtual void DeleteHatches() { }
+        protected abstract void PlaceHatches();
+        protected abstract void DeleteHatches();
 
         public void CreateHatching()
         {

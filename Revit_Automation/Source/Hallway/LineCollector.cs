@@ -67,12 +67,6 @@ namespace Revit_Automation.Source.Hallway
             //collect the intersecting input lines on each of the external line
             CollectExternalIntersections();
 
-            // Place the External Hatches
-            //PlaceExternalHatches();
-
-            // delete the intersecting external hatches
-            //DeleteIntersectingExternalHatches();
-
             // Write the data to files. Used for debugging
             // Comment these in the production version
             FileWriter.WriteInputListToFile(InputLines, @"C:\temp\input_lines");

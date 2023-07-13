@@ -31,7 +31,7 @@ namespace Revit_Automation.Source.Hallway
 
             using (Transaction transaction = new Transaction(mDocument))
             {
-                transaction.Start("Creating Hatch");
+                transaction.Start("Creating External Hatches");
                 foreach (var externalLine in ExternalLines)
                 {
                     for (int i = 0; i < externalLine.intersectingInternalInputLines.Count - 1; i++)
