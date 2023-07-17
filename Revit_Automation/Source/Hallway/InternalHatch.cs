@@ -13,6 +13,8 @@ namespace Revit_Automation.Source.Hallway
 
         private const float precision = 1.0f;
 
+        private ElementId hatchId;
+
         // group of intersecting internal lines
         public List<List<InputLine>> IntersectingInternalLines;
         public InternalHatch(ref Document document,
@@ -21,6 +23,13 @@ namespace Revit_Automation.Source.Hallway
             mDocument = document;
             IntersectingInternalLines = intersectingInternalLines;
             hatchPairs = new List<Tuple<InputLine, InputLine>>();
+
+            var filledRegion = new FilteredElementCollector(mDocument).OfClass(typeof(FilledRegionType));
+            foreach(var region in filledRegion)
+            {
+                if (region.Name == "Nuture Green")
+                    hatchId = region.Id;
+            }
         }
 
         private List<Tuple<InputLine, InputLine>> hatchPairs;
@@ -113,9 +122,6 @@ namespace Revit_Automation.Source.Hallway
 
         private void AddHatches()
         {
-            var filledRegion = new FilteredElementCollector(mDocument).OfClass(typeof(FilledRegionType));
-            var typeId = filledRegion.First().Id;
-
             using (Transaction transaction = new Transaction(mDocument))
             {
                 transaction.Start("Creating Internal Hatches");
@@ -141,7 +147,7 @@ namespace Revit_Automation.Source.Hallway
                     IList<CurveLoop> curveLoop = new List<CurveLoop>();
                     curveLoop.Add(loop);
 
-                    FilledRegion hatchData = FilledRegion.Create(mDocument, typeId, mDocument.ActiveView.Id, curveLoop);
+                    FilledRegion hatchData = FilledRegion.Create(mDocument, hatchId, mDocument.ActiveView.Id, curveLoop);
                 }
                 transaction.Commit();
             }

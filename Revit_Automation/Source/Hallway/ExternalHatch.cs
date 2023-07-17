@@ -17,18 +17,24 @@ namespace Revit_Automation.Source.Hallway
         // lines which are not touching the external lines
         private readonly List<InputLine> InternalInputLines;
 
+        private ElementId hatchId;
+
         public ExternalHatch(ref Document doc, ref List<ExternalLine> externalLines, ref List<InputLine> internalInputLines) 
         {
             mDocument = doc;
             ExternalLines = externalLines;
             InternalInputLines = internalInputLines;
+
+            var filledRegion = new FilteredElementCollector(mDocument).OfClass(typeof(FilledRegionType));
+            foreach (var region in filledRegion)
+            {
+                if (region.Name == "Obstinate Orange")
+                    hatchId = region.Id;
+            }
         }
 
         protected override void PlaceHatches()
         {
-            var filledRegion = new FilteredElementCollector(mDocument).OfClass(typeof(FilledRegionType));
-            var typeId = filledRegion.First().Id;
-
             using (Transaction transaction = new Transaction(mDocument))
             {
                 transaction.Start("Creating External Hatches");
@@ -102,7 +108,7 @@ namespace Revit_Automation.Source.Hallway
                         IList<CurveLoop> curveLoop = new List<CurveLoop>();
                         curveLoop.Add(loop);
 
-                        FilledRegion hatchData = FilledRegion.Create(mDocument, typeId, mDocument.ActiveView.Id, curveLoop);
+                        FilledRegion hatchData = FilledRegion.Create(mDocument, hatchId, mDocument.ActiveView.Id, curveLoop);
                     }
                 }
                 transaction.Commit();

@@ -22,6 +22,14 @@ namespace Revit_Automation.Source.Hallway
           Math.Abs(first.Y - second.Y) < epsilon;
         }
 
+        public static bool AreAlmostEqual(XYZ first, XYZ second)
+        {
+            double epsilon = 1.0f; // precision
+
+            return Math.Abs(first.X - second.X) < epsilon &&
+          Math.Abs(first.Y - second.Y) < epsilon;
+        }
+
         public static bool IsPointWithinBoundingBox(XYZ point, BoundingBoxXYZ boundingBox)
         {
             double minX = boundingBox.Min.X;
@@ -71,6 +79,16 @@ namespace Revit_Automation.Source.Hallway
         public static bool AreLinesEqual(InputLine first, InputLine second)
         {
             double epsilon = 0.016;
+
+            return Math.Abs(first.start.X - second.start.X) < epsilon &&
+          Math.Abs(first.start.Y - second.start.Y) < epsilon &&
+          Math.Abs(first.end.X - second.end.X) < epsilon &&
+          Math.Abs(first.end.Y - second.end.Y) < epsilon;
+        }
+
+        public static bool AreLinesAlmostEqual(InputLine first, InputLine second)
+        {
+            double epsilon = 1.0f;
 
             return Math.Abs(first.start.X - second.start.X) < epsilon &&
           Math.Abs(first.start.Y - second.start.Y) < epsilon &&

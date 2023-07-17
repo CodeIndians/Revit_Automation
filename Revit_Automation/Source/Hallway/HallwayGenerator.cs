@@ -12,16 +12,35 @@ namespace Revit_Automation.Source.Hallway
     {
         private readonly Document mDocument;
 
-        private List<List<InputLine>> CurveLines;
+        private List<List<InputLine>> CurveLinesExternal;
+
+        private List<List<InputLine>> CurveLinesInternal;
+
         public HallwayGenerator(ref Document doc)
         {
             mDocument = doc;
 
-            // list to gather all the boudary lines of the final hatches 
-            CurveLines = new List<List<InputLine>>();
+            // list to gather external boundary lines of the final hatches 
+            CurveLinesExternal = new List<List<InputLine>>();
+
+            // list to gather internal boudary lines of the final hatches 
+            CurveLinesInternal = new List<List<InputLine>>();
+
+            var filledRegion = new FilteredElementCollector(mDocument).OfClass(typeof(FilledRegionType));
+            foreach (var region in filledRegion)
+            {
+                if (region.Name == "Obstinate Orange")
+                    externalHatchId = region.Id;
+                if(region.Name == "Nuture Green")
+                    internalHatchId = region.Id;
+            }
 
             CollectHatchLines();
         }
+
+        private ElementId externalHatchId;
+
+        private ElementId internalHatchId;
 
         public void CollectHatchLines()
         {
@@ -38,7 +57,9 @@ namespace Revit_Automation.Source.Hallway
                     continue;
 
                 FilledRegion filledRegion = filledRegionElement as FilledRegion;
-                if (filledRegion != null && filledRegion.Name == "Detail Filled Region")
+
+                // gather external hatches
+                if (filledRegion != null && filledRegion.GetTypeId() == externalHatchId)
                 {
                     var curveLoops = filledRegion.GetBoundaries();
                     List<InputLine> curveLines = new List<InputLine>();
@@ -52,38 +73,68 @@ namespace Revit_Automation.Source.Hallway
                         }
                     }
 
-                    CurveLines.Add(curveLines);
+                    CurveLinesExternal.Add(curveLines);
+                }
+
+                // gather internal hatches
+                if (filledRegion != null && filledRegion.GetTypeId() == internalHatchId)
+                {
+                    var curveLoops = filledRegion.GetBoundaries();
+                    List<InputLine> curveLines = new List<InputLine>();
+
+                    foreach (var curveLoop in curveLoops)
+                    {
+                        IEnumerator<Curve> curveEnumerator = curveLoop.GetEnumerator();
+                        while (curveEnumerator.MoveNext())
+                        {
+                            curveLines.Add(new InputLine(curveEnumerator.Current.GetEndPoint(0), curveEnumerator.Current.GetEndPoint(1)));
+                        }
+                    }
+
+                    CurveLinesInternal.Add(curveLines);
                 }
             }
 
-            FileWriter.WriteInputListToFile(CurveLines, @"C:\temp\all_curve_lines");
+            //FileWriter.WriteInputListToFile(CurveLinesExternal, @"C:\temp\all_curve_lines");
 
-            JoinHatchLines();
+            JoinHatchLines(ref CurveLinesExternal);
 
-            FileWriter.WriteInputListToFile(CurveLines, @"C:\temp\joined_curve_lines");
+            JoinHatchLines(ref CurveLinesInternal);
+
+            //FileWriter.WriteInputListToFile(CurveLinesExternal, @"C:\temp\joined_curve_lines");
+
+            PostProcessCurves(ref CurveLinesExternal);
+
+            PostProcessCurves(ref CurveLinesInternal);
+
+
+            FileWriter.WriteInputListToFile(CurveLinesExternal, @"C:\temp\external_curve_lines");
+
+            FileWriter.WriteInputListToFile(CurveLinesInternal, @"C:\temp\internal_curve_lines");
+
         }
 
-        public void JoinHatchLines()
+        public void JoinHatchLines(ref List<List<InputLine>> curveLines)
         {
             int firstIndex = 0;
-            while( firstIndex < CurveLines.Count)
+            while( firstIndex < curveLines.Count)
             {
-                var firstList = CurveLines[firstIndex];
+                var firstList = curveLines[firstIndex];
                 int secondIndex = -1;
-                for( int i = firstIndex + 1; i < CurveLines.Count; i++)
+                for( int i = firstIndex + 1; i < curveLines.Count; i++)
                 {
-                    var secondList = CurveLines[i];
+                    var secondList = curveLines[i];
                     if(AreCurveLinesSame(firstList, secondList))
                     {
                         secondIndex = i;
                         var tempList = JoinCurves(firstList, secondList);
-                        CurveLines[firstIndex] = tempList;
+                        curveLines[firstIndex] = tempList;
                         break;
                     }
                 }
                 if(secondIndex != -1)
                 {
-                    CurveLines.RemoveAt(secondIndex);
+                    curveLines.RemoveAt(secondIndex);
                 }
                 else
                 {
@@ -103,8 +154,9 @@ namespace Revit_Automation.Source.Hallway
             int deleteIndex1 = -1;
             int deleteIndex2 = -1;
             LineType overlapType = LineType.INVALID; // this is either horizontal or vertical 
-                                   // when true we 
+                                    
             LineType intersectLineType = LineType.INVALID;
+
             for ( int i = 0; i < resultList.Count - 1; i++)
             {
                 for (int j = i+1; j < resultList.Count - 1; j++)
@@ -221,6 +273,157 @@ namespace Revit_Automation.Source.Hallway
             return resultList;
         }
 
+        private List<InputLine> JoinAlmostSameCurves(List<InputLine> first, List<InputLine> second)
+        {
+            var resultList = new List<InputLine>();
+            resultList.AddRange(first);
+            resultList.AddRange(second);
+            resultList.Sort();
+
+            // detect the complete intersections
+            int deleteIndex1 = -1;
+            int deleteIndex2 = -1;
+
+            LineType intersectLineType = LineType.INVALID;
+
+            for (int i = 0; i < resultList.Count - 1; i++)
+            {
+                for (int j = i + 1; j < resultList.Count - 1; j++)
+                {
+                    if (LineUtils.AreLinesAlmostEqual(resultList[i], resultList[j]))
+                    {
+                        deleteIndex1 = i;
+                        deleteIndex2 = j;
+                        intersectLineType = InputLine.GetLineType(resultList[i]);
+                        break;
+                    }
+                }
+            }
+
+            if (deleteIndex1 != -1)
+            {
+                // remove the intersecting lines
+                resultList.RemoveAt(deleteIndex2); // first remove the last line then 
+                resultList.RemoveAt(deleteIndex1); // remove the first line, this ensures that the deleting is done correctly
+            }
+
+            // join vertical lines if the intersecting lines are horizontal
+            if (intersectLineType == LineType.HORIZONTAL)
+            {
+                int firstIndex = 0;
+                double minX = GetMinX(resultList);
+                double maxX = GetMaxX(resultList);
+
+                while (firstIndex < resultList.Count)
+                {
+                    var firstVer = resultList[firstIndex];
+                    if (InputLine.GetLineType(firstVer) != LineType.VERTICAL)
+                    {
+                        firstIndex++;
+                        continue;
+                    }
+                    else
+                    {
+                        int removeIndex = -1;
+                        for (int i = firstIndex + 1; i < resultList.Count; i++)
+                        {
+                            var secondVer = resultList[i];
+                            if (InputLine.GetLineType(resultList[i]) == LineType.VERTICAL)
+                            {
+                                // a line's ending is equal to the starting point of another line, join them
+                                if (PointUtils.AreAlmostEqual(firstVer.end, secondVer.start))
+                                {
+                                    var xCordinate = Math.Abs(firstVer.start.X - minX) < Math.Abs(firstVer.start.X - maxX) ? minX : maxX;
+                                    var newStart = new XYZ(xCordinate, firstVer.start.Y, firstVer.start.Z);
+                                    var newEnd = new XYZ(xCordinate, secondVer.end.Y, secondVer.end.Z);
+                                    resultList[firstIndex] = new InputLine(newStart, newEnd);
+                                    removeIndex = i;
+                                    break;
+                                }
+                            }
+                        }
+                        if (removeIndex != -1)
+                            resultList.RemoveAt(removeIndex);
+                        else
+                            firstIndex++;
+                    }
+                }
+            }
+            // join vertical lines if the intersecting lines are vertical
+            else if (intersectLineType == LineType.VERTICAL)
+            {
+                int firstIndex = 0;
+
+                double minY = GetMinY(resultList);
+                double maxY = GetMaxY(resultList);
+
+                while (firstIndex < resultList.Count)
+                {
+                    var firstHor = resultList[firstIndex];
+                    if (InputLine.GetLineType(firstHor) != LineType.HORIZONTAL)
+                    {
+                        firstIndex++;
+                        continue;
+                    }
+                    else
+                    {
+                        int removeIndex = -1;
+                        for (int i = firstIndex + 1; i < resultList.Count; i++)
+                        {
+                            var secondHor = resultList[i];
+                            if (InputLine.GetLineType(resultList[i]) == LineType.HORIZONTAL)
+                            {
+                                if (PointUtils.AreAlmostEqual(firstHor.end, secondHor.start))
+                                {
+                                    var yCordinate = Math.Abs(firstHor.start.Y - minY) < Math.Abs(firstHor.start.Y - maxY) ? minY : maxY;
+                                    var newStart = new XYZ(firstHor.start.X, yCordinate, firstHor.start.Z);
+                                    var newEnd = new XYZ(secondHor.end.X, yCordinate, secondHor.end.Z);
+                                    resultList[firstIndex] = new InputLine(newStart, newEnd);
+                                    removeIndex = i;
+                                    break;
+                                }
+                            }
+                        }
+                        if (removeIndex != -1)
+                            resultList.RemoveAt(removeIndex);
+                        else
+                            firstIndex++;
+                    }
+                }
+            }
+
+            return resultList;
+        }
+
+        private void PostProcessCurves(ref List<List<InputLine>> curveLines)
+        {
+            int firstIndex = 0;
+            while (firstIndex < curveLines.Count)
+            {
+                var firstList = curveLines[firstIndex];
+                int secondIndex = -1;
+                for (int i = firstIndex + 1; i < curveLines.Count; i++)
+                {
+                    var secondList = curveLines[i];
+                    if (AreCurveLinesAlmostSame(firstList, secondList))
+                    {
+                        secondIndex = i;
+                        var tempList = JoinAlmostSameCurves(firstList, secondList);
+                        curveLines[firstIndex] = tempList;
+                        break;
+                    }
+                }
+                if (secondIndex != -1)
+                {
+                    curveLines.RemoveAt(secondIndex);
+                }
+                else
+                {
+                    firstIndex++;
+                }
+            }
+        }
+
         private bool AreCurveLinesSame(List<InputLine> firstList, List<InputLine> secondList )
         {
             for (int i = 0; i < firstList.Count; i++)
@@ -233,6 +436,21 @@ namespace Revit_Automation.Source.Hallway
             }
             return false;
         }
+
+        // has a precision of 1
+        private bool AreCurveLinesAlmostSame(List<InputLine> firstList, List<InputLine> secondList)
+        {
+            for (int i = 0; i < firstList.Count; i++)
+            {
+                for (int j = 0; j < secondList.Count; j++)
+                {
+                    if (LineUtils.AreLinesAlmostEqual(firstList[i], secondList[j]))
+                        return true;
+                }
+            }
+            return false;
+        }
+
 
         private List<InputLine> GetLargestRect(List<InputLine> firstList, List<InputLine> secondList, LineType overlapType)
         {
@@ -279,6 +497,46 @@ namespace Revit_Automation.Source.Hallway
                 return Math.Abs(line.start.Y - line.end.Y);
             }
             return 0.0f;
+        }
+
+        private double GetMinY(List<InputLine> lines)
+        {
+            double min = double.PositiveInfinity;
+            foreach(var line in lines)
+            {
+                min = Math.Min(min, line.start.Y);
+            }
+            return min;
+        }
+
+        private double GetMaxY(List<InputLine> lines)
+        {
+            double max = double.NegativeInfinity;
+            foreach (var line in lines)
+            {
+                max = Math.Max(max, line.end.Y);
+            }
+            return max;
+        }
+
+        private double GetMinX(List<InputLine> lines)
+        {
+            double min = double.PositiveInfinity;
+            foreach (var line in lines)
+            {
+                min = Math.Min(min, line.start.X);
+            }
+            return min;
+        }
+
+        private double GetMaxX(List<InputLine> lines)
+        {
+            double max = double.NegativeInfinity;
+            foreach (var line in lines)
+            {
+                max = Math.Max(max, line.end.X);
+            }
+            return max;
         }
     }
 }
