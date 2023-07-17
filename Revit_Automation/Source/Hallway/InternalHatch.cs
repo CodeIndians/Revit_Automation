@@ -37,6 +37,7 @@ namespace Revit_Automation.Source.Hallway
                 List<InputLine> horizontalLines = new List<InputLine> ();
                 List<InputLine> verticaLines = new List<InputLine> ();
 
+                // collect horizontal and vertical lines separately
                 foreach (var line in lineList)
                 {
                     // collect horizontal and vertical lines
@@ -54,7 +55,22 @@ namespace Revit_Automation.Source.Hallway
                     {
                         if(Math.Abs(firstLine.start.X - horizontalLines[i].start.X) < precision && Math.Abs(firstLine.end.X - horizontalLines[i].end.X) < precision)
                         {
-                            hatchPairs.Add(new Tuple<InputLine, InputLine>(firstLine, horizontalLines[i]));
+                            var first = firstLine;
+                            var second = horizontalLines[i];
+
+                            // use the left most X, this is done to handle angled lines 
+                            if (firstLine.start.X > horizontalLines[i].start.X)
+                                first.start = new XYZ(horizontalLines[i].start.X, firstLine.start.Y, firstLine.start.Z);
+                            else if(firstLine.start.X < horizontalLines[i].start.X)
+                                second.start = new XYZ(firstLine.start.X, horizontalLines[i].start.Y, horizontalLines[i].start.Z);
+
+                            // use the right most X, this is done to handle angled lines 
+                            if (firstLine.end.X < horizontalLines[i].end.X)
+                                first.end = new XYZ(horizontalLines[i].end.X, firstLine.end.Y, firstLine.end.Z);
+                            else if (firstLine.end.X > horizontalLines[i].end.X)
+                                second.end = new XYZ(firstLine.end.X, horizontalLines[i].end.Y, horizontalLines[i].end.Z);
+
+                            hatchPairs.Add(new Tuple<InputLine, InputLine>(first, second));
                             break;
                         }
                     }
@@ -68,7 +84,22 @@ namespace Revit_Automation.Source.Hallway
                     {
                         if (Math.Abs(firstLine.start.Y - verticaLines[i].start.Y) < precision && Math.Abs(firstLine.end.Y - verticaLines[i].end.Y) < precision)
                         {
-                            hatchPairs.Add(new Tuple<InputLine, InputLine>(firstLine, verticaLines[i]));
+                            var first = firstLine;
+                            var second = verticaLines[i];
+
+                            // use the bottom most Y, this is done to handle angled lines 
+                            if (firstLine.start.Y > verticaLines[i].start.Y)
+                                first.start = new XYZ(firstLine.start.X, verticaLines[i].start.Y, firstLine.start.Z);
+                            else if (firstLine.start.Y < verticaLines[i].start.Y)
+                                second.start = new XYZ(verticaLines[i].start.X, firstLine.start.Y, verticaLines[i].start.Z);
+
+                            // use the right most X, this is done to handle angled lines 
+                            if (firstLine.end.Y < verticaLines[i].end.Y)
+                                first.end = new XYZ(firstLine.end.X, verticaLines[i].end.Y, firstLine.end.Z);
+                            else if (firstLine.end.Y > verticaLines[i].end.Y)
+                                second.end = new XYZ(verticaLines[i].end.X, firstLine.end.Y, verticaLines[i].end.Z);
+
+                            hatchPairs.Add(new Tuple<InputLine, InputLine>(first, second));
                             break;
                         }
                     }
