@@ -67,6 +67,16 @@ namespace Revit_Automation.Source.Hallway
             }
             return false;
         }
+
+        public static bool AreLinesEqual(InputLine first, InputLine second)
+        {
+            double epsilon = 0.016;
+
+            return Math.Abs(first.start.X - second.start.X) < epsilon &&
+          Math.Abs(first.start.Y - second.start.Y) < epsilon &&
+          Math.Abs(first.end.X - second.end.X) < epsilon &&
+          Math.Abs(first.end.Y - second.end.Y) < epsilon;
+        }
     }
 
     internal static class FileWriter

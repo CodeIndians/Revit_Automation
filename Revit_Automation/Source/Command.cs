@@ -356,6 +356,12 @@ namespace Revit_Automation
           ref string message,
           ElementSet elements)
         {
+            UIApplication uiapp = commandData.Application;
+            UIDocument uidoc = uiapp.ActiveUIDocument;
+            Document doc = uidoc.Document;
+
+            var hallwayGen = new HallwayGenerator(ref doc);
+
             return Result.Succeeded;
         }
     }

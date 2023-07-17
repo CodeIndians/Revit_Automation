@@ -36,8 +36,8 @@ namespace Revit_Automation.Source.Hallway
 
             Execute();
 
-            FileWriter.WriteInputListToFile(InternalInputLines, @"C:\temp\internal_input_lines");
-            FileWriter.WriteInputListToFile(IntersectingInternalLines, @"C:\temp\intersect_group");
+            //FileWriter.WriteInputListToFile(InternalInputLines, @"C:\temp\internal_input_lines");
+            //FileWriter.WriteInputListToFile(IntersectingInternalLines, @"C:\temp\intersect_group");
         }
 
         private void Execute()

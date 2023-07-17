@@ -69,8 +69,8 @@ namespace Revit_Automation.Source.Hallway
 
             // Write the data to files. Used for debugging
             // Comment these in the production version
-            FileWriter.WriteInputListToFile(InputLines, @"C:\temp\input_lines");
-            FileWriter.WriteInputListToFile(ExternalLines, @"C:\temp\extinput_lines");
+            //FileWriter.WriteInputListToFile(InputLines, @"C:\temp\input_lines");
+            //FileWriter.WriteInputListToFile(ExternalLines, @"C:\temp\extinput_lines");
         }
 
         private void CollectExternalIntersections()
