@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Revit_Automation.Source.Hallway
 {
-    internal class HallwayGenerator
+    internal class HallwayHatchCollector
     {
         private readonly Document mDocument;
 
@@ -16,7 +16,7 @@ namespace Revit_Automation.Source.Hallway
 
         private List<List<InputLine>> CurveLinesInternal;
 
-        public HallwayGenerator(ref Document doc)
+        public HallwayHatchCollector(ref Document doc)
         {
             mDocument = doc;
 

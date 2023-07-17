@@ -89,7 +89,7 @@
     </Compile>
     <Compile Include="Source\CustomTypes.cs" />
     <Compile Include="Source\GlobalSettings.cs" />
-    <Compile Include="Source\Hallway\HallwayGenerator.cs" />
+    <Compile Include="Source\Hallway\HallwayHatchCollector.cs" />
     <Compile Include="Source\Hallway\HallwayGroupSeparator.cs" />
     <Compile Include="Source\Hallway\ExternalHatch.cs" />
     <Compile Include="Source\Hallway\HallwayManager.cs" />

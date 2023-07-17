@@ -360,7 +360,7 @@ namespace Revit_Automation
             UIDocument uidoc = uiapp.ActiveUIDocument;
             Document doc = uidoc.Document;
 
-            var hallwayGen = new HallwayGenerator(ref doc);
+            var hallwayGen = new HallwayHatchCollector(ref doc);
 
             return Result.Succeeded;
         }
