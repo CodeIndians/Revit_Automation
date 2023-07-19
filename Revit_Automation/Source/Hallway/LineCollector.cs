@@ -1,9 +1,11 @@
 ﻿using Autodesk.Revit.DB;
+using Autodesk.Revit.UI;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using static Revit_Automation.Source.Hallway.ExternalLine;
 
@@ -64,13 +66,16 @@ namespace Revit_Automation.Source.Hallway
             InputLines.Sort();
             ExternalLines.Sort();
 
+            //Joins the external lines that are falling on the same line
+            JoinExternalLines();
+
             //collect the intersecting input lines on each of the external line
             CollectExternalIntersections();
 
             // Write the data to files. Used for debugging
             // Comment these in the production version
             //FileWriter.WriteInputListToFile(InputLines, @"C:\temp\input_lines");
-            //FileWriter.WriteInputListToFile(ExternalLines, @"C:\temp\extinput_lines");
+            
         }
 
         private void CollectExternalIntersections()
@@ -159,6 +164,167 @@ namespace Revit_Automation.Source.Hallway
                     }
                 }
             }
+        }
+        
+        private void JoinExternalLines()
+        {
+            List<InputLine> horExtLines = new List<InputLine>();
+            List<InputLine> verExtLines = new List<InputLine>();
+
+            // separate main external lines into Horizontal and Vertical lines
+            if (ExternalLines.Count > 0)
+            {
+                foreach(var extLine in ExternalLines)
+                {
+                    // get the line type
+                    var lineType = InputLine.GetLineType(extLine.mainExternalLine);
+
+                    if (lineType == LineType.HORIZONTAL)
+                        horExtLines.Add(extLine.mainExternalLine);
+                    else if (lineType == LineType.VERTICAL)
+                        verExtLines.Add(extLine.mainExternalLine);
+                }
+
+                //FileWriter.WriteInputListToFile(horExtLines, @"C:\temp\hor_ext_lines");
+                //FileWriter.WriteInputListToFile(verExtLines, @"C:\temp\ver_ext_lines");
+
+                var joinedHorExtLines = JoinHorizontalLines(horExtLines);
+                var joinedVerExtLines = JoinVerticalLines(verExtLines);
+
+                ExternalLines.Clear();
+                foreach(var extHorLine in joinedHorExtLines) 
+                {
+                    ExternalLines.Add(new ExternalLine(extHorLine));
+                }
+
+                foreach(var extVerLine in joinedVerExtLines)
+                {
+                    ExternalLines.Add(new ExternalLine(extVerLine));
+                }
+
+                ExternalLines.Sort();
+
+                //FileWriter.WriteInputListToFile(ExternalLines, @"C:\temp\joined_ext_lines");
+            }
+            else
+            {
+                TaskDialog.Show("Error","No External Lines detected");
+            }
+        }
+
+        private List<InputLine> JoinHorizontalLines(List<InputLine> horLines)
+        {
+            var joinedList = new List<InputLine>();
+
+            while(horLines.Count > 0)
+            {
+                SortedSet<int> indexesToDelete = new SortedSet<int>();
+                indexesToDelete.Add(0);
+
+                var firstLine = horLines[0];
+
+                var tempList = new List<InputLine>();
+                tempList.Add(firstLine);
+
+                for (int i = 1; i < horLines.Count; i++)
+                {
+                    var secondLine = horLines[i];
+                    if (Math.Abs(firstLine.start.Y - secondLine.start.Y) < 0.016)
+                    {
+                        tempList.Add(secondLine);
+                        indexesToDelete.Add(i);
+                    }
+                }
+
+                foreach(var index in indexesToDelete.Reverse())
+                    horLines.RemoveAt(index);
+
+                joinedList.Add(JoinHorizontalParallelLine(tempList));
+            }
+
+            return joinedList;
+        }
+
+        private InputLine JoinHorizontalParallelLine(List<InputLine> horParLines)
+        {
+            var line = horParLines[0];
+            if (horParLines.Count == 1)
+                return line;
+            else if(horParLines.Count > 1)
+            {
+                var minX = horParLines[0].start.X;
+                var maxX = horParLines[0].end.X;
+                // calculate minX and maxX
+                foreach(var horParLine in horParLines)
+                {
+                    minX = Math.Min(minX, horParLine.start.X);
+                    maxX = Math.Max(maxX, horParLine.end.X);
+                }
+
+                var Y = horParLines[0].start.Y;
+                var Z = horParLines[0].start.Z;
+
+                line = new InputLine(new XYZ(minX, Y, Z), new XYZ(maxX,Y,Z));
+            }
+            return line;
+        }
+
+        private List<InputLine> JoinVerticalLines(List<InputLine> verLines)
+        {
+            var joinedList = new List<InputLine>();
+
+            while (verLines.Count > 0)
+            {
+                SortedSet<int> indexesToDelete = new SortedSet<int>();
+
+                indexesToDelete.Add(0);
+
+                var firstLine = verLines[0];
+
+                var tempList = new List<InputLine>();
+                tempList.Add(firstLine);
+
+                for (int i = 1; i < verLines.Count; i++)
+                {
+                    var secondLine = verLines[i];
+                    if (Math.Abs(firstLine.start.X - secondLine.start.X) < 0.016)
+                    {
+                        tempList.Add(secondLine);
+                        indexesToDelete.Add(i);
+                    }
+                }
+
+                foreach (var index in indexesToDelete.Reverse())
+                    verLines.RemoveAt(index);
+
+                joinedList.Add(JoinVerticallParallelLine(tempList));
+            }
+
+            return joinedList;
+        }
+
+        private InputLine JoinVerticallParallelLine(List<InputLine> verParLines)
+        {
+            var line = verParLines[0];
+            if (verParLines.Count == 1)
+                return line;
+            else if (verParLines.Count > 1)
+            {
+                var minY = verParLines[0].start.Y;
+                var maxY = verParLines[0].end.Y;
+                // calculate minX and maxX
+                foreach (var verParLine in verParLines)
+                {
+                    minY = Math.Min(minY, verParLine.start.Y);
+                    maxY = Math.Max(maxY, verParLine.end.Y);
+                }
+
+                var X = verParLines[0].start.X;
+                var Z = verParLines[0].start.Z;
+
+                line = new InputLine(new XYZ(X, minY, Z), new XYZ(X, maxY, Z));
+            }
+            return line;
         }
     }
 }
