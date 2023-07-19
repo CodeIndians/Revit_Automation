@@ -155,6 +155,67 @@ namespace Revit_Automation.Source.Hallway
             // Write the StringBuilder data to the file
             File.WriteAllText(filePath, sb.ToString());
         }
+
+        //public static void WriteRectListtoFile(List<FaceRect> faceRectList, string filePath)
+        //{
+        //    // Create a StringBuilder to hold the CSV data
+        //    StringBuilder sb = new StringBuilder();
+
+        //    // iterate through all the face rects and print the faces
+        //    foreach(var faceRect in faceRectList)
+        //    {
+        //        sb.AppendLine($" Top: {faceRect.top}");
+        //        sb.AppendLine($" Bottom: {faceRect.bottom}");
+        //        sb.AppendLine($" Left: {faceRect.left}");
+        //        sb.AppendLine($" Right: {faceRect.right}");
+
+        //        sb.AppendLine("\n");
+        //    }
+
+        //    File.WriteAllText(filePath, sb.ToString());
+        //}
+
+        //public static void WriteRectListtoFile(List<IntersectingFaceRect> iFaceRectList, string filePath)
+        //{
+        //    // Create a StringBuilder to hold the CSV data
+        //    StringBuilder sb = new StringBuilder();
+
+        //    // iterate through all the face rects and print the faces
+        //    foreach (var iFaceRect in iFaceRectList)
+        //    {
+        //        sb.AppendLine($" Top: {iFaceRect.MainRect.top}");
+        //        sb.AppendLine($" Bottom: {iFaceRect.MainRect.bottom}");
+        //        sb.AppendLine($" Left: {iFaceRect.MainRect.left}");
+        //        sb.AppendLine($" Right: {iFaceRect.MainRect.right}");
+
+        //        foreach (var faceRect in iFaceRect.intersectingRects)
+        //        {
+        //            sb.AppendLine($"\t Top: {faceRect.top}");
+        //            sb.AppendLine($"\t Bottom: {faceRect.bottom}");
+        //            sb.AppendLine($"\t Left: {faceRect.left}");
+        //            sb.AppendLine($"\t Right: {faceRect.right}");
+        //        }
+
+        //        sb.AppendLine("\n\n");
+        //    }
+
+        //    File.WriteAllText(filePath, sb.ToString());
+        //}
+
+        public static void WritePointListtoFile(List<XYZ> points, string filePath)
+        {
+            // Create a StringBuilder to hold the CSV data
+            StringBuilder sb = new StringBuilder();
+
+            // iterate through all the face rects and print the faces
+            foreach (var point in points)
+            {
+                sb.AppendLine($"{point}");
+            }
+
+            File.WriteAllText(filePath, sb.ToString());
+        }
+
     }
 }
 

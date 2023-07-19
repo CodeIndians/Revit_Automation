@@ -107,6 +107,8 @@ namespace Revit_Automation.Source.Hallway
 
             PostProcessCurves(ref CurveLinesInternal);
 
+            //var externalPointGen = new ExternalHallwayPointsGenerator(CurveLinesExternal);
+            //externalPointGen.Generate();
 
             FileWriter.WriteInputListToFile(CurveLinesExternal, @"C:\temp\external_curve_lines");
 
