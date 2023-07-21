@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.33110.190
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Revit_Automation", "Revit_Automation\Revit_Automation.csproj", "{5D498C75-2165-489F-B6F1-28697BDF314F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Modelling_Automation", "Revit_Automation\Modelling_Automation.csproj", "{5D498C75-2165-489F-B6F1-28697BDF314F}"
 	ProjectSection(ProjectDependencies) = postProject
 		{396A191C-2BC4-4C1F-BF41-6D92F79952FD} = {396A191C-2BC4-4C1F-BF41-6D92F79952FD}
 	EndProjectSection
@@ -15,6 +15,8 @@ Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "RevitInstaller", "RevitInst
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sheeting_Automation", "Sheeting_Automation\Sheeting_Automation.csproj", "{396A191C-2BC4-4C1F-BF41-6D92F79952FD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shop_Automation", "Shop_Automation\Shop_Automation.csproj", "{89477A44-5922-4F50-B451-DB9C5C076059}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -48,6 +50,14 @@ Global
 		{396A191C-2BC4-4C1F-BF41-6D92F79952FD}.Release|Any CPU.Build.0 = Release|Any CPU
 		{396A191C-2BC4-4C1F-BF41-6D92F79952FD}.Release|x86.ActiveCfg = Release|Any CPU
 		{396A191C-2BC4-4C1F-BF41-6D92F79952FD}.Release|x86.Build.0 = Release|Any CPU
+		{89477A44-5922-4F50-B451-DB9C5C076059}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{89477A44-5922-4F50-B451-DB9C5C076059}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{89477A44-5922-4F50-B451-DB9C5C076059}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{89477A44-5922-4F50-B451-DB9C5C076059}.Debug|x86.Build.0 = Debug|Any CPU
+		{89477A44-5922-4F50-B451-DB9C5C076059}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{89477A44-5922-4F50-B451-DB9C5C076059}.Release|Any CPU.Build.0 = Release|Any CPU
+		{89477A44-5922-4F50-B451-DB9C5C076059}.Release|x86.ActiveCfg = Release|Any CPU
+		{89477A44-5922-4F50-B451-DB9C5C076059}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

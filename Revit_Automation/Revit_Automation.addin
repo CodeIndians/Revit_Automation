@@ -21,7 +21,15 @@
     <Name>Application Sheeting_Automation</Name>
     <Assembly>Sheeting_Automation.dll</Assembly>
     <FullClassName>Sheeting_Automation.App</FullClassName>
-    <ClientId>1188BE81-0F54-4DF7-B493-79B20AB729DB</ClientId>
+    <ClientId>396a191c-2bc4-4c1f-bf41-6d92f79952fd</ClientId>
+    <VendorId>www.codeIndians.com</VendorId>
+    <VendorDescription>Code Indian Technologies Private Limited, www.codeIndians.com</VendorDescription>
+  </AddIn>
+      <AddIn Type="Application">
+    <Name>Application Shop_Automation</Name>
+    <Assembly>Shop_Automation.dll</Assembly>
+    <FullClassName>Shop_Automation.App</FullClassName>
+    <ClientId>89477a44-5922-4f50-b451-db9c5c076059</ClientId>
     <VendorId>www.codeIndians.com</VendorId>
     <VendorDescription>Code Indian Technologies Private Limited, www.codeIndians.com</VendorDescription>
   </AddIn>

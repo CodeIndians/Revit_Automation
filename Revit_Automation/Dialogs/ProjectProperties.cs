@@ -87,17 +87,20 @@ namespace Revit_Automation
 
                 //Top Track max length
                 textBox10.Text = settings[7];
-                textBox9.Text = settings[8]; 
+                textBox9.Text = settings[8];
+
+                //Panel Direction Computation
+                comboBox2.SelectedIndex = int.Parse(settings[9]);
 
                 DataTable tempdataTable = (DataTable)dataGridView1.DataSource;
 
-                int iUNORowNumber = int.Parse(settings[9]);
+                int iUNORowNumber = int.Parse(settings[10]);
 
                 // Save the number on the static
                 iUNONumber = iUNORowNumber;
                
                 // Fill the Data table
-                int icounter = 10;
+                int icounter = 11;
                 while (icounter < settings.Length - 1)
                 {
                     tempdataTable.Rows.Add(settings[icounter], settings[icounter + 1], settings[icounter + 2], settings[icounter + 3], settings[icounter + 4],
@@ -229,6 +232,10 @@ namespace Revit_Automation
 
             //Top Track max length
             strProjectSettings += textBox10.Text.ToString() + "|" + textBox9.Text.ToString();
+            strProjectSettings += "|";
+
+            // Building Type
+            strProjectSettings += comboBox2.SelectedIndex.ToString();
             strProjectSettings += "|";
 
             DataTable dt = (DataTable)dataGridView1.DataSource;

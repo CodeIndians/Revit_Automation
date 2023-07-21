@@ -16,6 +16,7 @@ namespace Revit_Automation.Source
         public static double s_dTopTrackPrefLength;
         public static double s_dTopTrackMaxLength;
         public static double s_dBottomTrackMaxLength;
+        public static int s_PanelDirectionComputation;
         public static List<PanelTypeGlobalParams> lstPanelParams = new List<PanelTypeGlobalParams>();
 
         public static bool PopulateGlobalSettings()
@@ -46,10 +47,12 @@ namespace Revit_Automation.Source
                 // Top Track Max Length Parameter
                 s_dTopTrackMaxLength = double.Parse(settings[7]) + (double.Parse(settings[8])/12);
 
-                // Row Corresponding to UNO Parameter
-                int tempUNORow = int.Parse(settings[9]);
+                s_PanelDirectionComputation = int.Parse(settings[9]);
 
-                int j = 10, rowNumber = 0 ; 
+                // Row Corresponding to UNO Parameter
+                int tempUNORow = int.Parse(settings[10]);
+
+                int j = 11, rowNumber = 0 ; 
                 
                 // Panel Parameters
                 while ( j <  settings.Length - 1 ) 
