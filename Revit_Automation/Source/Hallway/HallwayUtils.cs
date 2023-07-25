@@ -22,12 +22,10 @@ namespace Revit_Automation.Source.Hallway
           Math.Abs(first.Y - second.Y) < epsilon;
         }
 
-        public static bool AreAlmostEqual(XYZ first, XYZ second)
+        public static bool AreAlmostEqual(XYZ first, XYZ second, double epsilon = 1.0f)
         {
-            double epsilon = 1.0f; // precision
-
             return Math.Abs(first.X - second.X) < epsilon &&
-          Math.Abs(first.Y - second.Y) < epsilon;
+                   Math.Abs(first.Y - second.Y) < epsilon;
         }
 
         public static bool IsPointWithinBoundingBox(XYZ point, BoundingBoxXYZ boundingBox)
@@ -47,6 +45,23 @@ namespace Revit_Automation.Source.Hallway
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Check if the point is present in the list
+        /// </summary>
+        /// <param name="points"></param>
+        /// <param name="point"></param>
+        /// <returns>returns - 1 if the point is not present, otherwise returns the index</returns>
+        public static int IndexOf(List<XYZ> points, XYZ point)
+        {
+            for( int i =0; i < points.Count; i++)
+            {
+                if(AreAlmostEqual(point, points[i]))
+                    return i;
+            }
+
+            return -1;
         }
     }
 
@@ -94,6 +109,62 @@ namespace Revit_Automation.Source.Hallway
           Math.Abs(first.start.Y - second.start.Y) < epsilon &&
           Math.Abs(first.end.X - second.end.X) < epsilon &&
           Math.Abs(first.end.Y - second.end.Y) < epsilon;
+        }
+
+        /// <summary>
+        /// sort the given list of lines based on the condition that the,
+        /// end of each line is the start of the next line
+        /// </summary>
+        /// <param name="lines"></param>
+        /// <returns> circular sorted lines</returns>
+        public static List<InputLine> SortLineListCircular(List<InputLine> lines)
+        {
+            lines.Sort();
+            List<InputLine> sortedLines = new List<InputLine>();
+
+            InputLine startLine = lines[0];
+            sortedLines.Add(startLine);
+            lines.Remove(startLine);
+
+            while (lines.Count > 0)
+            {
+                XYZ lastPoint = sortedLines[sortedLines.Count - 1].end;
+                bool foundNextLine = false;
+
+                for (int i = 0; i < lines.Count; i++)
+                {
+                    InputLine line = lines[i];
+                    
+                    //if (line.start.IsAlmostEqualTo(lastPoint))
+                    if(PointUtils.AreAlmostEqual(lastPoint, line.start))
+                    {
+                        line.start = lastPoint; // normalize the value 
+                        sortedLines.Add(line);
+                        lines.RemoveAt(i);
+                        foundNextLine = true;
+                        break;
+                    }
+
+                    if (PointUtils.AreAlmostEqual(lastPoint, line.end))
+                    {
+                        line.Swap();
+                        line.start = lastPoint;  // normalize the value 
+                        sortedLines.Add(line);
+                        lines.RemoveAt(i);
+                        foundNextLine = true;
+                        break;
+                    }
+                }
+
+                if (!foundNextLine)
+                {
+                    // If no next line is found, the list is not a closed loop
+                    Console.WriteLine("Error: List is not a closed loop.");
+                    break;
+                }
+            }
+
+            return sortedLines;
         }
     }
 
@@ -156,51 +227,24 @@ namespace Revit_Automation.Source.Hallway
             File.WriteAllText(filePath, sb.ToString());
         }
 
-        //public static void WriteRectListtoFile(List<FaceRect> faceRectList, string filePath)
-        //{
-        //    // Create a StringBuilder to hold the CSV data
-        //    StringBuilder sb = new StringBuilder();
+        public static void WritePointListtoFile(List<List<XYZ>> points, string filePath)
+        {
+            // Create a StringBuilder to hold the CSV data
+            StringBuilder sb = new StringBuilder();
 
-        //    // iterate through all the face rects and print the faces
-        //    foreach(var faceRect in faceRectList)
-        //    {
-        //        sb.AppendLine($" Top: {faceRect.top}");
-        //        sb.AppendLine($" Bottom: {faceRect.bottom}");
-        //        sb.AppendLine($" Left: {faceRect.left}");
-        //        sb.AppendLine($" Right: {faceRect.right}");
+            // iterate through all the face rects and print the faces
+            foreach (var pointList in points)
+            {
+                foreach (var point in pointList)
+                {
+                    sb.AppendLine($"{point}");
+                }
+                sb.AppendLine("\n\n");
+            }
 
-        //        sb.AppendLine("\n");
-        //    }
-
-        //    File.WriteAllText(filePath, sb.ToString());
-        //}
-
-        //public static void WriteRectListtoFile(List<IntersectingFaceRect> iFaceRectList, string filePath)
-        //{
-        //    // Create a StringBuilder to hold the CSV data
-        //    StringBuilder sb = new StringBuilder();
-
-        //    // iterate through all the face rects and print the faces
-        //    foreach (var iFaceRect in iFaceRectList)
-        //    {
-        //        sb.AppendLine($" Top: {iFaceRect.MainRect.top}");
-        //        sb.AppendLine($" Bottom: {iFaceRect.MainRect.bottom}");
-        //        sb.AppendLine($" Left: {iFaceRect.MainRect.left}");
-        //        sb.AppendLine($" Right: {iFaceRect.MainRect.right}");
-
-        //        foreach (var faceRect in iFaceRect.intersectingRects)
-        //        {
-        //            sb.AppendLine($"\t Top: {faceRect.top}");
-        //            sb.AppendLine($"\t Bottom: {faceRect.bottom}");
-        //            sb.AppendLine($"\t Left: {faceRect.left}");
-        //            sb.AppendLine($"\t Right: {faceRect.right}");
-        //        }
-
-        //        sb.AppendLine("\n\n");
-        //    }
-
-        //    File.WriteAllText(filePath, sb.ToString());
-        //}
+            // Write the StringBuilder data to the file
+            File.WriteAllText(filePath, sb.ToString());
+        }
 
         public static void WritePointListtoFile(List<XYZ> points, string filePath)
         {
@@ -213,8 +257,11 @@ namespace Revit_Automation.Source.Hallway
                 sb.AppendLine($"{point}");
             }
 
+            // Write the StringBuilder data to the file
             File.WriteAllText(filePath, sb.ToString());
         }
+
+       
 
     }
 }

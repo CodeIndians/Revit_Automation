@@ -10,7 +10,7 @@ namespace Revit_Automation.Source.Hallway
 {
     internal class HallwayHatchCollector
     {
-        private readonly Document mDocument;
+        private Document mDocument;
 
         private List<List<InputLine>> CurveLinesExternal;
 
@@ -107,12 +107,18 @@ namespace Revit_Automation.Source.Hallway
 
             PostProcessCurves(ref CurveLinesInternal);
 
-            //var externalPointGen = new ExternalHallwayPointsGenerator(CurveLinesExternal);
-            //externalPointGen.Generate();
+            List<ExternalLine> externalLines = new List<ExternalLine>();
+            List<InputLine> notused = new List<InputLine>();
 
-            FileWriter.WriteInputListToFile(CurveLinesExternal, @"C:\temp\external_curve_lines");
+            var lineCollector = new LineCollector(ref mDocument, ref notused, ref externalLines);
 
-            FileWriter.WriteInputListToFile(CurveLinesInternal, @"C:\temp\internal_curve_lines");
+            var externalPointGen = new ExternalPointsGenerator(CurveLinesExternal, externalLines);
+
+            var hallwayGen = new HallwayGenerator(ref mDocument, externalPointGen.mExternalHallwayLines);
+
+            //FileWriter.WriteInputListToFile(CurveLinesExternal, @"C:\temp\external_curve_lines");
+
+            //FileWriter.WriteInputListToFile(CurveLinesInternal, @"C:\temp\internal_curve_lines");
 
         }
 

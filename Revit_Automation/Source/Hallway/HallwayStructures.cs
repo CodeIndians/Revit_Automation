@@ -92,6 +92,16 @@ namespace Revit_Automation.Source.Hallway
                 end = temp;
             }
         }
+        /// <summary>
+        /// Swap start and end points, required for circular sorting 
+        /// </summary>
+        public void Swap()
+        {
+            // Swap start and end points
+            XYZ temp = start;
+            start = end;
+            end = temp;
+        }
 
         int IComparable<InputLine>.CompareTo(InputLine other)
         {
