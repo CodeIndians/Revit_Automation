@@ -258,7 +258,7 @@ namespace Revit_Automation.Source.Hallway
                                            .Select(g => g.ToList())
                                            .ToList();
 
-            //FileWriter.WritePointListtoFile(horizontalPointsGroup, @"C:\temp\horizontal_point_group");
+            FileWriter.WritePointListtoFile(horizontalPointsGroup, @"C:\temp\horizontal_point_group");
 
             foreach (var pointList in horizontalPointsGroup)
             {
@@ -277,7 +277,7 @@ namespace Revit_Automation.Source.Hallway
                 horizontalLines.Add(new InputLine(new XYZ(startX,Y,Z), new XYZ(endX,Y,Z)));
             }
 
-            //FileWriter.WriteInputListToFile(horizontalLines, @"C:\temp\horizontal_hallway_lines");
+            FileWriter.WriteInputListToFile(horizontalLines, @"C:\temp\horizontal_hallway_lines");
 
             return horizontalLines;
         }
@@ -297,7 +297,7 @@ namespace Revit_Automation.Source.Hallway
                                            .Select(g => g.ToList())
                                            .ToList();
 
-            //FileWriter.WritePointListtoFile(verticalPointsGroup, @"C:\temp\vertical_point_group");
+            FileWriter.WritePointListtoFile(verticalPointsGroup, @"C:\temp\vertical_point_group");
 
             foreach (var pointList in verticalPointsGroup)
             {
@@ -316,7 +316,7 @@ namespace Revit_Automation.Source.Hallway
                 verticalLines.Add(new InputLine(new XYZ(X, startY, Z), new XYZ(X, endY, Z)));
             }
 
-            //FileWriter.WriteInputListToFile(verticalLines, @"C:\temp\vertical_hallway_lines");
+            FileWriter.WriteInputListToFile(verticalLines, @"C:\temp\vertical_hallway_lines");
 
             return verticalLines;
         }

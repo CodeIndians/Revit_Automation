@@ -164,6 +164,12 @@ namespace Revit_Automation.Source.Hallway
                 }
             }
 
+            //normalize first.start and last.end
+            var lastIndex = sortedLines.Count - 1;
+            var last = sortedLines[lastIndex];
+            last.end = sortedLines[0].start;
+            sortedLines[lastIndex] = last;
+
             return sortedLines;
         }
     }

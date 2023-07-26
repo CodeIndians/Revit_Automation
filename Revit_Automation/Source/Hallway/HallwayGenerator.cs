@@ -11,16 +11,20 @@ namespace Revit_Automation.Source.Hallway
     {
         private List<InputLine> mExternalHallwayLines;
 
+        private List<List<InputLine>> mInternalHallwayLineLoops;
+
         private Document mDocument;
 
         // hatch id for the hallway
         private ElementId hatchId;
 
         // TODO: need to collect internal lines as well
-        public HallwayGenerator(ref Document doc, List<InputLine> externalHallwayLines) 
+        public HallwayGenerator(ref Document doc, List<InputLine> externalHallwayLines, List<List<InputLine>> internalHallwayLineLoops) 
         {
             // assign the passed hallway lines 
             mExternalHallwayLines = externalHallwayLines;
+
+            mInternalHallwayLineLoops = internalHallwayLineLoops;
 
             // assign the active document
             mDocument = doc;
@@ -51,8 +55,6 @@ namespace Revit_Automation.Source.Hallway
 
                 foreach (var externalLine in circularSortedLines)
                 {
-
-
                     // Create the lines for the bounding loop
                     Line line1 = Line.CreateBound(externalLine.start, externalLine.end);
 
@@ -61,6 +63,25 @@ namespace Revit_Automation.Source.Hallway
                 }
 
                 curveLoop.Add(loop);
+
+                foreach(var internalLineList in mInternalHallwayLineLoops)
+                {
+                    CurveLoop internalLoop = new CurveLoop();
+                    var internalCircularSortedlines = LineUtils.SortLineListCircular(internalLineList);
+
+                    FileWriter.WriteInputListToFile(internalCircularSortedlines, @"C:\temp\circular_internal_hallway_lines");
+
+                    foreach (var internalLine in internalCircularSortedlines)
+                    {
+                        // Create the lines for the bounding loop
+                        Line line1 = Line.CreateBound(internalLine.start, internalLine.end);
+
+                        // Add the lines to the bounding loop
+                        internalLoop.Append(line1);
+                    }
+
+                    curveLoop.Add(internalLoop);
+                }
 
                 FilledRegion hatchData = FilledRegion.Create(mDocument, hatchId, mDocument.ActiveView.Id, curveLoop);
 
