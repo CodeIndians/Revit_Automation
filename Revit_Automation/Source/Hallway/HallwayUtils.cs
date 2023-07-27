@@ -28,6 +28,11 @@ namespace Revit_Automation.Source.Hallway
                    Math.Abs(first.Y - second.Y) < epsilon;
         }
 
+        public static bool AreAlmostEqual(double first, double second , double epsilon = 1.0f)
+        {
+            return Math.Abs(first - second) < epsilon;
+        }
+
         public static bool IsPointWithinBoundingBox(XYZ point, BoundingBoxXYZ boundingBox)
         {
             double minX = boundingBox.Min.X;
@@ -171,6 +176,26 @@ namespace Revit_Automation.Source.Hallway
             sortedLines[lastIndex] = last;
 
             return sortedLines;
+        }
+    
+        /// <summary>
+        /// sort the line list based on the Y Co-ordinate
+        /// </summary>
+        /// <param name="lines"></param>
+        public static void SortByYCoordinate(List<List<XYZ>> listOfLists)
+        {
+            foreach (var innerList in listOfLists)
+            {
+                innerList.Sort((p1, p2) => p1.Y.CompareTo(p2.Y));
+            }
+        }
+
+        public static void SortByXCoordinate(List<List<XYZ>> listOfLists)
+        {
+            foreach (var innerList in listOfLists)
+            {
+                innerList.Sort((p1, p2) => p1.X.CompareTo(p2.X));
+            }
         }
     }
 

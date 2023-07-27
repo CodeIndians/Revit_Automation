@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Windows.Forms.AxHost;
 
 namespace Revit_Automation.Source.Hallway
 {
@@ -254,28 +255,61 @@ namespace Revit_Automation.Source.Hallway
 
             var horizontalLines = new List<InputLine>();
 
+            // group points based on the same Y co-ordinate
             horizontalPointsGroup = mPoints.GroupBy(p => Math.Round(p.Y * 2) / 2.0)
                                            .Select(g => g.ToList())
                                            .ToList();
+
+            // sort the inner lists based on the X cordinate
+            LineUtils.SortByXCoordinate(horizontalPointsGroup);
 
             FileWriter.WritePointListtoFile(horizontalPointsGroup, @"C:\temp\horizontal_point_group");
 
             foreach (var pointList in horizontalPointsGroup)
             {
+                // dont add any lines if there are no enough points
                 if(pointList.Count <= 1)
                     continue;
-                double startX = Double.PositiveInfinity;
-                double endX = Double.NegativeInfinity;
+                
                 double Y = pointList[0].Y;
                 double Z = pointList[0].Z;
-                foreach (var point in pointList)
-                {
-                    startX = Math.Min(point.X, startX);
-                    endX = Math.Max(point.X, endX);
-                }
 
-                horizontalLines.Add(new InputLine(new XYZ(startX,Y,Z), new XYZ(endX,Y,Z)));
+
+                for (int i = 0; i < pointList.Count -1; i++)
+                {
+                    double startX = pointList[i].X;
+                    double endX = pointList[i+1].X;
+
+                    var startHatchIntersectIndex = GetHatchIntersectIndex(new XYZ(startX, Y, Z));
+                    var endHatchIntersectIndex = GetHatchIntersectIndex(new XYZ(endX, Y, Z));
+
+                    // points are not falling on the same hatch
+                    if (startHatchIntersectIndex != endHatchIntersectIndex)
+                    {
+                        // we need to keep the line which falls on the external line
+                        if (!IsFallingOnHorizontalExternalLine(new XYZ(startX, Y, Z)))
+                        {
+                            // if the hatches are not intersecting, ignore the line
+                            if (!AreHatchRectsIntersecting(mExternalHatchRects[startHatchIntersectIndex], mExternalHatchRects[endHatchIntersectIndex]))
+                                continue;
+                        }
+                    }
+
+                    // points are falling on the sam hatch
+                    if(startHatchIntersectIndex == endHatchIntersectIndex)
+                    {
+                        //remove the line if it is falling on the external line
+                        if (IsFallingOnHorizontalExternalLine(new XYZ(startX, Y, Z)))
+                            continue;
+                    }
+
+                    horizontalLines.Add(new InputLine(new XYZ(startX, Y, Z), new XYZ(endX, Y, Z)));
+                }
             }
+
+            //TODO: Can be removed if the breakpoints are not hitting
+            // filter the lines and join the lines after filtering them
+            FilterAndJoinHorizontalLines(ref horizontalLines);
 
             FileWriter.WriteInputListToFile(horizontalLines, @"C:\temp\horizontal_hallway_lines");
 
@@ -293,27 +327,50 @@ namespace Revit_Automation.Source.Hallway
 
             var verticalLines = new List<InputLine>();
 
+            // group points based on the same X coordinate
             verticalPointsGroup = mPoints.GroupBy(p => Math.Round(p.X * 2) / 2.0)
                                            .Select(g => g.ToList())
                                            .ToList();
+
+            // sort the inner lists based on Y cordinate
+            LineUtils.SortByYCoordinate(verticalPointsGroup);
 
             FileWriter.WritePointListtoFile(verticalPointsGroup, @"C:\temp\vertical_point_group");
 
             foreach (var pointList in verticalPointsGroup)
             {
+                // dont add any lines if there are no enough points
                 if (pointList.Count <= 1)
                     continue;
-                double startY = Double.PositiveInfinity;
-                double endY = Double.NegativeInfinity;
+               
                 double X = pointList[0].X;
                 double Z = pointList[0].Z;
-                foreach (var point in pointList)
+
+                for (int i = 0; i < pointList.Count - 1; i++)
                 {
-                    startY = Math.Min(point.Y, startY);
-                    endY = Math.Max(point.Y, endY);
+                    double startY = pointList[i].Y;
+                    double endY = pointList[i+1].Y;
+
+                    var startHatchIntersectIndex = GetHatchIntersectIndex(new XYZ(X, startY, Z));
+                    var endHatchIntersectIndex = GetHatchIntersectIndex(new XYZ(X, endY, Z));
+
+                    // points are not falling on the same hatch
+                    if (startHatchIntersectIndex != endHatchIntersectIndex)
+                    {
+                        // we need to keep the line which falls on the external line
+                        if (!IsFallingOnVerticalExternalLine(new XYZ(X, startY, Z)))
+                        {
+                            // if the hatches are not intersecting, ignore the line
+                            if (!AreHatchRectsIntersecting(mExternalHatchRects[startHatchIntersectIndex], mExternalHatchRects[endHatchIntersectIndex]))
+                                continue;
+                        }
+                    }
+                    verticalLines.Add(new InputLine(new XYZ(X, startY, Z), new XYZ(X, endY, Z)));
                 }
 
-                verticalLines.Add(new InputLine(new XYZ(X, startY, Z), new XYZ(X, endY, Z)));
+                //TODO: Can be removed if the breakpoints are not hitting
+                // filter the lines and join the lines after filtering them
+                FilterAndJoinVerticalLines(ref verticalLines);
             }
 
             FileWriter.WriteInputListToFile(verticalLines, @"C:\temp\vertical_hallway_lines");
@@ -321,5 +378,229 @@ namespace Revit_Automation.Source.Hallway
             return verticalLines;
         }
 
+        /// <summary>
+        /// Step1: Identify the parallel lines with same start.X and end.X
+        /// Step2: Check if they are intersecting with the same different hatches
+        /// Step3: If yes, delete the line that does not fall on the external line
+        /// </summary>
+        /// <param name="horLines"></param>
+        private void FilterAndJoinHorizontalLines(ref List<InputLine> horLines)
+        {
+            int currentIndex = 0;
+
+
+            while (currentIndex < horLines.Count)
+            {
+                // assign the first line as the current index
+                var firstLine = horLines[currentIndex];
+
+                int indexToDelete = -1;
+
+                // start from after the current index 
+                for (int i = currentIndex + 1; i < horLines.Count; i++)
+                {
+                    var secondLine = horLines[i];
+                    // check the parallel lines with same start.X and end.X condition
+                    if(PointUtils.AreAlmostEqual(firstLine.start.X, secondLine.start.X) 
+                        && PointUtils.AreAlmostEqual(firstLine.end.X,secondLine.end.X))
+                    {
+                        //step one is satisfied. we now have lines which start and end at same X positions 
+
+                        var firstStartHatchIndex = GetHatchIntersectIndex(firstLine.start);
+                        var firstEndHatchIndex = GetHatchIntersectIndex(firstLine.end);
+
+                        var secondStartHatchIndex = GetHatchIntersectIndex(secondLine.start);
+                        var secondEndHatchIndex = GetHatchIntersectIndex(secondLine.end);
+
+                        if((firstStartHatchIndex == secondStartHatchIndex)
+                            && (firstEndHatchIndex == secondEndHatchIndex)
+                            && (firstStartHatchIndex != firstEndHatchIndex))
+                        {
+                            // We will have to delete the line that is not falling on the external line in this case
+                            if(IsFallingOnHorizontalExternalLine(firstLine.start))
+                            {
+                                // delete the second line
+                                indexToDelete = i;
+
+                                //assigning the first line to the current index is not needed
+                                break;
+                            }
+                            else if (IsFallingOnHorizontalExternalLine(secondLine.start))
+                            {
+                                // delete the second line 
+                                indexToDelete = i;
+
+                                // assign the second line to the first line 
+                                horLines[currentIndex] = secondLine;
+
+                                break;
+                            }
+                            else
+                            {
+                                TaskDialog.Show("Error", "Found a line deletion case which was not anticipated");
+                            }
+
+                        }
+                    }
+                }
+
+                if(indexToDelete != -1)
+                {
+                    horLines.RemoveAt(indexToDelete);
+                }
+                // doing this for every iteration ( assuming that we only have two such lines 
+                currentIndex++;
+            }
+
+        }
+
+        /// <summary>
+        /// Step1: Identify the parallel lines with same start.Y and end.Y
+        /// Step2: Check if they are intersecting with the same different hatches
+        /// Step3: If yes, delete the line that does not fall on the external line
+        /// </summary>
+        /// <param name="horLines"></param>
+        private void FilterAndJoinVerticalLines(ref List<InputLine> horLines)
+        {
+            int currentIndex = 0;
+
+
+            while (currentIndex < horLines.Count)
+            {
+                // assign the first line as the current index
+                var firstLine = horLines[currentIndex];
+
+                int indexToDelete = -1;
+
+                // start from after the current index 
+                for (int i = currentIndex + 1; i < horLines.Count; i++)
+                {
+                    var secondLine = horLines[i];
+                    // check the parallel lines with same start.X and end.X condition
+                    if (PointUtils.AreAlmostEqual(firstLine.start.Y, secondLine.start.Y)
+                        && PointUtils.AreAlmostEqual(firstLine.end.Y, secondLine.end.Y))
+                    {
+                        //step one is satisfied. we now have lines which start and end at same X positions 
+
+                        var firstStartHatchIndex = GetHatchIntersectIndex(firstLine.start);
+                        var firstEndHatchIndex = GetHatchIntersectIndex(firstLine.end);
+
+                        var secondStartHatchIndex = GetHatchIntersectIndex(secondLine.start);
+                        var secondEndHatchIndex = GetHatchIntersectIndex(secondLine.end);
+
+
+                        // TODO: This condition will never be hit and can be removed
+                        if ((firstStartHatchIndex == secondStartHatchIndex)
+                            && (firstEndHatchIndex == secondEndHatchIndex)
+                            && (firstStartHatchIndex != firstEndHatchIndex))
+                        {
+                            // We will have to delete the line that is not falling on the external line in this case
+                            if (IsFallingOnVerticalExternalLine(firstLine.start))
+                            {
+                                // delete the second line
+                                indexToDelete = i;
+
+                                //assigning the first line to the current index is not needed
+                                break;
+                            }
+                            else if (IsFallingOnVerticalExternalLine(secondLine.start))
+                            {
+                                // delete the second line 
+                                indexToDelete = i;
+
+                                // assign the second line to the first line 
+                                horLines[currentIndex] = secondLine;
+
+                                break;
+                            }
+                            else
+                            {
+                                TaskDialog.Show("Error", "Found a line deletion case which was not anticipated");
+                            }
+
+                        }
+                    }
+                }
+
+                if (indexToDelete != -1)
+                {
+                    horLines.RemoveAt(indexToDelete);
+                }
+                // doing this for every iteration ( assuming that we only have two such lines 
+                currentIndex++;
+            }
+
+        }
+
+        private int GetHatchIntersectIndex(XYZ point)
+        {
+            int index = -1;
+
+            for(int i = 0; i < mExternalHatchRects.Count; i++)
+            {
+                foreach (var rectPoint in mExternalHatchRects[i])
+                {
+                    if (PointUtils.AreAlmostEqual(point, rectPoint))
+                    {
+                        return i;
+                    }
+                }
+            }
+            return index;
+        }
+
+        private bool IsFallingOnHorizontalExternalLine(XYZ point)
+        {
+            foreach(var line in mExternalLines)
+            {
+                if(InputLine.GetLineType(line) == LineType.HORIZONTAL)
+                {
+                    if(Math.Abs(line.start.Y - point.Y) < 0.5f)
+                    {
+                        if((line.start.X < point.X || Math.Abs(line.start.X - point.X) < 0.5) && (line.end.X >point.X || Math.Abs(line.end.X - point.X) < 0.5))
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
+        private bool IsFallingOnVerticalExternalLine(XYZ point)
+        {
+            foreach (var line in mExternalLines)
+            {
+                if (InputLine.GetLineType(line) == LineType.VERTICAL)
+                {
+                    if (Math.Abs(line.start.X - point.X) < 0.5f)
+                    {
+                        if ((line.start.Y < point.Y || Math.Abs(line.start.Y - point.Y) < 0.5) && (line.end.Y > point.Y || Math.Abs(line.end.Y - point.Y) < 0.5))
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
+        private bool AreHatchRectsIntersecting(List<XYZ> firstRect, List<XYZ> secondRect)
+        {
+            bool found = false;
+
+            foreach (var rectFirst in firstRect)
+            {
+                foreach (var rectSecond in secondRect)
+                {
+                    if (PointUtils.AreAlmostEqual(rectFirst, rectSecond))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return found;
+        }
     }
 }
