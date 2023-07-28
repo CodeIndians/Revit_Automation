@@ -93,6 +93,10 @@ namespace Revit_Automation.Source.Hallway
             return true;
         }
 
+        /// <summary>
+        /// Create the boundaries of the current floor plan
+        /// Not used anywhere currently and can be removed
+        /// </summary>
         private void CreateBoundaries()
         {
             // initialize the bounds
@@ -183,7 +187,7 @@ namespace Revit_Automation.Source.Hallway
         /// </summary>
         private void FilterExternalPoints()
         {
-            // iterate through all of the external points
+            // iterate through all of the external hatch rect points
             foreach(var pointList in mExternalHatchRects)
             {
                 foreach(var point  in pointList)
@@ -191,6 +195,28 @@ namespace Revit_Automation.Source.Hallway
                     if(!CheckExternalLineIntersectCondition(point) && CheckExternaHatchIntersetConditon(point) == 1)
                     {
                         mPoints.Add(point);
+                    }
+                }
+            }
+
+            // collect non-hatch intersecting points on the external lines
+            foreach(var extLine in mExternalLines)
+            {
+                // add start point if it satisfies the following conditions
+                if(PointUtils.IndexOf(mPoints,extLine.start) == -1) // the point is not already present
+                {
+                    if(GetHatchIntersectIndex(extLine.start) == -1) // the point does not fall on any of the external hatch rects
+                    {
+                        mPoints.Add(extLine.start);
+                    }
+                }
+
+                // add end point if it satisfies the following conditions
+                if (PointUtils.IndexOf(mPoints, extLine.end) == -1) // the point is not already present
+                {
+                    if (GetHatchIntersectIndex(extLine.end) == -1) // the point does not fall on any of the external hatch rects
+                    {
+                        mPoints.Add(extLine.end);
                     }
                 }
             }
@@ -289,14 +315,18 @@ namespace Revit_Automation.Source.Hallway
                         // we need to keep the line which falls on the external line
                         if (!IsFallingOnHorizontalExternalLine(new XYZ(startX, Y, Z)))
                         {
+                            // corner hatche open condition . skip the lines that do not fall on the external lines.
+                            if (startHatchIntersectIndex == -1 || endHatchIntersectIndex == -1)
+                                continue;
+
                             // if the hatches are not intersecting, ignore the line
                             if (!AreHatchRectsIntersecting(mExternalHatchRects[startHatchIntersectIndex], mExternalHatchRects[endHatchIntersectIndex]))
                                 continue;
                         }
                     }
 
-                    // points are falling on the sam hatch
-                    if(startHatchIntersectIndex == endHatchIntersectIndex)
+                    // points are falling on the same hatch
+                    if(startHatchIntersectIndex == endHatchIntersectIndex && startHatchIntersectIndex != -1)
                     {
                         //remove the line if it is falling on the external line
                         if (IsFallingOnHorizontalExternalLine(new XYZ(startX, Y, Z)))
@@ -360,11 +390,24 @@ namespace Revit_Automation.Source.Hallway
                         // we need to keep the line which falls on the external line
                         if (!IsFallingOnVerticalExternalLine(new XYZ(X, startY, Z)))
                         {
+                            // corner hatche open condition . skip the lines that do not fall on the external lines.
+                            if (startHatchIntersectIndex == -1 || endHatchIntersectIndex == -1)
+                                continue;
+
                             // if the hatches are not intersecting, ignore the line
                             if (!AreHatchRectsIntersecting(mExternalHatchRects[startHatchIntersectIndex], mExternalHatchRects[endHatchIntersectIndex]))
                                 continue;
                         }
                     }
+
+                    // points are falling on the sam hatch
+                    if (startHatchIntersectIndex == endHatchIntersectIndex && startHatchIntersectIndex != -1)
+                    {
+                        //remove the line if it is falling on the external line
+                        if (IsFallingOnVerticalExternalLine(new XYZ(X, startY, Z)))
+                            continue;
+                    }
+
                     verticalLines.Add(new InputLine(new XYZ(X, startY, Z), new XYZ(X, endY, Z)));
                 }
 
@@ -417,7 +460,7 @@ namespace Revit_Automation.Source.Hallway
                             && (firstStartHatchIndex != firstEndHatchIndex))
                         {
                             // We will have to delete the line that is not falling on the external line in this case
-                            if(IsFallingOnHorizontalExternalLine(firstLine.start))
+                            if(IsFallingOnHorizontalExternalLine(firstLine.start) && IsFallingOnHorizontalExternalLine(firstLine.end))
                             {
                                 // delete the second line
                                 indexToDelete = i;
@@ -425,7 +468,7 @@ namespace Revit_Automation.Source.Hallway
                                 //assigning the first line to the current index is not needed
                                 break;
                             }
-                            else if (IsFallingOnHorizontalExternalLine(secondLine.start))
+                            else if (IsFallingOnHorizontalExternalLine(secondLine.start) && IsFallingOnHorizontalExternalLine(secondLine.end))
                             {
                                 // delete the second line 
                                 indexToDelete = i;
@@ -495,7 +538,7 @@ namespace Revit_Automation.Source.Hallway
                             && (firstStartHatchIndex != firstEndHatchIndex))
                         {
                             // We will have to delete the line that is not falling on the external line in this case
-                            if (IsFallingOnVerticalExternalLine(firstLine.start))
+                            if (IsFallingOnVerticalExternalLine(firstLine.start) && IsFallingOnVerticalExternalLine(firstLine.end))
                             {
                                 // delete the second line
                                 indexToDelete = i;
@@ -503,7 +546,7 @@ namespace Revit_Automation.Source.Hallway
                                 //assigning the first line to the current index is not needed
                                 break;
                             }
-                            else if (IsFallingOnVerticalExternalLine(secondLine.start))
+                            else if (IsFallingOnVerticalExternalLine(secondLine.start) && IsFallingOnVerticalExternalLine(secondLine.end))
                             {
                                 // delete the second line 
                                 indexToDelete = i;
