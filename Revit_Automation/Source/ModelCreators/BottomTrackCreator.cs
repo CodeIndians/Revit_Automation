@@ -142,6 +142,11 @@ namespace Revit_Automation.Source.ModelCreators
 
                 FamilyInstance bottomTrackInstance = m_Document.Create.NewFamilyInstance(newInputLine, symbol, level, StructuralType.Beam);
 
+                Parameter zJustification = bottomTrackInstance.get_Parameter(BuiltInParameter.Z_JUSTIFICATION);
+                if (zJustification != null)
+                {
+                    zJustification.Set(((double)ZJustification.Bottom));
+                }
                 StructuralFramingUtils.DisallowJoinAtEnd(bottomTrackInstance, 0);
                 
                 StructuralFramingUtils.DisallowJoinAtEnd(bottomTrackInstance, 1);
