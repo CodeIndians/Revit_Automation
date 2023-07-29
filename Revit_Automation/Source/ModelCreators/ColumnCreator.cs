@@ -456,7 +456,7 @@ namespace Revit_Automation.Source.ModelCreators
                     ElementId StudColumnID;
                     XYZ StudColumnOrientation;
 
-                    if ((lineType == LineType.vertical && studPoint.Y < (studEndPoint.Y - 1.0)) || (lineType == LineType.horizontal && studPoint.X < (studEndPoint.X - 1.0)))
+                    if ((lineType == LineType.vertical && studPoint.Y < (studEndPoint.Y - dFlangeWidth)) || (lineType == LineType.horizontal && studPoint.X < (studEndPoint.X - dFlangeWidth)))
                     {
 
                         if ((lineType == LineType.vertical && studPoint.Y > (studStartPoint.Y + dStartCollisionTolerance)) || (lineType == LineType.horizontal && studPoint.X >  (studStartPoint.X + dStartCollisionTolerance))) // This condition ensures there are no collisions at the start

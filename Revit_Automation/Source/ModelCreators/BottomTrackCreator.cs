@@ -145,7 +145,7 @@ namespace Revit_Automation.Source.ModelCreators
                 Parameter zJustification = bottomTrackInstance.get_Parameter(BuiltInParameter.Z_JUSTIFICATION);
                 if (zJustification != null)
                 {
-                    zJustification.Set(((double)ZJustification.Bottom));
+                    zJustification.Set(((double)ZJustification.Origin));
                 }
                 StructuralFramingUtils.DisallowJoinAtEnd(bottomTrackInstance, 0);
                 
