@@ -197,6 +197,19 @@ namespace Revit_Automation.Source.Hallway
                 innerList.Sort((p1, p2) => p1.X.CompareTo(p2.X));
             }
         }
+
+        public static int GetIntersectIndex(XYZ point, List<InputLine> lineList)
+        {
+            int index = -1;
+            for (int i = 0; i < lineList.Count; i++)
+            {
+                var line = lineList[i];
+
+                if (PointUtils.AreAlmostEqual(point, line.start, 0.5) || PointUtils.AreAlmostEqual(point, line.end, 0.5))
+                    return i;
+            }
+            return index;
+        }
     }
 
     internal static class FileWriter

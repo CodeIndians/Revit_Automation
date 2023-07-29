@@ -69,7 +69,7 @@ namespace Revit_Automation.Source.Hallway
                     CurveLoop internalLoop = new CurveLoop();
                     var internalCircularSortedlines = LineUtils.SortLineListCircular(internalLineList);
 
-                    FileWriter.WriteInputListToFile(internalCircularSortedlines, @"C:\temp\circular_internal_hallway_lines");
+                    //FileWriter.WriteInputListToFile(internalCircularSortedlines, @"C:\temp\circular_internal_hallway_lines");
 
                     foreach (var internalLine in internalCircularSortedlines)
                     {
