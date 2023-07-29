@@ -18,9 +18,14 @@ namespace Revit_Automation.Source
         public static double s_dBottomTrackMaxLength;
         public static int s_PanelDirectionComputation;
         public static List<PanelTypeGlobalParams> lstPanelParams = new List<PanelTypeGlobalParams>();
+        public static int s_bPanelAtHallway;
+        public static string s_strPartitionStudType;
+        public static string s_strHallwayPanelThickness;
 
         public static bool PopulateGlobalSettings()
         {
+            ClearSettings();
+
             bool bSettingsFound = false;
             
             lstPanelParams?.Clear();
@@ -31,56 +36,87 @@ namespace Revit_Automation.Source
             { 
                 bSettingsFound = true;
                 string[] settings = strProjectSettings.Split('|');
-
                 // Building type Parameter
-                s_strBuildingType = settings[0] == "0" ? "CC" : "NCC";
+                s_strBuildingType = settings[1] == "0" ? "CC" : "NCC";
                 
                 // Bottom Track preferred Length Parameter
-                s_dBottomTrackPrefLength = double.Parse(settings[1]) + (double.Parse(settings[2])/12);
+                s_dBottomTrackPrefLength = double.Parse(settings[2]) + (double.Parse(settings[3])/12);
 
                 // Top Track Preferred Length Parameter
-                s_dTopTrackPrefLength = double.Parse(settings[3]) + (double.Parse(settings[4])/12);
+                s_dTopTrackPrefLength = double.Parse(settings[4]) + (double.Parse(settings[5])/12);
 
                 // Bottom Track Max Length Paramter
-                s_dBottomTrackMaxLength = double.Parse(settings[5]) + (double.Parse(settings[6])/12);
+                s_dBottomTrackMaxLength = double.Parse(settings[6]) + (double.Parse(settings[7])/12);
 
                 // Top Track Max Length Parameter
-                s_dTopTrackMaxLength = double.Parse(settings[7]) + (double.Parse(settings[8])/12);
+                s_dTopTrackMaxLength = double.Parse(settings[8]) + (double.Parse(settings[9])/12);
 
-                s_PanelDirectionComputation = int.Parse(settings[9]);
+                s_PanelDirectionComputation = int.Parse(settings[10]);
 
                 // Row Corresponding to UNO Parameter
-                int tempUNORow = int.Parse(settings[10]);
+                int tempUNORow = int.Parse(settings[11]);
 
-                int j = 11, rowNumber = 0 ; 
-                
-                // Panel Parameters
-                while ( j <  settings.Length - 1 ) 
+                // Panel at Hallway 
+                s_bPanelAtHallway = int.Parse(settings[12]);
+
+                // Partition stud type
+                s_strPartitionStudType = settings[13];
+
+                // Hallway Panel Thickness
+                s_strHallwayPanelThickness = settings[14];
+
+                string strPanelSettings = settings[0];
                 {
-                    PanelTypeGlobalParams panel = new PanelTypeGlobalParams();
-                    panel.bIsUNO = (tempUNORow == rowNumber);
-                    panel.strWallName = settings[j];
-                    panel.iPanelGuage = double.Parse(settings[j + 1]);
-                    panel.iPanelClearance = double.Parse(settings[j + 2]);
-                    panel.iPanelMaxLap = double.Parse(settings[j + 3]);
-                    panel.iPanelMinLap = double.Parse(settings[j + 4]);
-                    panel.strPanelOrientation = settings[j + 5];
-                    panel.iPanelPreferredLength = double.Parse(settings[j + 6]);
-                    panel.iPanelMaxLength = double.Parse(settings[j + 7]);
-                    panel.iPanelHeightOffset = double.Parse(settings[j + 8]);
-                    panel.strPanelHorizontalDirection = settings[j + 9];
-                    panel.strPanelVerticalDirection = settings[j + 10];
-                    panel.iPanelHourRate = double.Parse(settings[j + 11]);
+                    int j = 0, rowNumber = 0;
+                    string[] panelSettings = strPanelSettings.Split(';');
 
-                    lstPanelParams.Add(panel);
+                    while (j < panelSettings.Length - 1)
+                    {
+                        PanelTypeGlobalParams panel = new PanelTypeGlobalParams();
+                        panel.bIsUNO = (tempUNORow == rowNumber);
+                        panel.strWallName = panelSettings[j];
+                        panel.iPanelGuage = double.Parse(panelSettings[j + 1]);
+                        panel.iPanelClearance = double.Parse(panelSettings[j + 2]);
+                        panel.iPanelMaxLap = double.Parse(panelSettings[j + 3]);
+                        panel.iPanelMinLap = double.Parse(panelSettings[j + 4]);
+                        panel.strPanelOrientation = panelSettings[j + 5];
+                        panel.iPanelPreferredLength = double.Parse(panelSettings[j + 6]);
+                        panel.iPanelMaxLength = double.Parse(panelSettings[j + 7]);
+                        panel.iPanelHeightOffset = double.Parse(panelSettings[j + 8]);
+                        panel.strPanelHorizontalDirection = panelSettings[j + 9];
+                        panel.strPanelVerticalDirection = panelSettings[j + 10];
+                        panel.iPanelHourRate = double.Parse(panelSettings[j + 11]);
 
-                    j += 12;
-                    rowNumber++;
-                
+                        lstPanelParams.Add(panel);
+
+                        j += 12;
+                        rowNumber++;
+                    }
                 }
             }
 
             return bSettingsFound;
+        }
+
+        internal static void UpdateSettings()
+        {
+           
+            PopulateGlobalSettings();
+        }
+
+        private static void ClearSettings()
+        {
+            s_strBuildingType = "";
+            s_dBottomTrackPrefLength = 0.0;
+            s_dTopTrackPrefLength = 0.0;
+            s_dTopTrackMaxLength = 0.0;
+            s_dBottomTrackMaxLength = 0.0;
+            s_PanelDirectionComputation = 0;
+            lstPanelParams.Clear();
+            s_bPanelAtHallway = 0;
+            s_strPartitionStudType = "";
+            s_strHallwayPanelThickness = "";
+
         }
     }
 }

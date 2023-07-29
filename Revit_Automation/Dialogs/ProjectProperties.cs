@@ -69,46 +69,53 @@ namespace Revit_Automation
             {
                 string[] settings = strProjectSettings.Split('|');
 
+                // The first one is panel settings row;
+                string strPanelSettings = settings[0];
+                {
+                    DataTable tempdataTable = (DataTable)dataGridView1.DataSource;
+
+                    int icounter = 0;
+                    string[] panelSettings = strPanelSettings.Split(';');
+
+                    while (icounter < panelSettings.Length - 1)
+                    {
+                        tempdataTable.Rows.Add(panelSettings[icounter], panelSettings[icounter + 1], panelSettings[icounter + 2], panelSettings[icounter + 3], panelSettings[icounter + 4],
+                            panelSettings[icounter + 5], panelSettings[icounter + 6], panelSettings[icounter + 7], panelSettings[icounter + 8], panelSettings[icounter + 9],
+                            panelSettings[icounter + 10], panelSettings[icounter + 11]);
+
+                        icounter += 12;
+                    }
+
+                }
+
                 // Building Type
-                comboBox1.SelectedIndex = int.Parse(settings[0]);
+                comboBox1.SelectedIndex = int.Parse(settings[1]);
                 strProjectSettings += "|";
 
                 // Bottom Track Preferred length
-                textBox1.Text = settings[1];
-                textBox6.Text = settings[2];
+                textBox1.Text = settings[2];
+                textBox6.Text = settings[3];
 
                 //top track preferred length
-                textBox3.Text = settings[3];
-                textBox2.Text = settings[4];
+                textBox3.Text = settings[4];
+                textBox2.Text = settings[5];
 
                 // Bottom Track max length
-                textBox8.Text = settings[5];
-                textBox7.Text = settings[6];
+                textBox8.Text = settings[6];
+                textBox7.Text = settings[7];
 
                 //Top Track max length
-                textBox10.Text = settings[7];
-                textBox9.Text = settings[8];
+                textBox10.Text = settings[8];
+                textBox9.Text = settings[9];
 
                 //Panel Direction Computation
-                comboBox2.SelectedIndex = int.Parse(settings[9]);
+                comboBox2.SelectedIndex = int.Parse(settings[10]);
 
-                DataTable tempdataTable = (DataTable)dataGridView1.DataSource;
-
-                int iUNORowNumber = int.Parse(settings[10]);
+                // UNO Row Setting
+                int iUNORowNumber = int.Parse(settings[11]);
 
                 // Save the number on the static
                 iUNONumber = iUNORowNumber;
-               
-                // Fill the Data table
-                int icounter = 11;
-                while (icounter < settings.Length - 1)
-                {
-                    tempdataTable.Rows.Add(settings[icounter], settings[icounter + 1], settings[icounter + 2], settings[icounter + 3], settings[icounter + 4],
-                        settings[icounter + 5], settings[icounter + 6], settings[icounter + 7], settings[icounter + 8], settings[icounter + 9],
-                        settings[icounter + 10], settings[icounter + 11]);
-
-                    icounter += 12;
-                }
 
                 foreach (DataGridViewRow row in dataGridView1.Rows)
                 {
@@ -119,6 +126,15 @@ namespace Revit_Automation
                         break;
                     }
                 }
+
+                // Panel at hallway
+                comboBox3.SelectedIndex = int.Parse(settings[12]);
+
+                // Partition stud type
+                textBox4.Text = settings[13].ToString();
+
+                // Hallway Panel Thickness
+                textBox5.Text = settings[14].ToString();
 
                 dataGridView1.Invalidate();
                 dataGridView1.Update();
@@ -214,6 +230,32 @@ namespace Revit_Automation
             string strProjectSettings = "";
             bool bFoundUNO = false;
 
+            // Panel Settings
+            DataTable dt = (DataTable)dataGridView1.DataSource;
+            foreach (DataRow row in dt.Rows)
+            {
+                foreach (DataColumn column in row.Table.Columns)
+                {
+                    // Retrieve the value from the cell using column name or index
+                    object cellValue = row[column.ColumnName];
+
+                    // Perform any required parsing or data manipulation
+                    if (cellValue != DBNull.Value)
+                    {
+                        string parsedValue = cellValue.ToString();
+                        strProjectSettings += parsedValue;
+                        strProjectSettings += ";";
+                    }
+                    else
+                    {
+                        string parsedValue = "0";
+                        strProjectSettings += parsedValue;
+                        strProjectSettings += ";";
+                    }
+                }
+            }
+            strProjectSettings += "|";
+
             // Building Type
             strProjectSettings += comboBox1.SelectedIndex.ToString() ;
             strProjectSettings += "|";
@@ -234,12 +276,9 @@ namespace Revit_Automation
             strProjectSettings += textBox10.Text.ToString() + "|" + textBox9.Text.ToString();
             strProjectSettings += "|";
 
-            // Building Type
+            // Panel Direction Computation
             strProjectSettings += comboBox2.SelectedIndex.ToString();
             strProjectSettings += "|";
-
-            DataTable dt = (DataTable)dataGridView1.DataSource;
-
 
             foreach (DataGridViewRow row in dataGridView1.Rows)
             {
@@ -259,30 +298,20 @@ namespace Revit_Automation
                 strProjectSettings += "|";
             }
 
-            foreach (DataRow row in dt.Rows)
-            {
-                foreach (DataColumn column in row.Table.Columns)
-                {
-                    // Retrieve the value from the cell using column name or index
-                    object cellValue = row[column.ColumnName];
+            // Panel At Hallway
+            strProjectSettings += comboBox3.SelectedIndex.ToString();
+            strProjectSettings += "|";
 
-                    // Perform any required parsing or data manipulation
-                    if (cellValue != DBNull.Value)
-                    {
-                        string parsedValue = cellValue.ToString();
-                        strProjectSettings += parsedValue;
-                        strProjectSettings += "|";
-                    }
-                    else
-                    {
-                        string parsedValue = "0";
-                        strProjectSettings += parsedValue;
-                        strProjectSettings += "|";
-                    }
-                }    
-            }
+            // Partition stud type
+            strProjectSettings += textBox4.Text.ToString();
+            strProjectSettings += "|";
+
+            // Hallway Panel Thickness
+            strProjectSettings += textBox5.Text.ToString();
+            strProjectSettings += "|";
 
             InputLineUtility.SetProjectSettings(strProjectSettings);
+            GlobalSettings.UpdateSettings();
 
         }
 
@@ -303,6 +332,16 @@ namespace Revit_Automation
 
             // Set the data source on the Data Grid
             dataGridView1.DataSource = tempdataTable;
+        }
+
+        private void label12_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label17_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }
