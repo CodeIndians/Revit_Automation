@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using static Revit_Automation.Source.Hallway.HallwayGenerator;
 
 namespace Revit_Automation.Source.Hallway
 {
@@ -189,7 +190,10 @@ namespace Revit_Automation.Source.Hallway
                 innerList.Sort((p1, p2) => p1.Y.CompareTo(p2.Y));
             }
         }
-
+        /// <summary>
+        /// sort the line list based on the X Co-ordinate
+        /// </summary>
+        /// <param name="listOfLists"></param>
         public static void SortByXCoordinate(List<List<XYZ>> listOfLists)
         {
             foreach (var innerList in listOfLists)
@@ -305,6 +309,25 @@ namespace Revit_Automation.Source.Hallway
             File.WriteAllText(filePath, sb.ToString());
         }
 
+        public static void WriteLabelListtoFile(List<LabelLine> labelList, string filePath)
+        {
+            // Create a StringBuilder to hold the CSV data
+            StringBuilder sb = new StringBuilder();
+
+            foreach(var labelData in  labelList)
+            {
+                sb.AppendLine(labelData.mLabel);
+                foreach(var line in labelData.mLines)
+                {
+                    // Append the XYZ coordinates to the StringBuilder
+                    sb.AppendLine($"     start = {line.start} end= {line.end}");
+                }
+                sb.AppendLine("\n");
+            }
+
+            // Write the StringBuilder data to the file
+            File.WriteAllText(filePath, sb.ToString());
+        }
        
 
     }
