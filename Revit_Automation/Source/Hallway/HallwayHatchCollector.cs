@@ -116,6 +116,9 @@ namespace Revit_Automation.Source.Hallway
 
             var internalPointGen = new InternalPointsGenerator(CurveLinesInternal);
 
+            // uncomment this in the final step
+            //var hatchRemover = new HatchRemover(ref mDocument);
+
             var hallwayGen = new HallwayGenerator(ref mDocument, externalPointGen.mExternalHallwayLines,internalPointGen.mInternalLines);
 
             //FileWriter.WriteInputListToFile(CurveLinesExternal, @"C:\temp\external_curve_lines");

@@ -97,6 +97,7 @@
     <Compile Include="Source\Hallway\HallwayManager.cs" />
     <Compile Include="Source\Hallway\HallwayUtils.cs" />
     <Compile Include="Source\Hallway\HatchBase.cs" />
+    <Compile Include="Source\Hallway\HatchRemover.cs" />
     <Compile Include="Source\Hallway\InternalHatch.cs" />
     <Compile Include="Source\Hallway\InternalPointsGenerator.cs" />
     <Compile Include="Source\Hallway\LineCollector.cs" />
