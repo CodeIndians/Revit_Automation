@@ -130,11 +130,10 @@ namespace Revit_Automation.Source.Hallway
                                     // add the lines to a list 
                                     List<InputLine> lines = new List<InputLine>() { firstRect[i], secondRect[j] };
 
-                                    isOverlap = true;
-
                                     // This means that the lines are overlapping
                                     if (LineUtils.GetIntersectIndex(pointsList[0],lines) != LineUtils.GetIntersectIndex(pointsList[1], lines))
                                     {
+                                        isOverlap = true;
                                         // form new lines with the sorted points
 
                                         firstRect[i] = new InputLine(pointsList[0], pointsList[1]);
