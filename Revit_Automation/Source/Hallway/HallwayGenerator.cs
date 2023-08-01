@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Revit_Automation.Source.Hallway
 {
-    internal class HallwayGenerator
+    public class HallwayGenerator
     {
         private List<InputLine> mExternalHallwayLines;
 
@@ -67,6 +67,8 @@ namespace Revit_Automation.Source.Hallway
             //generate the hallway hatch
             Generate();
 
+            HallwayTrimForm trimForm = new HallwayTrimForm(ref mDocument, mHorizontalLabelLines, mVerticalLabelLines);
+            trimForm.Show();
             
         }
 

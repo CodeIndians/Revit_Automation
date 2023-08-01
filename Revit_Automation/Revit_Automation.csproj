@@ -95,6 +95,12 @@
     <Compile Include="Source\Hallway\HallwayGroupSeparator.cs" />
     <Compile Include="Source\Hallway\ExternalHatch.cs" />
     <Compile Include="Source\Hallway\HallwayManager.cs" />
+    <Compile Include="Source\Hallway\HallwayTrimForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Source\Hallway\HallwayTrimForm.Designer.cs">
+      <DependentUpon>HallwayTrimForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="Source\Hallway\HallwayUtils.cs" />
     <Compile Include="Source\Hallway\HatchBase.cs" />
     <Compile Include="Source\Hallway\HatchRemover.cs" />
@@ -167,6 +173,9 @@
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Source\Hallway\HallwayTrimForm.resx">
+      <DependentUpon>HallwayTrimForm.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
