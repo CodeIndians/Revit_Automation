@@ -67,6 +67,7 @@ namespace Revit_Automation.Source.Hallway
             //generate the hallway hatch
             Generate();
 
+            // show the labels form 
             HallwayTrimForm trimForm = new HallwayTrimForm(ref mDocument, mHorizontalLabelLines, mVerticalLabelLines);
             trimForm.Show();
             

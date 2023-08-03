@@ -1,6 +1,7 @@
 ﻿using Autodesk.Revit.DB;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.IO;
 using System.Text;
 using static Revit_Automation.Source.Hallway.HallwayGenerator;
@@ -328,8 +329,39 @@ namespace Revit_Automation.Source.Hallway
             // Write the StringBuilder data to the file
             File.WriteAllText(filePath, sb.ToString());
         }
-       
 
+        public static void WriteDataTableToFile(DataTable dataTable, string filePath)
+        {
+            if (dataTable.Rows.Count == 0)
+                return;
+
+            // Create a StringBuilder to hold the CSV data
+            StringBuilder sb = new StringBuilder();
+
+            // Write the column headers to the StringBuilder
+            foreach (DataColumn column in dataTable.Columns)
+            {
+                sb.Append($"{column.ColumnName},");
+            }
+            sb.Length--; // Remove the trailing comma
+            sb.AppendLine(); // Move to the next line
+
+            // Write the data rows to the StringBuilder
+            foreach (DataRow row in dataTable.Rows)
+            {
+                foreach (var item in row.ItemArray)
+                {
+                    sb.Append($"{item},");
+                }
+                sb.Length--; // Remove the trailing comma
+                sb.AppendLine(); // Move to the next line
+            }
+
+            // Write the StringBuilder data to the file
+            File.WriteAllText(filePath, sb.ToString());
+
+        }
     }
+
 }
 

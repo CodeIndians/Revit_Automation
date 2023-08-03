@@ -95,6 +95,8 @@
     <Compile Include="Source\Hallway\HallwayGroupSeparator.cs" />
     <Compile Include="Source\Hallway\ExternalHatch.cs" />
     <Compile Include="Source\Hallway\HallwayManager.cs" />
+    <Compile Include="Source\Hallway\HallwayTrim.cs" />
+    <Compile Include="Source\Hallway\HallwayTrimData.cs" />
     <Compile Include="Source\Hallway\HallwayTrimForm.cs">
       <SubType>Form</SubType>
     </Compile>

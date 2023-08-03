@@ -366,6 +366,11 @@ namespace Revit_Automation
         }
     }
 
+
+    /// <summary>
+    /// This is actually the trim hallway lines option 
+    /// change this later
+    /// </summary>
     [Transaction(TransactionMode.Manual)]
     public class EditHatchForHallway : IExternalCommand
     {
@@ -374,6 +379,20 @@ namespace Revit_Automation
           ref string message,
           ElementSet elements)
         {
+            UIApplication uiapp = commandData.Application;
+            UIDocument uidoc = uiapp.ActiveUIDocument;
+            Document doc = uidoc.Document;
+
+            if(HallwayTrimData.Validate())
+            {
+
+            }
+            else
+            {
+                TaskDialog.Show("Error", "Hallway lines are not present");
+                return Result.Failed;
+            }
+
             return Result.Succeeded;
         }
     }

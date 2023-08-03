@@ -1,4 +1,5 @@
 ﻿using Autodesk.Revit.DB;
+using Autodesk.Revit.UI;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -21,13 +22,20 @@ namespace Revit_Automation.Source.Hallway
 
         private List<LabelLine> mVerticalLabelLines;
 
+
+
         public HallwayTrimForm( ref Document doc, List<LabelLine> horLabelLines, List<LabelLine> verLabelLines)
         {
             mDocument = doc;
 
+            //TODO . We can remove one of these
             mHorizontalLabelLines = horLabelLines;
 
             mVerticalLabelLines = verLabelLines;
+
+            HallwayTrimData.HorizontalLabelLines = horLabelLines;
+
+            HallwayTrimData.VerticalLabelLines = verLabelLines;
 
             InitializeComponent();
 
@@ -36,19 +44,73 @@ namespace Revit_Automation.Source.Hallway
             InitializeVerticalLinesGrid();
         }
 
+        /// <summary>
+        /// Trim Hallway Lines
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void button1_Click(object sender, EventArgs e)
         {
+            PopulateHallwayData();
 
+            if (HallwayTrimData.Validate())
+                this.Close();
+            else
+                MessageBox.Show("Validation failed");
+
+        }
+
+        private void PopulateHallwayData()
+        {
+            //TODO: add data validation 
+
+            HallwayTrimData.TrimDataHorizontal.Columns.Clear();
+            HallwayTrimData.TrimDataHorizontal.Rows.Clear();
+
+            // capture the horizontal labels
+            foreach (DataGridViewColumn column in dataGridView1.Columns)
+            {
+                HallwayTrimData.TrimDataHorizontal.Columns.Add(column.HeaderText, typeof(string));
+            }
+
+            foreach (DataGridViewRow row in dataGridView1.Rows)
+            {
+                DataRow newRow = HallwayTrimData.TrimDataHorizontal.NewRow();
+                foreach (DataGridViewCell cell in row.Cells)
+                {
+                    newRow[cell.ColumnIndex] = cell.Value;
+                }
+                HallwayTrimData.TrimDataHorizontal.Rows.Add(newRow);
+            }
+
+            HallwayTrimData.TrimDataVertical.Columns.Clear();
+            HallwayTrimData.TrimDataVertical.Rows.Clear();
+
+            // capture the vertical labels
+            foreach (DataGridViewColumn column in dataGridView2.Columns)
+            {
+                HallwayTrimData.TrimDataVertical.Columns.Add(column.HeaderText, typeof(string));
+            }
+
+            foreach (DataGridViewRow row in dataGridView2.Rows)
+            {
+                DataRow newRow = HallwayTrimData.TrimDataVertical.NewRow();
+                foreach (DataGridViewCell cell in row.Cells)
+                {
+                    newRow[cell.ColumnIndex] = cell.Value;
+                }
+                HallwayTrimData.TrimDataVertical.Rows.Add(newRow);
+            }
         }
 
         private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
-
+            // not implemented for now
         }
 
         private void dataGridView2_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
-
+            // not implemented for now
         }
 
         private void InitializeHorizontalLinesGrid()

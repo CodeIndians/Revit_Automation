@@ -143,18 +143,18 @@ namespace Revit_Automation
                    "Hallway2.png");
 
                 AddRevitCommand(HallWayRB,
-                   "HallWayEditHatch",
-                   "Edit Hatch \n Selected",
-                   "Revit_Automation.EditHatchForHallway",
-                   "DeleEditte Hatch at Rooms",
-                   "Hallway2.png");
-
-                AddRevitCommand(HallWayRB,
                    "HallwayLines",
                    "Draw HallWay \n Lines",
                    "Revit_Automation.DrawHallWayLines",
                    "Draw HallWay",
                    "Hallway.png");
+
+                AddRevitCommand(HallWayRB,
+                  "HallWayEditHatch",
+                  "Trim Hallway \n Lines",
+                  "Revit_Automation.EditHatchForHallway",
+                  "DeleEditte Hatch at Rooms",
+                  "Hallway2.png");
                 #endregion
 
                 return Result.Succeeded;
