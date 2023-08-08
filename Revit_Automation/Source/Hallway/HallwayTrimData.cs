@@ -35,12 +35,17 @@ namespace Revit_Automation.Source.Hallway
                     int top = int.Parse((row["Top"]).ToString());
                     int bottom = int.Parse((row["Bottom"]).ToString());
 
-                    if (top == 2 && bottom == 2)
+                    //if (top == 2 && bottom == 2)
+                    //    return false;
+                    //else if (top == 2 && bottom == 1)
+                    //    return false;
+                    //else if (top == 1 && bottom == 2)
+                    //    return false;
+
+                    // at any time, only one of them should be set
+                    if (top != 0 && bottom != 0)
                         return false;
-                    else if (top == 2 && bottom == 1)
-                        return false;
-                    else if (top == 1 && bottom == 2)
-                        return false;
+
                 }
 
                 foreach (DataRow row in TrimDataVertical.Rows)
@@ -48,11 +53,15 @@ namespace Revit_Automation.Source.Hallway
                     int left = int.Parse((row["Left"]).ToString());
                     int right = int.Parse((row["Right"]).ToString());
 
-                    if (left == 2 && right == 2)
-                        return false;
-                    else if (left == 2 && right == 1)
-                        return false;
-                    else if (left == 1 && right == 2)
+                    //if (left == 2 && right == 2)
+                    //    return false;
+                    //else if (left == 2 && right == 1)
+                    //    return false;
+                    //else if (left == 1 && right == 2)
+                    //    return false;
+
+                    // at any time, only one of them should be set
+                    if (left != 0 && right != 0)
                         return false;
                 }
 

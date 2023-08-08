@@ -385,7 +385,7 @@ namespace Revit_Automation
 
             if(HallwayTrimData.Validate())
             {
-
+                _ = new HallwayTrim(ref doc, HallwayTrimData.HorizontalLabelLines, HallwayTrimData.VerticalLabelLines);
             }
             else
             {

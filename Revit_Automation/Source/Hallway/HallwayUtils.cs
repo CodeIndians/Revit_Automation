@@ -5,6 +5,7 @@ using System.Data;
 using System.IO;
 using System.Text;
 using static Revit_Automation.Source.Hallway.HallwayGenerator;
+using static Revit_Automation.Source.Hallway.HallwayTrim;
 
 namespace Revit_Automation.Source.Hallway
 {
@@ -215,6 +216,48 @@ namespace Revit_Automation.Source.Hallway
             }
             return index;
         }
+
+        /// <summary>
+        /// check if the given line is horizontal
+        /// </summary>
+        /// <param name="line"></param>
+        /// <returns>true if horizontal, else false</returns>
+        public static bool IsLineHorizontal(Line line)
+        {
+            XYZ direction = line.Direction; // Get the direction of the line
+
+            // Define a threshold value for the Y-component to account for slight deviations from a perfectly horizontal line
+            double thresholdY = 0.01; // You can adjust this threshold based on your precision requirements
+
+            // Check if the Y-component of the direction vector is close to 0
+            if (Math.Abs(direction.Y) < thresholdY)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// check if the given line is vertical
+        /// </summary>
+        /// <param name="line"></param>
+        /// <returns>true if vertical, else false</returns>
+        public static bool IsLineVertical(Line line)
+        {
+            XYZ direction = line.Direction; // Get the direction of the line
+
+            // Define a threshold value for the X-component to account for slight deviations from a perfectly vertical line
+            double thresholdX = 0.01; // You can adjust this threshold based on your precision requirements
+
+            // Check if the X-component of the direction vector is close to 0
+            if (Math.Abs(direction.X) < thresholdX)
+            {
+                return true;
+            }
+
+            return false;
+        }
     }
 
     internal static class FileWriter
@@ -355,6 +398,25 @@ namespace Revit_Automation.Source.Hallway
                 }
                 sb.Length--; // Remove the trailing comma
                 sb.AppendLine(); // Move to the next line
+            }
+
+            // Write the StringBuilder data to the file
+            File.WriteAllText(filePath, sb.ToString());
+
+        }
+
+        public static void WriteTrimLineInfoToFile(List<TrimLineInfo> trimInfoList, string filePath)
+        {
+            // Create a StringBuilder to hold the CSV data
+            StringBuilder sb = new StringBuilder();
+
+            foreach(TrimLineInfo line in trimInfoList)
+            {
+                sb.AppendLine(line.mLabelLine.mLabel);
+                sb.AppendLine("\t" + "Intersecting Count: " + line.mIntersectingLines.Count.ToString());
+                sb.AppendLine("\t" + "Trim Type: " + line.mTrimType.ToString()) ;
+                sb.AppendLine("\t" + "Trim Value: " + line.mTrimValue.ToString()) ;
+                sb.AppendLine("\n");
             }
 
             // Write the StringBuilder data to the file
