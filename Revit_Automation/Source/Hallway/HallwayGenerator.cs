@@ -88,6 +88,9 @@ namespace Revit_Automation.Source.Hallway
 
                 foreach (var externalLine in circularSortedLines)
                 {
+                    if (PointUtils.AreAlmostEqual(externalLine.start, externalLine.end))
+                        continue;
+
                     // Create the lines for the bounding loop
                     Line line1 = Line.CreateBound(externalLine.start, externalLine.end);
 
