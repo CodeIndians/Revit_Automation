@@ -77,9 +77,9 @@ namespace Revit_Automation.Source.Hallway
             Generate();
 
 
-            FileWriter.WritePointListtoFile(mExternalHatchRects, @"C:\temp\external_rects");
-            FileWriter.WritePointListtoFile(mPoints, @"C:\temp\final_points");
-            FileWriter.WriteInputListToFile(mExternalLines, @"C:\temp\external_lines");
+            //FileWriter.WritePointListtoFile(mExternalHatchRects, @"C:\temp\external_rects");
+            //FileWriter.WritePointListtoFile(mPoints, @"C:\temp\final_points");
+            //FileWriter.WriteInputListToFile(mExternalLines, @"C:\temp\external_lines");
         }
 
         private bool Validate()
@@ -289,7 +289,7 @@ namespace Revit_Automation.Source.Hallway
             // sort the inner lists based on the X cordinate
             LineUtils.SortByXCoordinate(horizontalPointsGroup);
 
-            FileWriter.WritePointListtoFile(horizontalPointsGroup, @"C:\temp\horizontal_point_group");
+            //FileWriter.WritePointListtoFile(horizontalPointsGroup, @"C:\temp\horizontal_point_group");
 
             foreach (var pointList in horizontalPointsGroup)
             {
@@ -341,7 +341,7 @@ namespace Revit_Automation.Source.Hallway
             // filter the lines and join the lines after filtering them
             FilterAndJoinHorizontalLines(ref horizontalLines);
 
-            FileWriter.WriteInputListToFile(horizontalLines, @"C:\temp\horizontal_hallway_lines");
+            //FileWriter.WriteInputListToFile(horizontalLines, @"C:\temp\horizontal_hallway_lines");
 
             return horizontalLines;
         }
@@ -365,7 +365,7 @@ namespace Revit_Automation.Source.Hallway
             // sort the inner lists based on Y cordinate
             LineUtils.SortByYCoordinate(verticalPointsGroup);
 
-            FileWriter.WritePointListtoFile(verticalPointsGroup, @"C:\temp\vertical_point_group");
+            //FileWriter.WritePointListtoFile(verticalPointsGroup, @"C:\temp\vertical_point_group");
 
             foreach (var pointList in verticalPointsGroup)
             {
@@ -416,7 +416,7 @@ namespace Revit_Automation.Source.Hallway
                 FilterAndJoinVerticalLines(ref verticalLines);
             }
 
-            FileWriter.WriteInputListToFile(verticalLines, @"C:\temp\vertical_hallway_lines");
+            //FileWriter.WriteInputListToFile(verticalLines, @"C:\temp\vertical_hallway_lines");
 
             return verticalLines;
         }

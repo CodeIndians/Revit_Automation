@@ -233,8 +233,8 @@ namespace Revit_Automation.Source.Hallway
 
                 tx.Commit();
 
-                FileWriter.WriteLabelListtoFile(mHorizontalLabelLines, @"C:\temp\hor_labels");
-                FileWriter.WriteLabelListtoFile(mVerticalLabelLines, @"C:\temp\ver_labels");
+                //FileWriter.WriteLabelListtoFile(mHorizontalLabelLines, @"C:\temp\hor_labels");
+                //FileWriter.WriteLabelListtoFile(mVerticalLabelLines, @"C:\temp\ver_labels");
             }
 
         }
