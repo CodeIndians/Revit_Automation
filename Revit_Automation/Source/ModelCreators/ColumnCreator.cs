@@ -285,6 +285,7 @@ namespace Revit_Automation.Source.ModelCreators
                     _ = TaskDialog.Show(string.Format("The Family {0} couldn't be loaded or found"), inputLine.strStudGuage);
                 }
 
+                // This method is used by both DoubleStuds and 
                 if (!bDoubleStudOnCenter)
                 {
 
@@ -623,7 +624,7 @@ namespace Revit_Automation.Source.ModelCreators
             // Columns should point to low eve
             else
             {
-                XYZ SlopeDirection = GetRoofSlopeDirection(pt1);
+                XYZ SlopeDirection = RoofUtility.GetRoofSlopeDirection(pt1);
 
                 // The web outward normal should be in a direction of slope
                 if (MathUtils.IsParallel(SlopeDirection, newOrientation))
@@ -648,62 +649,7 @@ namespace Revit_Automation.Source.ModelCreators
             ElementTransformUtils.RotateElement(m_Document, columnID, axis, dAngle);
         }
 
-        private XYZ GetRoofSlopeDirection(XYZ pt1)
-        {
-            Logger.logMessage("Method : GetRoofSlopeDirection");
-
-            XYZ SlopeDirect = null;
-
-            RoofObject targetRoof;
-            targetRoof.slopeLine = null;
-
-            foreach (RoofObject roof in RoofUtility.colRoofs)
-            {
-                double Xmin, Xmax, Ymin, Ymax = 0.0;
-                Xmin = Math.Min(roof.max.X, roof.min.X);
-                Xmax = Math.Max(roof.max.X, roof.min.X);
-                Ymin = Math.Min(roof.max.Y, roof.min.Y);
-                Ymax = Math.Max(roof.max.Y, roof.min.Y);
-
-                if (pt1.X > Xmin && pt1.X < Xmax && pt1.Y > Ymin && pt1.Y < Ymax)
-                {
-                    targetRoof = roof;
-                    break;
-                }
-            }
-
-            //we are trying to intersect the point with extended roof
-            if (targetRoof.slopeLine == null)
-            {
-                foreach (RoofObject roof in RoofUtility.colExtendedRoofs)
-                {
-                    double Xmin, Xmax, Ymin, Ymax = 0.0;
-                    Xmin = Math.Min(roof.max.X, roof.min.X);
-                    Xmax = Math.Max(roof.max.X, roof.min.X);
-                    Ymin = Math.Min(roof.max.Y, roof.min.Y);
-                    Ymax = Math.Max(roof.max.Y, roof.min.Y);
-
-                    if (pt1.X > Xmin && pt1.X < Xmax && pt1.Y > Ymin && pt1.Y < Ymax)
-                    {
-                        targetRoof = roof;
-                        break;
-                    }
-                }
-            }
-
-            if (targetRoof.slopeLine != null)
-            {
-                Curve SlopeCurve = targetRoof.slopeLine;
-                XYZ start = SlopeCurve.GetEndPoint(0);
-                XYZ end = SlopeCurve.GetEndPoint(1);
-
-                XYZ slope = start.Z > end.Z ? (end - start) : (start - end);
-
-                SlopeDirect = new XYZ(slope.X, slope.Y, 0.0);
-            }
-
-            return SlopeDirect;
-        }
+        
 
         private Element GetRoofAtPoint(XYZ pt1)
         {

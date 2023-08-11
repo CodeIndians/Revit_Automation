@@ -144,5 +144,62 @@ namespace Revit_Automation.Source.Utils
                 }
             }
         }
+
+        public static XYZ GetRoofSlopeDirection(XYZ pt1)
+        {
+            Logger.logMessage("Method : GetRoofSlopeDirection");
+
+            XYZ SlopeDirect = null;
+
+            RoofObject targetRoof;
+            targetRoof.slopeLine = null;
+
+            foreach (RoofObject roof in RoofUtility.colRoofs)
+            {
+                double Xmin, Xmax, Ymin, Ymax = 0.0;
+                Xmin = Math.Min(roof.max.X, roof.min.X);
+                Xmax = Math.Max(roof.max.X, roof.min.X);
+                Ymin = Math.Min(roof.max.Y, roof.min.Y);
+                Ymax = Math.Max(roof.max.Y, roof.min.Y);
+
+                if (pt1.X > Xmin && pt1.X < Xmax && pt1.Y > Ymin && pt1.Y < Ymax)
+                {
+                    targetRoof = roof;
+                    break;
+                }
+            }
+
+            //we are trying to intersect the point with extended roof
+            if (targetRoof.slopeLine == null)
+            {
+                foreach (RoofObject roof in RoofUtility.colExtendedRoofs)
+                {
+                    double Xmin, Xmax, Ymin, Ymax = 0.0;
+                    Xmin = Math.Min(roof.max.X, roof.min.X);
+                    Xmax = Math.Max(roof.max.X, roof.min.X);
+                    Ymin = Math.Min(roof.max.Y, roof.min.Y);
+                    Ymax = Math.Max(roof.max.Y, roof.min.Y);
+
+                    if (pt1.X > Xmin && pt1.X < Xmax && pt1.Y > Ymin && pt1.Y < Ymax)
+                    {
+                        targetRoof = roof;
+                        break;
+                    }
+                }
+            }
+
+            if (targetRoof.slopeLine != null)
+            {
+                Curve SlopeCurve = targetRoof.slopeLine;
+                XYZ start = SlopeCurve.GetEndPoint(0);
+                XYZ end = SlopeCurve.GetEndPoint(1);
+
+                XYZ slope = start.Z > end.Z ? (end - start) : (start - end);
+
+                SlopeDirect = new XYZ(slope.X, slope.Y, 0.0);
+            }
+
+            return SlopeDirect;
+        }
     }
 }

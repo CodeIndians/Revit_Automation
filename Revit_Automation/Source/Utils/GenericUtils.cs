@@ -291,5 +291,64 @@ namespace Revit_Automation.Source.Utils
             }
             return SlopeDirect;
         }
+
+        public static void AdjustWallEndPoints(ref XYZ startpt, ref List<XYZ> middleIntersections, ref XYZ endPt, LineType linetype, PanelDirection panelDirection)
+        {
+            double dParam = 5.0 / (96.0 * 2.0);
+            List<XYZ> modifiedCollection = new List<XYZ>();
+            if (linetype == LineType.Horizontal && (panelDirection == PanelDirection.R || panelDirection == PanelDirection.U))
+            {
+                startpt = new XYZ(startpt.X, startpt.Y + dParam, startpt.Z);
+                endPt = new XYZ(endPt.X, endPt.Y + dParam, endPt.Z);
+
+                foreach (XYZ xyz in middleIntersections)
+                {
+                    XYZ temp = new XYZ(xyz.X, xyz.Y + dParam, xyz.Z);
+                    modifiedCollection.Add(temp);
+                }
+                middleIntersections.Clear();
+                middleIntersections = modifiedCollection;
+            }
+            if (linetype == LineType.Horizontal && (panelDirection == PanelDirection.L || panelDirection == PanelDirection.D))
+            {
+                startpt = new XYZ(startpt.X, startpt.Y - dParam, startpt.Z);
+                endPt = new XYZ(endPt.X, endPt.Y - dParam, endPt.Z);
+
+                foreach (XYZ xyz in middleIntersections)
+                {
+                    XYZ temp = new XYZ(xyz.X, xyz.Y - dParam, xyz.Z);
+                    modifiedCollection.Add(temp);
+                }
+                middleIntersections.Clear();
+                middleIntersections = modifiedCollection;
+            }
+            if (linetype == LineType.vertical && (panelDirection == PanelDirection.R || panelDirection == PanelDirection.U))
+            {
+                startpt = new XYZ(startpt.X + dParam, startpt.Y, startpt.Z);
+                endPt = new XYZ(endPt.X + dParam, endPt.Y, endPt.Z);
+
+                foreach (XYZ xyz in middleIntersections)
+                {
+                    XYZ temp = new XYZ(xyz.X + dParam, xyz.Y, xyz.Z);
+                    modifiedCollection.Add(temp);
+                }
+                middleIntersections.Clear();
+                middleIntersections = modifiedCollection;
+            }
+            if (linetype == LineType.vertical && (panelDirection == PanelDirection.L || panelDirection == PanelDirection.D))
+            {
+                startpt = new XYZ(startpt.X - dParam, startpt.Y, startpt.Z);
+                endPt = new XYZ(endPt.X - dParam, endPt.Y, endPt.Z);
+
+                foreach (XYZ xyz in middleIntersections)
+                {
+                    XYZ temp = new XYZ(xyz.X - dParam, xyz.Y, xyz.Z);
+                    modifiedCollection.Add(temp);
+                }
+                middleIntersections.Clear();
+                middleIntersections = modifiedCollection;
+            }
+
+        }
     }
 }

@@ -204,6 +204,7 @@ namespace Revit_Automation.Source.Preprocessors
             string strPanelDirection = "";
             string strLineDirection = "";
 
+            bool bTintersection = false;
             //Two wall lines are of same type and are either Fire, Insulation or Ex w/ Insulation
             if (lineToTrim.strWallType == lineToRemain.strWallType
                 && (lineToTrim.strWallType == "Fire" ||
@@ -211,7 +212,10 @@ namespace Revit_Automation.Source.Preprocessors
                     lineToTrim.strWallType == "Ex w/ Insulation")
                     )
             {
-                return 0.0;
+                bTintersection = CheckPanelsForTIntersection(lineToTrim, lineToRemain);
+
+                if (!bTintersection)
+                    return 0.0;
             }
 
             
@@ -251,6 +255,29 @@ namespace Revit_Automation.Source.Preprocessors
             }
 
             return dTrimDistance;
+        }
+
+        private bool CheckPanelsForTIntersection(InputLine lineToTrim, InputLine lineToRemain)
+        {
+
+            XYZ trimlineStart = null, trimlineEnd = null, RemainLineStart = null, RemainLineEnd = null;
+            GenericUtils.GetlineStartAndEndPoints(lineToTrim, out trimlineStart, out trimlineEnd);
+            GenericUtils.GetlineStartAndEndPoints(lineToRemain, out RemainLineStart, out RemainLineEnd);
+
+            // Get the line type
+            LineType TrimLineType = MathUtils.ApproximatelyEqual(trimlineStart.X , trimlineEnd.X) ? LineType.vertical : LineType.Horizontal;
+
+            if (TrimLineType == LineType.vertical)
+            {
+                if (Math.Abs(trimlineStart.X - RemainLineStart.X) > 1.0 && Math.Abs(trimlineStart.X - RemainLineEnd.X) > 1.0)
+                    return true;
+            }
+            else
+            {
+                if (Math.Abs(trimlineStart.Y - RemainLineStart.Y) > 1.0 && Math.Abs(trimlineStart.Y - RemainLineEnd.Y) > 1.0)
+                    return true;
+            }
+            return false;
         }
 
         private string GetTrimLineDirectionWrtContinuousLine(InputLine lineToRemain, InputLine lineToTrim)
@@ -311,6 +338,8 @@ namespace Revit_Automation.Source.Preprocessors
                     InputLineElem.LookupParameter("Cee Header Size")?.Set(iLine.strCHeaderSize);
                     InputLineElem.LookupParameter("Color")?.Set(iLine.strColor);
                     InputLineElem.LookupParameter("HSS Type")?.Set(iLine.strHSSType);
+                    InputLineElem.LookupParameter("Horizontal Panel Direction")?.Set(iLine.strHorizontalPanelDirection);
+                    InputLineElem.LookupParameter("Vertical Panelwdwdf Direction")?.Set(iLine.strVerticalPanelDirection);
                     InputLineElem.LookupParameter("Material")?.Set(iLine.strMaterial);
                     InputLineElem.LookupParameter("Panel Type")?.Set(iLine.strPanelType);
                     InputLineElem.LookupParameter("Partition Panel Gauge")?.Set(iLine.strPartitionPanelGuage);

@@ -22,6 +22,8 @@ namespace Revit_Automation.CustomTypes
         public string strCHeaderSize;
         public string strColor;
         public string strHSSType;
+        public string strHorizontalPanelDirection;
+        public string strVerticalPanelDirection;
         public string strPanelType;
         public string strMaterial;
         public string strPartitionPanelGuage;
@@ -112,6 +114,38 @@ namespace Revit_Automation.CustomTypes
         LBS = 2,
         NLBS = 1,
         NLB = 0
+    }
+
+    public enum PanelDirection
+    {
+        B = 0, // Both
+        L = 1, // Left
+        R = 2, // Right
+        U = 3, // Up 
+        D = 4 // Down
+    }
+
+    public enum SortingStrategy
+    {
+        PreferredLength = 0,
+        MaxLength = 1,
+        Partitions = 2,
+        MinimumJoints = 3
+    }
+    public enum LineRelations
+    {
+        StartExtendRight,
+        StartExtendLeft,
+        StartTrimRight,
+        StartTrimLeft,
+        StartTrimT,
+        EndExtendRight,
+        EndExtendLeft,
+        EndTrimRight,
+        EndTrimLeft,
+        EndTrimT,
+        NoStartIntersection,
+        NoEndIntersection
     }
 
 }

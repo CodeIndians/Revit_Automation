@@ -203,6 +203,8 @@ namespace Revit_Automation.Source.Preprocessors
                     InputLineElem.LookupParameter("Cee Header Size")?.Set(iLine.strCHeaderSize);
                     InputLineElem.LookupParameter("Color")?.Set(iLine.strColor);
                     InputLineElem.LookupParameter("HSS Type")?.Set(iLine.strHSSType);
+                    InputLineElem.LookupParameter("Horizontal Panel Direction")?.Set(iLine.strHorizontalPanelDirection);
+                    InputLineElem.LookupParameter("Vertical Panelwdwdf Direction")?.Set(iLine.strVerticalPanelDirection);
                     InputLineElem.LookupParameter("Material")?.Set(iLine.strMaterial);
                     InputLineElem.LookupParameter("Panel Type")?.Set(iLine.strPanelType);
                     InputLineElem.LookupParameter("Partition Panel Gauge")?.Set(iLine.strPartitionPanelGuage);

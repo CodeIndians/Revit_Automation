@@ -116,10 +116,13 @@ namespace Revit_Automation.Source
                 else
                 {
                     continue;
-                }  
+                }
 
-                iLine.startpoint = iLine.locationCurve.Curve.GetEndPoint(0);
-                iLine.endpoint = iLine.locationCurve.Curve.GetEndPoint(1);
+                XYZ pt1 = null, pt2 = null;
+                GenericUtils.GetlineStartAndEndPoints(locCurve, out pt1, out pt2);
+
+                iLine.startpoint = pt1;
+                iLine.endpoint = pt2;
 
                 iLine.id = locCurve.Id;
                 
@@ -200,6 +203,21 @@ namespace Revit_Automation.Source
                 }
                 tempParam = null;
 
+                //Panel Horizontal Direction
+                tempParam = locCurve.LookupParameter("Horizontal Panel Direction");
+                if (tempParam != null)
+                {
+                    iLine.strHorizontalPanelDirection = tempParam.AsString();
+                }
+                tempParam = null;
+                
+                // Panel Vertical Direction
+                tempParam = locCurve.LookupParameter("Vertical Panel Direction");
+                if (tempParam != null)
+                {
+                    iLine.strVerticalPanelDirection = tempParam.AsString();
+                }
+                tempParam = null;
                 // Material
                 tempParam = locCurve.LookupParameter("Material");
                 if (tempParam != null)
