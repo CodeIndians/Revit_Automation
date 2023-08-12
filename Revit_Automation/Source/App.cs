@@ -153,7 +153,21 @@ namespace Revit_Automation
                   "HallWayEditHatch",
                   "Trim Hallway \n Lines",
                   "Revit_Automation.EditHatchForHallway",
-                  "DeleEditte Hatch at Rooms",
+                  "Trim Hallway",
+                  "Hallway2.png");
+
+                AddRevitCommand(HallWayRB,
+                  "PlaceExternalHatch",
+                  "Place External \n Hatch at Selection",
+                  "Revit_Automation.PlaceExternalHatch",
+                  "Place external hatch",
+                  "Hallway2.png");
+
+                AddRevitCommand(HallWayRB,
+                  "PlaceInternalHatch",
+                  "Place Internal \n Hatch at Selection",
+                  "Revit_Automation.PlaceInternalHatch",
+                  "Place internal hatch",
                   "Hallway2.png");
                 #endregion
 

@@ -16,6 +16,9 @@ using Revit_Automation.Source;
 using Revit_Automation.Source.Hallway;
 using Revit_Automation.Source.Preprocessors;
 using Revit_Automation.Source.Utils;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Windows.Forms;
 
 #endregion
@@ -392,6 +395,52 @@ namespace Revit_Automation
                 TaskDialog.Show("Error", "Hallway lines are not present");
                 return Result.Failed;
             }
+
+            return Result.Succeeded;
+        }
+    }
+
+    /// <summary>
+    /// Place external hatch
+    /// </summary>
+    [Transaction(TransactionMode.Manual)]
+    public class PlaceExternalHatch : IExternalCommand
+    {
+        public Result Execute(
+          ExternalCommandData commandData,
+          ref string message,
+          ElementSet elements)
+        {
+            UIApplication uiapp = commandData.Application;
+            UIDocument uidoc = uiapp.ActiveUIDocument;
+            Document doc = uidoc.Document;
+
+            Selection selection = uidoc.Selection;
+
+            _ = new PlaceCustomHatch(ref doc, ref selection, true);
+
+            return Result.Succeeded;
+        }
+    }
+
+    /// <summary>
+    /// Place internal hatch
+    /// </summary>
+    [Transaction(TransactionMode.Manual)]
+    public class PlaceInternalHatch : IExternalCommand
+    {
+        public Result Execute(
+          ExternalCommandData commandData,
+          ref string message,
+          ElementSet elements)
+        {
+            UIApplication uiapp = commandData.Application;
+            UIDocument uidoc = uiapp.ActiveUIDocument;
+            Document doc = uidoc.Document;
+
+            Selection selection = uidoc.Selection;
+
+            _ = new PlaceCustomHatch(ref doc, ref selection, false);
 
             return Result.Succeeded;
         }

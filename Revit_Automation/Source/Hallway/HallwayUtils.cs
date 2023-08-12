@@ -99,6 +99,19 @@ namespace Revit_Automation.Source.Hallway
             return false;
         }
 
+        public static double GetLineLength(InputLine inputLine)
+        {
+            double length = 0;
+
+            if(InputLine.GetLineType(inputLine) == LineType.HORIZONTAL)
+                length =  Math.Abs(inputLine.start.X - inputLine.end.X);
+
+            if (InputLine.GetLineType(inputLine) == LineType.VERTICAL)
+                length = Math.Abs (inputLine.start.Y - inputLine.end.Y);
+
+            return length;
+        }
+
         public static bool AreLinesEqual(InputLine first, InputLine second)
         {
             double epsilon = 0.016;
