@@ -90,9 +90,27 @@ namespace Revit_Automation.Source.Hallway
                 PlaceHatchUsingLines(firstLine,secondLine);
 
             }
-            else if(mSelection == null)
+            // pick two points from the user 
+            else if(mSelection != null && mSelection.GetElementIds().Count == 0)
             {
-                
+                XYZ firstPoint = mSelection.PickPoint();
+
+                XYZ secondPoint = mSelection.PickPoint();
+
+                using (Transaction transaction = new Transaction(mDocument))
+                {
+                    transaction.Start("Creating custom hatch with points");
+
+                    CurveLoop loop = CreateRectangleCurveLoop(firstPoint, secondPoint);
+
+                    IList<CurveLoop> curveLoop = new List<CurveLoop>();
+                    curveLoop.Add(loop);
+
+                    FilledRegion hatchData = FilledRegion.Create(mDocument, hatchId, mDocument.ActiveView.Id, curveLoop);
+
+                    transaction.Commit();
+                }
+
             }
             else
             {
@@ -134,7 +152,7 @@ namespace Revit_Automation.Source.Hallway
 
             using (Transaction transaction = new Transaction(mDocument))
             {
-                transaction.Start("Creating Custom Hatch");
+                transaction.Start("Creating Custom Hatch with Lines");
 
                 CurveLoop loop = new CurveLoop();
 
@@ -216,6 +234,26 @@ namespace Revit_Automation.Source.Hallway
             return inputLine;
         }
 
+        // Function to create a rectangle CurveLoop from two diagonal points
+        CurveLoop CreateRectangleCurveLoop(XYZ point1, XYZ point2)
+        {
+            XYZ minPoint = new XYZ(Math.Min(point1.X, point2.X), Math.Min(point1.Y, point2.Y), point1.Z);
+            XYZ maxPoint = new XYZ(Math.Max(point1.X, point2.X), Math.Max(point1.Y, point2.Y), point2.Z);
+
+            CurveLoop curveLoop = new CurveLoop();
+
+            Line bottomLine = Line.CreateBound(new XYZ(minPoint.X, minPoint.Y, minPoint.Z), new XYZ(maxPoint.X, minPoint.Y, minPoint.Z));
+            Line rightLine = Line.CreateBound(new XYZ(maxPoint.X, minPoint.Y, minPoint.Z), new XYZ(maxPoint.X, maxPoint.Y, minPoint.Z));
+            Line topLine = Line.CreateBound(new XYZ(maxPoint.X, maxPoint.Y, minPoint.Z), new XYZ(minPoint.X, maxPoint.Y, minPoint.Z));
+            Line leftLine = Line.CreateBound(new XYZ(minPoint.X, maxPoint.Y, minPoint.Z), new XYZ(minPoint.X, minPoint.Y, minPoint.Z));
+
+            curveLoop.Append(bottomLine);
+            curveLoop.Append(rightLine);
+            curveLoop.Append(topLine);
+            curveLoop.Append(leftLine);
+
+            return curveLoop;
+        }
 
     }
 }
