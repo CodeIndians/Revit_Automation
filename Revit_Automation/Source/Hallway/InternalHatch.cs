@@ -62,6 +62,7 @@ namespace Revit_Automation.Source.Hallway
                     var firstLine = horizontalLines[0];
                     for(int i = 1; i < horizontalLines.Count; i++)
                     {
+                        // start and end points are matching 
                         if(Math.Abs(firstLine.start.X - horizontalLines[i].start.X) < precision && Math.Abs(firstLine.end.X - horizontalLines[i].end.X) < precision)
                         {
                             var first = firstLine;
@@ -82,6 +83,30 @@ namespace Revit_Automation.Source.Hallway
                             hatchPairs.Add(new Tuple<InputLine, InputLine>(first, second));
                             break;
                         }
+                        // either start or end is matching. create hatch on the sho
+                        else if(Math.Abs(firstLine.start.X - horizontalLines[i].start.X) < precision || Math.Abs(firstLine.end.X - horizontalLines[i].end.X) < precision)
+                        {
+                            var first = firstLine;
+                            var second = horizontalLines[i];
+
+                            // first line is larger 
+                            if(LineUtils.GetLineLength(first) > LineUtils.GetLineLength(second))
+                            {
+                                // shorten  the first line as per the second line 
+                                first.start = new XYZ(second.start.X, first.start.Y, first.start.Z);
+                                first.end = new XYZ(second.end.X, first.end.Y, first.end.Z);
+                            }
+                            // second line is larger
+                            else
+                            {
+                                // shorten  the second line as per the first line 
+                                second.start = new XYZ(first.start.X, second.start.Y, second.start.Z);
+                                second.end = new XYZ(first.end.X, second.end.Y, second.end.Z);
+                            }
+
+                            hatchPairs.Add(new Tuple<InputLine, InputLine>(first, second));
+                            break;
+                        }
                     }
                     horizontalLines.RemoveAt(0);
                 }
@@ -91,6 +116,7 @@ namespace Revit_Automation.Source.Hallway
                     var firstLine = verticaLines[0];
                     for (int i = 1; i < verticaLines.Count; i++)
                     {
+                        // start and end points are matching
                         if (Math.Abs(firstLine.start.Y - verticaLines[i].start.Y) < precision && Math.Abs(firstLine.end.Y - verticaLines[i].end.Y) < precision)
                         {
                             var first = firstLine;
@@ -107,6 +133,29 @@ namespace Revit_Automation.Source.Hallway
                                 first.end = new XYZ(firstLine.end.X, verticaLines[i].end.Y, firstLine.end.Z);
                             else if (firstLine.end.Y > verticaLines[i].end.Y)
                                 second.end = new XYZ(verticaLines[i].end.X, firstLine.end.Y, verticaLines[i].end.Z);
+
+                            hatchPairs.Add(new Tuple<InputLine, InputLine>(first, second));
+                            break;
+                        }
+                        //
+                        else if (Math.Abs(firstLine.start.Y - verticaLines[i].start.Y) < precision || Math.Abs(firstLine.end.Y - verticaLines[i].end.Y) < precision)
+                        {
+                            var first = firstLine;
+                            var second = verticaLines[i];
+                            // first line is larger 
+                            if (LineUtils.GetLineLength(first) > LineUtils.GetLineLength(second))
+                            {
+                                // shorten  the first line as per the second line 
+                                first.start = new XYZ(first.start.X, second.start.Y, first.start.Z);
+                                first.end = new XYZ(first.end.X, second.end.Y, first.end.Z);
+                            }
+                            // second line is larger
+                            else
+                            {
+                                // shorten  the second line as per the first line 
+                                second.start = new XYZ(second.start.X, first.start.Y, second.start.Z);
+                                second.end = new XYZ(second.end.X, first.end.Y, second.end.Z);
+                            }
 
                             hatchPairs.Add(new Tuple<InputLine, InputLine>(first, second));
                             break;
