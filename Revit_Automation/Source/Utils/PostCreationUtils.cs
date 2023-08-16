@@ -89,7 +89,7 @@ namespace Revit_Automation.Source.Utils
 
         }
 
-        private static void ComputeTopAndBaseLevels(InputLine inputLine, IOrderedEnumerable<Level> levels, out Level toplevel, out Level baselevel)
+        public static void ComputeTopAndBaseLevels(InputLine inputLine, IOrderedEnumerable<Level> levels, out Level toplevel, out Level baselevel)
         {
             toplevel = null;
             baselevel = null;

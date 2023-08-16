@@ -1,4 +1,4 @@
-﻿// This file is part of the  R A N O R E X  Project. | http://www.ranorex.com
+﻿
 
 using Revit_Automation.CustomTypes;
 using System;
@@ -53,9 +53,6 @@ namespace Revit_Automation.Source
 
                 s_PanelDirectionComputation = int.Parse(settings[10]);
 
-                // Row Corresponding to UNO Parameter
-                int tempUNORow = int.Parse(settings[11]);
-
                 // Panel at Hallway 
                 s_bPanelAtHallway = int.Parse(settings[12]);
 
@@ -73,7 +70,7 @@ namespace Revit_Automation.Source
                     while (j < panelSettings.Length - 1)
                     {
                         PanelTypeGlobalParams panel = new PanelTypeGlobalParams();
-                        panel.bIsUNO = (tempUNORow == rowNumber);
+                        panel.bIsUNO = bool.Parse(panelSettings[j++]);
                         panel.strWallName = panelSettings[j];
                         panel.iPanelGuage = double.Parse(panelSettings[j + 1]);
                         panel.iPanelClearance = double.Parse(panelSettings[j + 2]);

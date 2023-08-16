@@ -89,7 +89,7 @@ namespace Revit_Automation.Source.ModelCreators.Walls
                     }
                 }
 
-                GenericUtils.AdjustWallEndPoints(ref startpt, ref middleIntersections, ref endPt, linetype, i == 0 ? PanelDirection.R : PanelDirection.L);
+                GenericUtils.AdjustWallEndPoints(inputLine, ref startpt, ref middleIntersections, ref endPt, linetype, i == 0 ? PanelDirection.R : PanelDirection.L);
 
                 wallEndPointsCollection.Add(startpt);
                 wallEndPointsCollection.AddRange(middleIntersections);

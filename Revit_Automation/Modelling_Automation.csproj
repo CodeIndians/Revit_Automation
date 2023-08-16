@@ -59,6 +59,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.DirectoryServices" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
@@ -114,6 +115,7 @@
     <Compile Include="Source\Utils\GridCollector.cs" />
     <Compile Include="Source\Utils\InputLineUtility.cs" />
     <Compile Include="Source\Interfaces\CreationInterfaces.cs" />
+    <Compile Include="Source\Utils\LevelCollector.cs" />
     <Compile Include="Source\Utils\Logger.cs" />
     <Compile Include="Source\Utils\MathUtils.cs" />
     <Compile Include="Source\ModelCreators\ModelCreator.cs" />
@@ -127,6 +129,7 @@
     <Compile Include="Source\Utils\RoofUtility.cs" />
     <Compile Include="Source\Utils\SymbolCollector.cs" />
     <Compile Include="Source\Interfaces\ValidationInterface.cs" />
+    <Compile Include="Source\Utils\PanelUtils.cs" />
     <Compile Include="Source\Utils\WarningSwallowers.cs" />
   </ItemGroup>
   <ItemGroup>

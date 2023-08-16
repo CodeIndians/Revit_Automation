@@ -1,4 +1,4 @@
-﻿// This file is part of the  R A N O R E X  Project. | http://www.ranorex.com
+﻿
 
 using Autodesk.Revit.DB;
 using System;

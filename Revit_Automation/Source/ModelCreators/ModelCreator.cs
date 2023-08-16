@@ -26,6 +26,7 @@ namespace Revit_Automation
     /// </summary>
     public class ModelCreator
     {
+        public static IOrderedEnumerable<Level> levels = null;
         /// <summary>
         /// Creates the model based on the input lines provided in the document
         /// </summary>
@@ -63,7 +64,7 @@ namespace Revit_Automation
             //Create The logger Object
             Logger.CreateLogFile();
 
-            IOrderedEnumerable<Level> levels = null;
+            
             try
             {
                 // 1. Identify the roof slopes
@@ -118,7 +119,7 @@ namespace Revit_Automation
             try
             {
                 // 7. Input Lines to be collected
-                InputLineUtility.GatherInputLines(doc, bSelected, selection, commandCode);
+                InputLineUtility.GatherInputLines(doc, selection, commandCode);
 
                 if (InputLineUtility.colInputLines.Count == 0)
                     return;

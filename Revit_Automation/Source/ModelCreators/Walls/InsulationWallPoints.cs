@@ -1,4 +1,5 @@
 ﻿using Autodesk.Revit.DB;
+using Autodesk.Revit.DB.Visual;
 using Revit_Automation.CustomTypes;
 using Revit_Automation.Source.Interfaces;
 using Revit_Automation.Source.Utils;
@@ -90,16 +91,43 @@ namespace Revit_Automation.Source.ModelCreators.Walls
                     }
                 }
 
-                GenericUtils.AdjustWallEndPoints(ref startpt, ref middleIntersections, ref endPt, linetype, i == 0 ? PanelDirection.R : PanelDirection.L);
+                GenericUtils.AdjustWallEndPoints(inputLine, ref startpt, ref middleIntersections, ref endPt, linetype, i == 0 ? PanelDirection.R : PanelDirection.L);
+
+                if (inputLine.strPanelType == "Flat Panel")
+                {
+                    XYZ AdditionVector = null;
+                    double dPanelPreferredLength = GetPanelPreferredLength(inputLine);
+
+                    if (linetype == LineType.Horizontal)
+                        AdditionVector = new XYZ(dPanelPreferredLength, 0, 0);
+                    else
+                        AdditionVector = new XYZ(0, dPanelPreferredLength, 0);
+
+                    XYZ middlePoint = startpt;
+                    
+                    while (true)
+                    {
+                        middlePoint = middlePoint + AdditionVector;
+
+                        if ((linetype == LineType.Horizontal && middlePoint.X < endPt.X) ||
+                            (linetype == LineType.vertical && middlePoint.Y < endPt.Y))
+                        {
+                            // Add middle point 2 times, the processing order is
+                            // 1-2, 2-3, 3-4, 4-5, and so on
+                            middleIntersections.Add(middlePoint);
+                            middleIntersections.Add(middlePoint);
+                        }
+                        else
+                            break;
+                    }
+                   
+                }
 
                 wallEndPointsCollection.Add(startpt);
                 wallEndPointsCollection.AddRange(middleIntersections);
                 wallEndPointsCollection.Add(endPt);
 
                 double dHourRate = GetHourRate(inputLine);
-
-                AddPanelsPointsAsPerHourRate(startpt, middleIntersections, endPt,
-                                             ref wallEndPointsCollection, linetype, i == 0 ? PanelDirection.R : PanelDirection.L, dHourRate);
             }
 
             AddStudsIfNeeded();
@@ -629,86 +657,22 @@ namespace Revit_Automation.Source.ModelCreators.Walls
                             GlobalSettings.lstPanelParams.Find(panelParams => panelParams.bIsUNO == true) :
                             GlobalSettings.lstPanelParams.Find(panelParams => panelParams.strWallName == line.strPanelType);
 
-            double hourrate = (pg.iPanelHourRate == 0 ? 1 : pg.iPanelHourRate) * (5.0 / 96.0);
+            // Get Panel Thickness
+            double dPanelthickness = GenericUtils.GetPanelWidth(line);
+            double hourrate = (pg.iPanelHourRate == 0 ? 1 : pg.iPanelHourRate) * (dPanelthickness);
 
             return hourrate;
         }
 
-        private void AddPanelsPointsAsPerHourRate(XYZ startpt, List<XYZ> middleIntersections, XYZ endPt, ref List<XYZ> wallEndPointsCollection, LineType linetype, PanelDirection panelDirection, double dHourRate)
+        private double GetPanelPreferredLength (InputLine line)
         {
-            double dParam = 5.0 / 96.0;
+            PanelTypeGlobalParams pg = string.IsNullOrEmpty(line.strPanelType) ?
+                            GlobalSettings.lstPanelParams.Find(panelParams => panelParams.bIsUNO == true) :
+                            GlobalSettings.lstPanelParams.Find(panelParams => panelParams.strWallName == line.strPanelType);
 
-            XYZ AddY = new XYZ(0, dParam, 0);
-            XYZ AddX = new XYZ(dParam, 0, 0);
-            XYZ SubY = new XYZ(0, -dParam, 0);
-            XYZ SubX = new XYZ(-dParam, 0, 0);
+            double dPanelPreferredLength = pg.iPanelPreferredLength;
 
-            for (int i = 1; i < dHourRate; i++)
-            {
-                List<XYZ> modifiedCollection = new List<XYZ>();
-
-                if (linetype == LineType.Horizontal && panelDirection == PanelDirection.R)
-                {
-                    startpt = new XYZ(startpt.X, startpt.Y + dParam, startpt.Z);
-                    endPt = new XYZ(endPt.X, endPt.Y + dParam, endPt.Z);
-
-                    foreach (XYZ xyz in middleIntersections)
-                    {
-                        XYZ temp = new XYZ(xyz.X, xyz.Y + dParam, xyz.Z);
-                        modifiedCollection.Add(temp);
-                    }
-                    middleIntersections.Clear();
-                    middleIntersections.AddRange(modifiedCollection);
-                    modifiedCollection.Clear();
-                }
-                if (linetype == LineType.Horizontal && panelDirection == PanelDirection.L)
-                {
-                    startpt = new XYZ(startpt.X, startpt.Y - dParam, startpt.Z);
-                    endPt = new XYZ(endPt.X, endPt.Y - dParam, endPt.Z);
-
-                    foreach (XYZ xyz in middleIntersections)
-                    {
-                        XYZ temp = new XYZ(xyz.X, xyz.Y - dParam, xyz.Z);
-                        modifiedCollection.Add(temp);
-                    }
-                    middleIntersections.Clear();
-                    middleIntersections.AddRange(modifiedCollection);
-                    modifiedCollection.Clear();
-
-                }
-                if (linetype == LineType.vertical && panelDirection == PanelDirection.R)
-                {
-                    startpt = new XYZ(startpt.X + dParam, startpt.Y, startpt.Z);
-                    endPt = new XYZ(endPt.X + dParam, endPt.Y, endPt.Z);
-
-                    foreach (XYZ xyz in middleIntersections)
-                    {
-                        XYZ temp = new XYZ(xyz.X + dParam, xyz.Y, xyz.Z);
-                        modifiedCollection.Add(temp);
-                    }
-                    middleIntersections.Clear();
-                    middleIntersections.AddRange(modifiedCollection);
-                    modifiedCollection.Clear();
-                }
-                if (linetype == LineType.vertical && panelDirection == PanelDirection.L)
-                {
-                    startpt = new XYZ(startpt.X - dParam, startpt.Y, startpt.Z);
-                    endPt = new XYZ(endPt.X - dParam, endPt.Y, endPt.Z);
-
-                    foreach (XYZ xyz in middleIntersections)
-                    {
-                        XYZ temp = new XYZ(xyz.X - dParam, xyz.Y, xyz.Z);
-                        modifiedCollection.Add(temp);
-                    }
-                    middleIntersections.Clear();
-                    middleIntersections.AddRange(modifiedCollection);
-                    modifiedCollection.Clear();
-                }
-
-                wallEndPointsCollection.Add(startpt);
-                wallEndPointsCollection.AddRange(middleIntersections);
-                wallEndPointsCollection.Add(endPt);
-            }
+            return dPanelPreferredLength;
         }
     }
 }

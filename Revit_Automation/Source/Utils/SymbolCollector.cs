@@ -143,5 +143,26 @@ namespace Revit_Automation
 
             return wallType;
         }
+
+        public static List<string> GetCeeHeaders()
+        {
+            List<string> headers = new List<string>();
+
+            FamilySymbol familySymbol = null;
+            FilteredElementCollector genericLineCollection = new FilteredElementCollector(m_Document);
+
+            genericLineCollection.OfClass(typeof(FamilySymbol))
+                    .OfCategory(BuiltInCategory.OST_StructuralFraming);
+
+            foreach (FamilySymbol famSymbol in genericLineCollection)
+            {
+                if (famSymbol.FamilyName == "Cee Header")
+                {
+                    headers.Add(famSymbol.Name);
+                }
+            }
+
+            return headers;
+        }
     }
 }

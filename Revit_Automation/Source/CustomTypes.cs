@@ -9,52 +9,52 @@ namespace Revit_Automation.CustomTypes
     /// </summary>
     public struct InputLine
     {
-        public LocationCurve locationCurve;
-        public XYZ startpoint;
-        public XYZ endpoint;
-        public ElementId id;
-        public string strAdditionalPanelGuage;
-        public string strAdditionalPanel;
-        public string strBeamSize;
-        public string strBracing;
-        public string strCHeaderGuage;
-        public string strCHeaderQuantity;
-        public string strCHeaderSize;
-        public string strColor;
-        public string strHSSType;
-        public string strHorizontalPanelDirection;
-        public string strVerticalPanelDirection;
-        public string strPanelType;
-        public string strMaterial;
-        public string strPartitionPanelGuage;
-        public string strRoofSystem;
-        public string strRowName;
-        public string strColorDoorHeader;
-        public string strT62Guage;
-        public string strT62Type;
-        public string strStudGuage;
-        public string strStudType;
-        public string strWallType;
-        public string strTopTrackGuage;
-        public string strTopTrackSize;
-        public string strBottomTrackGuage;
-        public string strBottomTrackSize;
-        public string strBottomTrackPunch;
-        public string strBuildingName;
-        public string strDoubleStudType;
-        public string strMaterialType;
-        public int dFlangeOfset;
-        public int dPartitionPanelEachSide;
-        public double dOnCenter;
-        public double dPanelOffsetHeight;
-        public double dMaterialThickness;
-        public double dMaterialHeight;
-        public double dHSSHeight;
-        public double dParapetHeight;
-        public DirectionWithRespectToRoofSlope dirWRTRoofSlope;
-        public List<XYZ> gridIntersectionPoints;
-        public List<XYZ> mainGridIntersectionPoints;
-        public bool bLineExtendedOrTrimmed;
+        public LocationCurve locationCurve { get; set; }
+        public XYZ startpoint { get; set; }
+        public XYZ endpoint { get; set; }
+        public ElementId id { get; set; }
+        public string strAdditionalPanelGuage { get; set; }
+        public string strAdditionalPanel { get; set; }
+        public string strBeamSize { get; set; }
+        public string strBracing { get; set; }
+        public string strCHeaderGuage { get; set; }
+        public string strCHeaderQuantity { get; set; }
+        public string strCHeaderSize { get; set; }
+        public string strColor { get; set; }
+        public string strHSSType { get; set; }
+        public string strHorizontalPanelDirection { get; set; }
+        public string strVerticalPanelDirection { get; set; }
+        public string strPanelType { get; set; }
+        public string strMaterial { get; set; }
+        public string strPartitionPanelGuage { get; set; }
+        public string strRoofSystem { get; set; }
+        public string strRowName { get; set; }
+        public string strColorDoorHeader { get; set; }
+        public string strT62Guage { get; set; }
+        public string strT62Type { get; set; }
+        public string strStudGuage { get; set; }
+        public string strStudType { get; set; }
+        public string strWallType { get; set; }
+        public string strTopTrackGuage { get; set; }
+        public string strTopTrackSize { get; set; }
+        public string strBottomTrackGuage { get; set; }
+        public string strBottomTrackSize { get; set; }
+        public string strBottomTrackPunch { get; set; }
+        public string strBuildingName { get; set; }
+        public string strDoubleStudType { get; set; }
+        public string strMaterialType { get; set; }
+        public int dFlangeOfset { get; set; }
+        public int dPartitionPanelEachSide { get; set; }
+        public double dOnCenter { get; set; }
+        public double dPanelOffsetHeight { get; set; }
+        public double dMaterialThickness { get; set; }
+        public double dMaterialHeight { get; set; }
+        public double dHSSHeight { get; set; }
+        public double dParapetHeight { get; set; }
+        public DirectionWithRespectToRoofSlope dirWRTRoofSlope { get; set; }
+        public List<XYZ> gridIntersectionPoints { get; set; }
+        public List<XYZ> mainGridIntersectionPoints { get; set; }
+        public bool bLineExtendedOrTrimmed { get; set; }
     }
 
     public struct FloorObject

@@ -292,9 +292,9 @@ namespace Revit_Automation.Source.Utils
             return SlopeDirect;
         }
 
-        public static void AdjustWallEndPoints(ref XYZ startpt, ref List<XYZ> middleIntersections, ref XYZ endPt, LineType linetype, PanelDirection panelDirection)
+        public static void AdjustWallEndPoints(InputLine inputLine,ref XYZ startpt, ref List<XYZ> middleIntersections, ref XYZ endPt, LineType linetype, PanelDirection panelDirection)
         {
-            double dParam = 5.0 / (96.0 * 2.0);
+            double dParam = GenericUtils.GetPanelWidth(inputLine) ;
             List<XYZ> modifiedCollection = new List<XYZ>();
             if (linetype == LineType.Horizontal && (panelDirection == PanelDirection.R || panelDirection == PanelDirection.U))
             {
@@ -349,6 +349,20 @@ namespace Revit_Automation.Source.Utils
                 middleIntersections = modifiedCollection;
             }
 
+        }
+
+        internal static double GetPanelWidth(InputLine inputLine)
+        {
+            double dPanelThickness = 1.0/16.0; //  (3/4" to be default)
+
+            PanelTypeGlobalParams pg = string.IsNullOrEmpty(inputLine.strPanelType) ?
+                           GlobalSettings.lstPanelParams.Find(panelParams => panelParams.bIsUNO == true) :
+                           GlobalSettings.lstPanelParams.Find(panelParams => panelParams.strWallName == inputLine.strPanelType);
+
+            WallType wallType = SymbolCollector.GetWall(pg.strWallName, "Basic Wall");
+
+            if (wallType == null) { dPanelThickness = wallType.Width; }
+            return dPanelThickness;
         }
     }
 }

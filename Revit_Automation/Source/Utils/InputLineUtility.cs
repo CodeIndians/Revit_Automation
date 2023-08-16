@@ -59,13 +59,13 @@ namespace Revit_Automation.Source
         /// </summary>
         /// <param name="doc"> Pointer to the Active document</param>
         /// 
-        public static void GatherInputLines(Document doc, bool bSelected, Selection selection, CommandCode commandcode, bool bComputeRoofSlope = true)
+        public static void GatherInputLines(Document doc, Selection selection, CommandCode commandcode, bool bComputeRoofSlope = true)
         {
             colInputLines?.Clear();
 
             FilteredElementCollector locationCurvedCol = null;
 
-            if (!bSelected)
+            if (selection?.GetElementIds().Count == 0)
             {
                 locationCurvedCol
                   = new FilteredElementCollector(doc)

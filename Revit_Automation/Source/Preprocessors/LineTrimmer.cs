@@ -1,4 +1,4 @@
-﻿// This file is part of the  R A N O R E X  Project. | http://www.ranorex.com
+﻿
 
 using Autodesk.Revit.DB.Structure;
 using Autodesk.Revit.DB;
@@ -44,7 +44,7 @@ namespace Revit_Automation.Source.Preprocessors
             {
 
                 // Gather all Input Lines
-                InputLineUtility.GatherInputLines(m_Document, m_bProcessSelected, m_Selection, CommandCode.Posts, false);
+                InputLineUtility.GatherInputLines(m_Document, m_Selection, CommandCode.Posts, false);
 
                 if (InputLineUtility.colInputLines.Count == 0)
                     return;
@@ -204,6 +204,10 @@ namespace Revit_Automation.Source.Preprocessors
             string strPanelDirection = "";
             string strLineDirection = "";
 
+            // For exterior walls we will not place any panels, so panel trim is zero
+            if (lineToRemain.strWallType == "Ex")
+                return 0.0;
+                
             bool bTintersection = false;
             //Two wall lines are of same type and are either Fire, Insulation or Ex w/ Insulation
             if (lineToTrim.strWallType == lineToRemain.strWallType
@@ -260,9 +264,8 @@ namespace Revit_Automation.Source.Preprocessors
         private bool CheckPanelsForTIntersection(InputLine lineToTrim, InputLine lineToRemain)
         {
 
-            XYZ trimlineStart = null, trimlineEnd = null, RemainLineStart = null, RemainLineEnd = null;
-            GenericUtils.GetlineStartAndEndPoints(lineToTrim, out trimlineStart, out trimlineEnd);
-            GenericUtils.GetlineStartAndEndPoints(lineToRemain, out RemainLineStart, out RemainLineEnd);
+            XYZ trimlineStart = lineToTrim.startpoint, trimlineEnd = lineToTrim.endpoint, 
+                RemainLineStart = lineToRemain.startpoint, RemainLineEnd = lineToRemain.endpoint;
 
             // Get the line type
             LineType TrimLineType = MathUtils.ApproximatelyEqual(trimlineStart.X , trimlineEnd.X) ? LineType.vertical : LineType.Horizontal;

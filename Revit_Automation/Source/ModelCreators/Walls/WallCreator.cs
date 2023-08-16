@@ -34,6 +34,12 @@ namespace Revit_Automation.Source.ModelCreators
 
         public void CreateModel(List<CustomTypes.InputLine> colInputLines, IOrderedEnumerable<Level> levels)
         {
+            using (Transaction stx = new Transaction(m_Document))
+            {
+                PanelUtils panelUtils = new PanelUtils(m_Document);
+                panelUtils.ComputePanelDirectionForExteriorPanels();
+            }
+
             using (Transaction tx = new Transaction(m_Document))
             {
                 GenericUtils.SupressWarningsInTransaction(tx);
@@ -214,6 +220,8 @@ namespace Revit_Automation.Source.ModelCreators
                     insulationWallPoints.ComputeEndPoints(m_Document, inputLine, rightPanelIntersection, leftPanelIntersections, endPanelIntersections, ref wallEndPointsCollection);
                     break;
                 case "Ex w/ Insulation":
+                    ExteriorInsulationWallPoints exteriorInsulationWallPoints = new ExteriorInsulationWallPoints();
+                    exteriorInsulationWallPoints.ComputeEndPoints(m_Document, inputLine, rightPanelIntersection, leftPanelIntersections, endPanelIntersections, ref wallEndPointsCollection);
                     break;
                 case "LB":
                 case "LBS":
@@ -465,7 +473,7 @@ namespace Revit_Automation.Source.ModelCreators
                 XYZ SlopeDirection = RoofUtility.GetRoofSlopeDirection(pt1);
 
                 //if Panel Direction Computation is automatic and Line is perpendicular to slope determine direction
-                if ((GlobalSettings.s_PanelDirectionComputation == 0) && !(MathUtils.IsParallel(SlopeDirection, lineOrientation)))
+                if ((GlobalSettings.s_PanelDirectionComputation == 0) && !(MathUtils.IsParallel(SlopeDirection, lineOrientation)) && SlopeDirection != null )
                 {
                     if (lineType == LineType.Horizontal && SlopeDirection.Y < 0)
                         panelDirection = PanelDirection.D;
@@ -541,7 +549,7 @@ namespace Revit_Automation.Source.ModelCreators
                 XYZ SlopeDirection = RoofUtility.GetRoofSlopeDirection(pt1);
 
                 //if Panel Direction Computation is automatic and Line is perpendicular to slope determine direction
-                if ((GlobalSettings.s_PanelDirectionComputation == 0) && !(MathUtils.IsParallel(SlopeDirection, lineOrientation)))
+                if ((GlobalSettings.s_PanelDirectionComputation == 0) && !(MathUtils.IsParallel(SlopeDirection, lineOrientation)) && SlopeDirection != null)
                 {
                     if (lineType == LineType.Horizontal && SlopeDirection.Y < 0)
                         panelDirection = PanelDirection.D;

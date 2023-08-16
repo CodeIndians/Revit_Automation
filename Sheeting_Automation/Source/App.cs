@@ -1,4 +1,4 @@
-﻿// This file is part of the  R A N O R E X  Project. | http://www.ranorex.com
+﻿
 
 /* Copyright (C) 2023 - CodeIndian Technologies  - All Rights Reserved
  * No part of this file should be copied, distributed or modified without

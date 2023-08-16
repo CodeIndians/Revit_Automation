@@ -15,7 +15,9 @@ using Revit_Automation.Dialogs;
 using Revit_Automation.Source;
 using Revit_Automation.Source.Preprocessors;
 using Revit_Automation.Source.Utils;
+using System.Linq;
 using System.Windows.Forms;
+using System.Windows.Media.Media3D;
 
 #endregion
 
@@ -87,35 +89,6 @@ namespace Revit_Automation
     }
 
     [Transaction(TransactionMode.Manual)]
-    public class PostsAtSelectedLines : IExternalCommand
-    {
-        public Result Execute(
-          ExternalCommandData commandData,
-          ref string message,
-          ElementSet elements)
-        {
-
-            UIApplication uiapp = commandData.Application;
-
-            PrepareCommandClass.PrepareCommand(commandData);
-
-            Form1 form = new Form1
-            {
-                StartPosition = FormStartPosition.CenterScreen
-            };
-            //form.TopMost= true;
-            _ = form.ShowDialog();
-
-            if (form.CanCreateModel)
-            {
-                ModelCreator.CreateModel(uiapp, form, true, CommandCode.Posts);
-            }
-
-            return Result.Succeeded;
-        }
-    }
-
-    [Transaction(TransactionMode.Manual)]
     public class PanelsAtAllLines : IExternalCommand
     {
         public Result Execute(
@@ -143,32 +116,7 @@ namespace Revit_Automation
         }
     }
 
-    [Transaction(TransactionMode.Manual)]
-    public class PanelsAtSelectedLines : IExternalCommand
-    {
-        public Result Execute(
-          ExternalCommandData commandData,
-          ref string message,
-          ElementSet elements)
-        {
-            UIApplication uiapp = commandData.Application;
-            PrepareCommandClass.PrepareCommand(commandData);
 
-            Form1 form = new Form1
-            {
-                StartPosition = FormStartPosition.CenterScreen
-            };
-            //form.TopMost= true;
-            _ = form.ShowDialog();
-
-            if (form.CanCreateModel)
-            {
-                ModelCreator.CreateModel(uiapp, form, true, CommandCode.Walls);
-            }
-
-            return Result.Succeeded;
-        }
-    }
     [Transaction(TransactionMode.Manual)]
     public class BTAtAllLines : IExternalCommand
     {
@@ -196,35 +144,6 @@ namespace Revit_Automation
             return Result.Succeeded;
         }
     }
-
-    [Transaction(TransactionMode.Manual)]
-    public class BTAtSelectedLines : IExternalCommand
-    {
-        public Result Execute(
-          ExternalCommandData commandData,
-          ref string message,
-          ElementSet elements)
-        {
-            UIApplication uiapp = commandData.Application;
-
-            PrepareCommandClass.PrepareCommand(commandData);
-
-            Form1 form = new Form1
-            {
-                StartPosition = FormStartPosition.CenterScreen
-            };
-            //form.TopMost= true;
-            _ = form.ShowDialog();
-
-            if (form.CanCreateModel)
-            {
-                ModelCreator.CreateModel(uiapp, form, true, CommandCode.BottomTracks);
-            }
-
-            return Result.Succeeded;
-        }
-    }
-
 
     [Transaction(TransactionMode.Manual)]
     public class ProjectSettings : IExternalCommand
@@ -255,6 +174,7 @@ namespace Revit_Automation
             
             SymbolCollector.CollectWallSymbols(doc);
             InputLineUtility.GatherWallTypesFromInputLines(doc);
+            LevelCollector.FindAndSortLevels(doc);
 
             ProjectProperties form = new ProjectProperties()
             {
@@ -268,7 +188,7 @@ namespace Revit_Automation
     }
 
     [Transaction(TransactionMode.Manual)]
-    public class PreProcessAllLines : IExternalCommand
+    public class ExtendLines : IExternalCommand
     {
         public Result Execute(
           ExternalCommandData commandData,
@@ -287,18 +207,15 @@ namespace Revit_Automation
                 StartPosition = FormStartPosition.CenterScreen
             };
 
-            LineExtender lineExtender = new LineExtender(doc, form, false);
+            LineExtender lineExtender = new LineExtender(doc, form, false, selection);
             lineExtender.Preprocess();
-
-            LineTrimmer lineTrimmer = new LineTrimmer(doc, form, false);
-            lineTrimmer.Preprocess();
 
             return Result.Succeeded;
         }
     }
 
     [Transaction(TransactionMode.Manual)]
-    public class PreProcessSelectedLines : IExternalCommand
+    public class TrimLines : IExternalCommand
     {
         public Result Execute(
           ExternalCommandData commandData,
@@ -317,10 +234,7 @@ namespace Revit_Automation
                 StartPosition = FormStartPosition.CenterScreen
             };
 
-            LineExtender lineExtender = new LineExtender(doc, form, true, selection);
-            lineExtender.Preprocess();
-
-            LineTrimmer lineTrimmer = new LineTrimmer(doc, form, true, selection);
+            LineTrimmer lineTrimmer = new LineTrimmer(doc, form, false, selection);
             lineTrimmer.Preprocess();
 
             return Result.Succeeded;
@@ -359,6 +273,32 @@ namespace Revit_Automation
           ref string message,
           ElementSet elements)
         {
+            return Result.Succeeded;
+        }
+    }
+
+    [Transaction(TransactionMode.Manual)]
+    public class PostProperties : IExternalCommand
+    {
+        public Result Execute(
+          ExternalCommandData commandData,
+          ref string message,
+          ElementSet elements)
+        {
+
+            UIApplication uiapp = commandData.Application;
+            UIDocument uidoc = uiapp.ActiveUIDocument;
+            Document doc = uidoc.Document;
+            Selection selection = uidoc.Selection;
+
+
+            Element post = doc.GetElement(selection.GetElementIds().First());
+
+            Parameter rightHeightParam = post.LookupParameter("Height");
+            if (rightHeightParam != null)
+            {
+                double dRightHeight = rightHeightParam.AsDouble();
+            }
             return Result.Succeeded;
         }
     }

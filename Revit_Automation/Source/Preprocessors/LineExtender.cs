@@ -45,7 +45,7 @@ namespace Revit_Automation.Source.Preprocessors
             { 
                 
                 // Gather all Input Lines
-                InputLineUtility.GatherInputLines(m_Document, m_bProcessSelected, m_Selection, CommandCode.Posts, false);
+                InputLineUtility.GatherInputLines(m_Document, m_Selection, CommandCode.Posts, false);
 
                 if (InputLineUtility.colInputLines.Count == 0)
                     return;

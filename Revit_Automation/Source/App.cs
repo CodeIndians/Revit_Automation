@@ -27,19 +27,6 @@ namespace Revit_Automation
         /// <summary>
         /// This method is called when Add-in is loaded into REVIT. It contains information related to all the commands
         /// Any new command that needs to be added has to follow the below scheme
-        /// 1 - Project Settings
-        /// 2 - 20 - Commands based on Selection
-        /// 21-40 - Commands For running on entire model
-        /// 2 - Preprocess Lines at Selection
-        /// 3 - Posts at selection
-        /// 4 - Bottom Tracks at Selection
-        /// 5 - Panels at Selection
-        /// 6 - 20 - Reserved for Future
-        /// 21 - Preprocess Lines
-        /// 22 - Create Posts
-        /// 23 - Create Bottom Tracks
-        /// 24 - Create Panels
-        /// 25 - 40  - Reserved for future
         /// </summary>
         /// <param name="a"></param>
         /// <returns></returns>
@@ -54,7 +41,6 @@ namespace Revit_Automation
 
                 // Create Ribbon Panels
                 RibbonPanel settingsRB = a.CreateRibbonPanel(tabName, "Settings");
-                RibbonPanel SelectedModellingRB = a.CreateRibbonPanel(tabName, "Selected Modelling");
                 RibbonPanel FullModellingRB = a.CreateRibbonPanel(tabName, "General Modelling");
                 RibbonPanel HallWayRB = a.CreateRibbonPanel(tabName, "HallWays");
 
@@ -65,56 +51,36 @@ namespace Revit_Automation
                     "Project Settings",
                     "ProjectSettings.png");
 
-                #region SELCTED_MODELLING
-
-                // Pre Process Selected Lines
-                AddRevitCommand(SelectedModellingRB,
-                    "ProcessSelectedLinesCMD",
-                    "PreProcess \n Selected Lines",
-                    "Revit_Automation.PreProcessSelectedLines",
-                    "Extend and Trim Selected Input Lines",
-                    "ProcessLines2.png");
-
-                // posts at selection
-                AddRevitCommand(SelectedModellingRB,
-                    "PostsAtSelectedLinesCMD",
-                    "Posts At \n Selected Lines",
-                    "Revit_Automation.PostsAtSelectedLines",
-                    "Place posts at Selected Input Lines",
-                    "Posts.png");
-
-                // Bottom tracks at selection
-                AddRevitCommand(SelectedModellingRB,
-                      "BTAtSelectedLinesCMD",
-                      "Bottom Tracks At \n Selected Lines",
-                      "Revit_Automation.BTAtSelectedLines",
-                      "Place Bottom Tracks at Selected Input Lines",
-                      "BottomTrack.png");
-
-                // Panels at selection
-                AddRevitCommand(SelectedModellingRB,
-                    "PanelsAtSelectedLinesCMD",
-                    "Panels At \n Selected Lines",
-                    "Revit_Automation.PanelsAtSelectedLines",
-                    "Place Panels at Selected Input Lines",
-                    "Walls.png");
-
-                #endregion
-
                 #region GENERIC_MODELLING
 
-                // Preprocess All lines 
+                // PostHeight 
                 AddRevitCommand(FullModellingRB,
-                    "ProcessAllLinesCMD",
-                    "PreProcess \n All Lines",
-                    "Revit_Automation.PreProcessAllLines",
+                    "PostPropertiesCMD",
+                    "Test Command",
+                    "Revit_Automation.PostProperties",
+                    "sasda",
+                    "ProcessLines.png");
+
+                // Extend Lines 
+                AddRevitCommand(FullModellingRB,
+                    "ExtendLinesCMD",
+                    "Extend \n Lines",
+                    "Revit_Automation.ExtendLines",
+                    "Extend and Trim All Input Lines",
+                    "ProcessLines.png");
+
+                // Trim Lines
+                AddRevitCommand(FullModellingRB,
+                    "TrimLinesCMD",
+                    "Trim \n Lines",
+                    "Revit_Automation.TrimLines",
                     "Extend and Trim All Input Lines",
                     "ProcessLines.png");
 
                 // Posts - ALL
                 AddRevitCommand(FullModellingRB,
                     "PostsAtAlldLinesCMD",
-                    "Posts At \n All Lines",
+                    "Create \n Posts",
                     "Revit_Automation.PostsAtAllLines",
                     "Place posts at all Lines",
                     "Model.png");
@@ -122,7 +88,7 @@ namespace Revit_Automation
                 // Bottom Tracks - ALL
                 AddRevitCommand(FullModellingRB,
                       "BTAtAllLinesCMD",
-                      "Bottom Tracks At \n All Lines",
+                      "Bottom \n Tracks",
                       "Revit_Automation.BTAtAllLines",
                       "Place Bottom Tracks at All Input Lines",
                       "BottomTrack.png");
@@ -130,10 +96,11 @@ namespace Revit_Automation
                 // Panels - ALL
                 AddRevitCommand(FullModellingRB,
                     "PanelsAtAllCMD",
-                    "Panels At \n All Lines",
+                    "Create \n Panels",
                     "Revit_Automation.PanelsAtAllLines",
                     "Place Panels at All Input Lines",
                     "Walls.png");
+                
                 // 
                 AddRevitCommand(HallWayRB,
                    "HallWayCreateHatch",
