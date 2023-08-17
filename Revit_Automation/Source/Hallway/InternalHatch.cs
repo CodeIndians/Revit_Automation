@@ -179,6 +179,9 @@ namespace Revit_Automation.Source.Hallway
                     var firstLine = hatchPair.Item1;
                     var secondLine = hatchPair.Item2;
 
+                    if (PointUtils.AreAlmostEqual(firstLine.start, secondLine.start) || PointUtils.AreAlmostEqual(firstLine.end, secondLine.end))
+                        continue;
+
                     // Create the lines for the bounding loop
                     Line line1 = Line.CreateBound(firstLine.start, firstLine.end);
                     Line line2 = Line.CreateBound(firstLine.end, secondLine.end);

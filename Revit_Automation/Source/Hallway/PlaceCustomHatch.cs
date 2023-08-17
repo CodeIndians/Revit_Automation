@@ -93,24 +93,34 @@ namespace Revit_Automation.Source.Hallway
             // pick two points from the user 
             else if(mSelection != null && mSelection.GetElementIds().Count == 0)
             {
-                XYZ firstPoint = mSelection.PickPoint();
-
-                XYZ secondPoint = mSelection.PickPoint();
-
-                using (Transaction transaction = new Transaction(mDocument))
+                try
                 {
-                    transaction.Start("Creating custom hatch with points");
+                    while (true)
+                    {
+                        XYZ firstPoint = mSelection.PickPoint();
 
-                    CurveLoop loop = CreateRectangleCurveLoop(firstPoint, secondPoint);
+                        XYZ secondPoint = mSelection.PickPoint();
 
-                    IList<CurveLoop> curveLoop = new List<CurveLoop>();
-                    curveLoop.Add(loop);
+                        using (Transaction transaction = new Transaction(mDocument))
+                        {
+                            transaction.Start("Creating custom hatch with points");
 
-                    FilledRegion hatchData = FilledRegion.Create(mDocument, hatchId, mDocument.ActiveView.Id, curveLoop);
+                            CurveLoop loop = CreateRectangleCurveLoop(firstPoint, secondPoint);
 
-                    transaction.Commit();
+                            IList<CurveLoop> curveLoop = new List<CurveLoop>();
+                            curveLoop.Add(loop);
+
+                            FilledRegion hatchData = FilledRegion.Create(mDocument, hatchId, mDocument.ActiveView.Id, curveLoop);
+
+                            transaction.Commit();
+                        }
+                    }
                 }
+                catch (Exception ex)
+                {
+                    //do nothing for now
 
+                }
             }
             else
             {
