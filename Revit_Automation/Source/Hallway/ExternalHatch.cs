@@ -25,11 +25,15 @@ namespace Revit_Automation.Source.Hallway
             ExternalLines = externalLines;
             InternalInputLines = internalInputLines;
 
+            // collect the hatch id of the hatch element obstinate orange
             var filledRegion = new FilteredElementCollector(mDocument).OfClass(typeof(FilledRegionType));
             foreach (var region in filledRegion)
             {
                 if (region.Name == "Obstinate Orange")
+                {
                     hatchId = region.Id;
+                    break;
+                }
             }
         }
 
@@ -38,8 +42,11 @@ namespace Revit_Automation.Source.Hallway
             using (Transaction transaction = new Transaction(mDocument))
             {
                 transaction.Start("Creating External Hatches");
+
+                // iterate through all the collected external lines 
                 foreach (var externalLine in ExternalLines)
                 {
+                    // for each external line, again iterate through all the intersecting internal input lines
                     for (int i = 0; i < externalLine.intersectingInternalInputLines.Count - 1; i++)
                     {
                         CurveLoop loop = new CurveLoop();
@@ -47,6 +54,8 @@ namespace Revit_Automation.Source.Hallway
                         var firstLine = externalLine.intersectingInternalInputLines[i];
                         var secondLine = externalLine.intersectingInternalInputLines[i + 1];
 
+                        // for each intersecting input lines set join the consecutive parallel lines 
+                        // this will not cause any problems since the lines are already in the sorted order 
                         if (InputLine.GetLineType(firstLine) == LineType.HORIZONTAL && InputLine.GetLineType(secondLine) == LineType.HORIZONTAL)
                         {
                             var firstLineLength = Math.Abs(firstLine.start.X - firstLine.end.X);
@@ -74,6 +83,7 @@ namespace Revit_Automation.Source.Hallway
                             var firstLineLength = Math.Abs(firstLine.start.Y - firstLine.end.Y);
                             var secondLineLength = Math.Abs(secondLine.start.Y - secondLine.end.Y);
 
+                            // first line is longer
                             if (firstLineLength - secondLineLength > 0.016)
                             {
                                 // form a new first line
@@ -91,9 +101,11 @@ namespace Revit_Automation.Source.Hallway
                             }
                         }
 
+                        // safe checks, the line is a point
                         if (PointUtils.AreAlmostEqual(firstLine.start, firstLine.end) || PointUtils.AreAlmostEqual(secondLine.start, secondLine.end))
                             continue;
 
+                        // both lines are same 
                         if (PointUtils.AreAlmostEqual(firstLine.start, secondLine.start) || PointUtils.AreAlmostEqual(firstLine.end, secondLine.end))
                             continue;
 
@@ -126,42 +138,42 @@ namespace Revit_Automation.Source.Hallway
         // </summary>
         protected override void DeleteHatches()
         {
-            FilteredElementCollector collector = new FilteredElementCollector(mDocument, mDocument.ActiveView.Id);
-            ICollection<Element> filledRegionElements = collector.OfClass(typeof(FilledRegion)).ToElements();
+            //FilteredElementCollector collector = new FilteredElementCollector(mDocument, mDocument.ActiveView.Id);
+            //ICollection<Element> filledRegionElements = collector.OfClass(typeof(FilledRegion)).ToElements();
 
-            List<ElementId> elementIds = new List<ElementId>();
-            // Process the collected filled region elements
-            foreach (Element filledRegionElement in filledRegionElements)
-            {
-                var elementId = filledRegionElement.Id;
-                FilledRegion filledRegion = filledRegionElement as FilledRegion;
-                if (filledRegion != null)
-                {
-                    bool isFound = false;
-                    var boundingBox = filledRegion.get_BoundingBox(null);
-                    foreach (var inputLine in InternalInputLines)
-                    {
-                        if (PointUtils.IsPointWithinBoundingBox(inputLine.start, boundingBox) || PointUtils.IsPointWithinBoundingBox(inputLine.end, boundingBox))
-                        {
-                            isFound = true;
-                            break;
-                        }
-                    }
+            //List<ElementId> elementIds = new List<ElementId>();
+            //// Process the collected filled region elements
+            //foreach (Element filledRegionElement in filledRegionElements)
+            //{
+            //    var elementId = filledRegionElement.Id;
+            //    FilledRegion filledRegion = filledRegionElement as FilledRegion;
+            //    if (filledRegion != null)
+            //    {
+            //        bool isFound = false;
+            //        var boundingBox = filledRegion.get_BoundingBox(null);
+            //        foreach (var inputLine in InternalInputLines)
+            //        {
+            //            if (PointUtils.IsPointWithinBoundingBox(inputLine.start, boundingBox) || PointUtils.IsPointWithinBoundingBox(inputLine.end, boundingBox))
+            //            {
+            //                isFound = true;
+            //                break;
+            //            }
+            //        }
 
-                    if (isFound)
-                        elementIds.Add(elementId);
-                }
-            }
+            //        if (isFound)
+            //            elementIds.Add(elementId);
+            //    }
+            //}
 
-            // Delete all the element Ids
-            using (Transaction transaction = new Transaction(mDocument, "Delete intersecting external hatches"))
-            {
-                transaction.Start();
-                foreach (var element in elementIds)
-                    mDocument.Delete(element);
+            //// Delete all the element Ids
+            //using (Transaction transaction = new Transaction(mDocument, "Delete intersecting external hatches"))
+            //{
+            //    transaction.Start();
+            //    foreach (var element in elementIds)
+            //        mDocument.Delete(element);
 
-                transaction.Commit();
-            }
+            //    transaction.Commit();
+            //}
         }
     }
 }

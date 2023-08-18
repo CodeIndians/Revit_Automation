@@ -98,30 +98,30 @@ namespace Revit_Automation.Source.Hallway
                         }
                     }
 
-                    // Add extra lines at the start and end if they are not present
-                    if (ExternalLines[i].intersectingInternalInputLines.Count > 0)
-                    {
-                        var firstLine = ExternalLines[i].intersectingInternalInputLines[0];
-                        var lastLine = ExternalLines[i].intersectingInternalInputLines[ExternalLines[i].intersectingInternalInputLines.Count - 1];
+                    //// Add extra lines at the start and end if they are not present
+                    //if (ExternalLines[i].intersectingInternalInputLines.Count > 0)
+                    //{
+                    //    var firstLine = ExternalLines[i].intersectingInternalInputLines[0];
+                    //    var lastLine = ExternalLines[i].intersectingInternalInputLines[ExternalLines[i].intersectingInternalInputLines.Count - 1];
 
-                        // insert a new line at the beginnning of the intersecting lines list
-                        if ((firstLine.start.Y - ExternalLines[i].mainExternalLine.start.Y) > 1)
-                        {
-                            XYZ newStart = new XYZ(firstLine.start.X, ExternalLines[i].mainExternalLine.start.Y, firstLine.start.Z);
-                            XYZ newEnd = new XYZ(firstLine.end.X, ExternalLines[i].mainExternalLine.start.Y, firstLine.end.Z);
-                            InputLine newFirstLine = new InputLine(newStart, newEnd);
-                            ExternalLines[i].intersectingInternalInputLines.Insert(0, newFirstLine);
-                        }
+                    //    // insert a new line at the beginnning of the intersecting lines list
+                    //    if ((firstLine.start.Y - ExternalLines[i].mainExternalLine.start.Y) > 1)
+                    //    {
+                    //        XYZ newStart = new XYZ(firstLine.start.X, ExternalLines[i].mainExternalLine.start.Y, firstLine.start.Z);
+                    //        XYZ newEnd = new XYZ(firstLine.end.X, ExternalLines[i].mainExternalLine.start.Y, firstLine.end.Z);
+                    //        InputLine newFirstLine = new InputLine(newStart, newEnd);
+                    //        ExternalLines[i].intersectingInternalInputLines.Insert(0, newFirstLine);
+                    //    }
 
-                        //insert a new line at the end of the intersecting lines list
-                        if ((ExternalLines[i].mainExternalLine.end.Y - lastLine.start.Y) > 1)
-                        {
-                            XYZ newStart = new XYZ(lastLine.start.X, ExternalLines[i].mainExternalLine.end.Y, lastLine.start.Z);
-                            XYZ newEnd = new XYZ(lastLine.end.X, ExternalLines[i].mainExternalLine.end.Y, lastLine.end.Z);
-                            InputLine newLastLine = new InputLine(newStart, newEnd);
-                            ExternalLines[i].intersectingInternalInputLines.Add(newLastLine);
-                        }
-                    }
+                    //    //insert a new line at the end of the intersecting lines list
+                    //    if ((ExternalLines[i].mainExternalLine.end.Y - lastLine.start.Y) > 1)
+                    //    {
+                    //        XYZ newStart = new XYZ(lastLine.start.X, ExternalLines[i].mainExternalLine.end.Y, lastLine.start.Z);
+                    //        XYZ newEnd = new XYZ(lastLine.end.X, ExternalLines[i].mainExternalLine.end.Y, lastLine.end.Z);
+                    //        InputLine newLastLine = new InputLine(newStart, newEnd);
+                    //        ExternalLines[i].intersectingInternalInputLines.Add(newLastLine);
+                    //    }
+                    //}
 
                 }
                 else if (InputLine.GetLineType(ExternalLines[i].mainExternalLine) == LineType.HORIZONTAL)
@@ -138,30 +138,32 @@ namespace Revit_Automation.Source.Hallway
                             }
                         }
                     }
-                    // Add extra lines at the start and end if they are not present
-                    if (ExternalLines[i].intersectingInternalInputLines.Count > 0)
-                    {
-                        var firstLine = ExternalLines[i].intersectingInternalInputLines[0];
-                        var lastLine = ExternalLines[i].intersectingInternalInputLines[ExternalLines[i].intersectingInternalInputLines.Count - 1];
 
-                        // insert a new line at the beginnning of the intersecting lines list
-                        if ((firstLine.start.X - ExternalLines[i].mainExternalLine.start.X) > 1)
-                        {
-                            XYZ newStart = new XYZ(ExternalLines[i].mainExternalLine.start.X, firstLine.start.Y, firstLine.start.Z);
-                            XYZ newEnd = new XYZ(ExternalLines[i].mainExternalLine.start.X, firstLine.end.Y, firstLine.end.Z);
-                            InputLine newFirstLine = new InputLine(newStart, newEnd);
-                            ExternalLines[i].intersectingInternalInputLines.Insert(0, newFirstLine);
-                        }
 
-                        //insert a new line at the end of the intersecting lines list
-                        if ((ExternalLines[i].mainExternalLine.end.X - lastLine.start.X) > 1)
-                        {
-                            XYZ newStart = new XYZ(ExternalLines[i].mainExternalLine.end.X, lastLine.start.Y, lastLine.start.Z);
-                            XYZ newEnd = new XYZ(ExternalLines[i].mainExternalLine.end.X, lastLine.end.Y, lastLine.end.Z);
-                            InputLine newLastLine = new InputLine(newStart, newEnd);
-                            ExternalLines[i].intersectingInternalInputLines.Add(newLastLine);
-                        }
-                    }
+                    //// Add extra lines at the start and end if they are not present
+                    //if (ExternalLines[i].intersectingInternalInputLines.Count > 0)
+                    //{
+                    //    var firstLine = ExternalLines[i].intersectingInternalInputLines[0];
+                    //    var lastLine = ExternalLines[i].intersectingInternalInputLines[ExternalLines[i].intersectingInternalInputLines.Count - 1];
+
+                    //    // insert a new line at the beginnning of the intersecting lines list
+                    //    if ((firstLine.start.X - ExternalLines[i].mainExternalLine.start.X) > 1)
+                    //    {
+                    //        XYZ newStart = new XYZ(ExternalLines[i].mainExternalLine.start.X, firstLine.start.Y, firstLine.start.Z);
+                    //        XYZ newEnd = new XYZ(ExternalLines[i].mainExternalLine.start.X, firstLine.end.Y, firstLine.end.Z);
+                    //        InputLine newFirstLine = new InputLine(newStart, newEnd);
+                    //        ExternalLines[i].intersectingInternalInputLines.Insert(0, newFirstLine);
+                    //    }
+
+                    //    //insert a new line at the end of the intersecting lines list
+                    //    if ((ExternalLines[i].mainExternalLine.end.X - lastLine.start.X) > 1)
+                    //    {
+                    //        XYZ newStart = new XYZ(ExternalLines[i].mainExternalLine.end.X, lastLine.start.Y, lastLine.start.Z);
+                    //        XYZ newEnd = new XYZ(ExternalLines[i].mainExternalLine.end.X, lastLine.end.Y, lastLine.end.Z);
+                    //        InputLine newLastLine = new InputLine(newStart, newEnd);
+                    //        ExternalLines[i].intersectingInternalInputLines.Add(newLastLine);
+                    //    }
+                    //}
                 }
             }
         }
@@ -204,7 +206,7 @@ namespace Revit_Automation.Source.Hallway
 
                 ExternalLines.Sort();
 
-                //FileWriter.WriteInputListToFile(ExternalLines, @"C:\temp\joined_ext_lines");
+                FileWriter.WriteInputListToFile(ExternalLines, @"C:\temp\joined_ext_lines");
             }
             else
             {
