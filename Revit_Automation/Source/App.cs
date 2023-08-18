@@ -42,7 +42,7 @@ namespace Revit_Automation
                 // Create Ribbon Panels
                 RibbonPanel settingsRB = a.CreateRibbonPanel(tabName, "Settings");
                 RibbonPanel FullModellingRB = a.CreateRibbonPanel(tabName, "General Modelling");
-                //RibbonPanel HallWayRB = a.CreateRibbonPanel(tabName, "HallWays");
+                RibbonPanel HallWayRB = a.CreateRibbonPanel(tabName, "HallWays");
 
                 AddRevitCommand(settingsRB,
                     "ProjectSettingsCMD",
@@ -108,27 +108,14 @@ namespace Revit_Automation
                     "Revit_Automation.CeeHeaders",
                     "Place C-Header at All Input Lines",
                     "Header.png");
-                // 
-                //AddRevitCommand(HallWayRB,
-                //   "HallWayCreateHatch",
-                //   "Create Hatch \n for Hallway",
-                //   "Revit_Automation.CreateHatchForHallway",
-                //   "Place Hatch at Rooms",
-                //   "Hallway2.png");
 
-                //AddRevitCommand(HallWayRB,
-                //   "HallWayEditHatch",
-                //   "Edit Hatch \n Selected",
-                //   "Revit_Automation.EditHatchForHallway",
-                //   "DeleEditte Hatch at Rooms",
-                //   "Hallway2.png");
+                AddRevitCommand(HallWayRB,
+                   "HallwayTrimAdjust",
+                   "Hallway Trim and \n Adjustment",
+                   "Revit_Automation.HallywayTrimAdjust",
+                   "Trim and Adjust Hallway lines",
+                   "Hallway2.png");
 
-                //AddRevitCommand(HallWayRB,
-                //   "HallwayLines",
-                //   "Draw HallWay \n Lines",
-                //   "Revit_Automation.DrawHallWayLines",
-                //   "Draw HallWay",
-                //   "Hallway.png");
                 #endregion
 
                 return Result.Succeeded;

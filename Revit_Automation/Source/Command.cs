@@ -243,31 +243,7 @@ namespace Revit_Automation
     }
 
     [Transaction(TransactionMode.Manual)]
-    public class CreateHatchForHallway : IExternalCommand
-    {
-        public Result Execute(
-          ExternalCommandData commandData,
-          ref string message,
-          ElementSet elements)
-        {
-            return Result.Succeeded;
-        }
-    }
-
-    [Transaction(TransactionMode.Manual)]
-    public class DrawHallWayLines : IExternalCommand
-    {
-        public Result Execute(
-          ExternalCommandData commandData,
-          ref string message,
-          ElementSet elements)
-        {
-            return Result.Succeeded;
-        }
-    }
-
-    [Transaction(TransactionMode.Manual)]
-    public class EditHatchForHallway : IExternalCommand
+    public class HallywayTrimAdjust : IExternalCommand
     {
         public Result Execute(
           ExternalCommandData commandData,
