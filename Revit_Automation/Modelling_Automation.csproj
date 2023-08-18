@@ -110,6 +110,7 @@
     <Compile Include="Source\Preprocessors\LineExtender.cs" />
     <Compile Include="Source\Preprocessors\LineTrimmer.cs" />
     <Compile Include="Source\Sheets\SheetCreator.cs" />
+    <Compile Include="Source\Utils\FileLogger.cs" />
     <Compile Include="Source\Utils\FloorHelper.cs" />
     <Compile Include="Source\Utils\GenericUtils.cs" />
     <Compile Include="Source\Utils\GridCollector.cs" />

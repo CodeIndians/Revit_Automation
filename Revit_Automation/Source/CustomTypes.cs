@@ -1,4 +1,5 @@
 ﻿using Autodesk.Revit.DB;
+using System;
 using System.Collections.Generic;
 
 namespace Revit_Automation.CustomTypes
@@ -148,5 +149,37 @@ namespace Revit_Automation.CustomTypes
         NoEndIntersection
     }
 
+    public struct HallwayLine
+    {
+        public XYZ startpoint;
+        public XYZ endpoint;
+
+        public HallwayLine(XYZ start, XYZ end)
+        {
+            this.startpoint = start;
+            this.endpoint = end;
+
+            // startpoint and endpoint are sorted
+            // based on X first and then Y 
+            SortPoints();
+        }
+
+        /// <summary>
+        /// Sort based on X first and then Y
+        /// </summary>
+        private void SortPoints()
+        {
+            double epsilon = 0.016; // precision
+
+            if (startpoint.X > endpoint.X + epsilon || (Math.Abs(startpoint.X - endpoint.X) < epsilon && startpoint.Y > endpoint.Y + epsilon))
+            {
+                // Swap start and end points
+                XYZ temp = startpoint;
+                startpoint = endpoint;
+                endpoint = temp;
+            }
+        }
+
+    }
 }
 
