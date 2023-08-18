@@ -42,7 +42,7 @@ namespace Revit_Automation
                 // Create Ribbon Panels
                 RibbonPanel settingsRB = a.CreateRibbonPanel(tabName, "Settings");
                 RibbonPanel FullModellingRB = a.CreateRibbonPanel(tabName, "General Modelling");
-                RibbonPanel HallWayRB = a.CreateRibbonPanel(tabName, "HallWays");
+                //RibbonPanel HallWayRB = a.CreateRibbonPanel(tabName, "HallWays");
 
                 AddRevitCommand(settingsRB,
                     "ProjectSettingsCMD",
@@ -53,18 +53,18 @@ namespace Revit_Automation
 
                 #region GENERIC_MODELLING
 
-                // PostHeight 
-                AddRevitCommand(FullModellingRB,
-                    "PostPropertiesCMD",
-                    "Test Command",
-                    "Revit_Automation.PostProperties",
-                    "sasda",
-                    "ProcessLines.png");
+                //// PostHeight 
+                //AddRevitCommand(FullModellingRB,
+                //    "PostPropertiesCMD",
+                //    "Test Command",
+                //    "Revit_Automation.PostProperties",
+                //    "sasda",
+                //    "ProcessLines.png");
 
                 // Extend Lines 
                 AddRevitCommand(FullModellingRB,
                     "ExtendLinesCMD",
-                    "Extend \n Lines",
+                    "    Extend    ",
                     "Revit_Automation.ExtendLines",
                     "Extend and Trim All Input Lines",
                     "ProcessLines.png");
@@ -72,7 +72,7 @@ namespace Revit_Automation
                 // Trim Lines
                 AddRevitCommand(FullModellingRB,
                     "TrimLinesCMD",
-                    "Trim \n Lines",
+                    "     Trim     ",
                     "Revit_Automation.TrimLines",
                     "Extend and Trim All Input Lines",
                     "ProcessLines.png");
@@ -80,15 +80,15 @@ namespace Revit_Automation
                 // Posts - ALL
                 AddRevitCommand(FullModellingRB,
                     "PostsAtAlldLinesCMD",
-                    "Create \n Posts",
+                    "    Posts     ",
                     "Revit_Automation.PostsAtAllLines",
                     "Place posts at all Lines",
-                    "Model.png");
+                    "Posts.png");
 
                 // Bottom Tracks - ALL
                 AddRevitCommand(FullModellingRB,
                       "BTAtAllLinesCMD",
-                      "Bottom \n Tracks",
+                      "Bottom Tracks",
                       "Revit_Automation.BTAtAllLines",
                       "Place Bottom Tracks at All Input Lines",
                       "BottomTrack.png");
@@ -96,32 +96,39 @@ namespace Revit_Automation
                 // Panels - ALL
                 AddRevitCommand(FullModellingRB,
                     "PanelsAtAllCMD",
-                    "Create \n Panels",
+                    "    Panels    ",
                     "Revit_Automation.PanelsAtAllLines",
                     "Place Panels at All Input Lines",
                     "Walls.png");
-                
+
+                // Panels - ALL
+                AddRevitCommand(FullModellingRB,
+                    "CeeHeadersCMD",
+                    "   C-Headers  ",
+                    "Revit_Automation.CeeHeaders",
+                    "Place C-Header at All Input Lines",
+                    "Header.png");
                 // 
-                AddRevitCommand(HallWayRB,
-                   "HallWayCreateHatch",
-                   "Create Hatch \n for Hallway",
-                   "Revit_Automation.CreateHatchForHallway",
-                   "Place Hatch at Rooms",
-                   "Hallway2.png");
+                //AddRevitCommand(HallWayRB,
+                //   "HallWayCreateHatch",
+                //   "Create Hatch \n for Hallway",
+                //   "Revit_Automation.CreateHatchForHallway",
+                //   "Place Hatch at Rooms",
+                //   "Hallway2.png");
 
-                AddRevitCommand(HallWayRB,
-                   "HallWayEditHatch",
-                   "Edit Hatch \n Selected",
-                   "Revit_Automation.EditHatchForHallway",
-                   "DeleEditte Hatch at Rooms",
-                   "Hallway2.png");
+                //AddRevitCommand(HallWayRB,
+                //   "HallWayEditHatch",
+                //   "Edit Hatch \n Selected",
+                //   "Revit_Automation.EditHatchForHallway",
+                //   "DeleEditte Hatch at Rooms",
+                //   "Hallway2.png");
 
-                AddRevitCommand(HallWayRB,
-                   "HallwayLines",
-                   "Draw HallWay \n Lines",
-                   "Revit_Automation.DrawHallWayLines",
-                   "Draw HallWay",
-                   "Hallway.png");
+                //AddRevitCommand(HallWayRB,
+                //   "HallwayLines",
+                //   "Draw HallWay \n Lines",
+                //   "Revit_Automation.DrawHallWayLines",
+                //   "Draw HallWay",
+                //   "Hallway.png");
                 #endregion
 
                 return Result.Succeeded;

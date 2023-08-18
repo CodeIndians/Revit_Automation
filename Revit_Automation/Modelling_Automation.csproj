@@ -136,6 +136,7 @@
     <Content Include="Resources\BottomTrack.png" />
     <Content Include="Resources\Hallway.png" />
     <Content Include="Resources\Hallway2.png" />
+    <Content Include="Resources\Header.png" />
     <Content Include="Resources\ProcessLines.Png" />
     <Content Include="Resources\ProjectSettings.png" />
     <Content Include="Resources\Sheets.png" />

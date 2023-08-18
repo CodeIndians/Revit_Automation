@@ -214,6 +214,7 @@ namespace Revit_Automation
         }
     }
 
+
     [Transaction(TransactionMode.Manual)]
     public class TrimLines : IExternalCommand
     {
@@ -299,6 +300,24 @@ namespace Revit_Automation
             {
                 double dRightHeight = rightHeightParam.AsDouble();
             }
+            return Result.Succeeded;
+        }
+    }
+    [Transaction(TransactionMode.Manual)]
+    public class CeeHeaders : IExternalCommand
+    {
+        public Result Execute(
+          ExternalCommandData commandData,
+          ref string message,
+          ElementSet elements)
+        {
+            UIApplication uiapp = commandData.Application;
+            UIDocument uidoc = uiapp.ActiveUIDocument;
+            Document doc = uidoc.Document;
+            Selection selection = uidoc.Selection;
+
+            PrepareCommandClass.PrepareCommand(commandData);
+
             return Result.Succeeded;
         }
     }

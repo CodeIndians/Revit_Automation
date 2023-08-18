@@ -72,17 +72,17 @@ namespace Revit_Automation.Source
                         PanelTypeGlobalParams panel = new PanelTypeGlobalParams();
                         panel.bIsUNO = bool.Parse(panelSettings[j++]);
                         panel.strWallName = panelSettings[j];
-                        panel.iPanelGuage = double.Parse(panelSettings[j + 1]);
-                        panel.iPanelClearance = double.Parse(panelSettings[j + 2]);
-                        panel.iPanelMaxLap = double.Parse(panelSettings[j + 3]);
-                        panel.iPanelMinLap = double.Parse(panelSettings[j + 4]);
+                        panel.iPanelGuage = string.IsNullOrEmpty(panelSettings[j + 1]) ?  0.0 : double.Parse(panelSettings[j + 1]);
+                        panel.iPanelClearance = string.IsNullOrEmpty(panelSettings[j + 2]) ? 0.0 : double.Parse(panelSettings[j + 2]);
+                        panel.iPanelMaxLap = string.IsNullOrEmpty(panelSettings[j + 3]) ? 0.0 : double.Parse(panelSettings[j + 3]);
+                        panel.iPanelMinLap = string.IsNullOrEmpty(panelSettings[j + 4]) ? 0.0 : double.Parse(panelSettings[j + 4]);
                         panel.strPanelOrientation = panelSettings[j + 5];
-                        panel.iPanelPreferredLength = double.Parse(panelSettings[j + 6]);
-                        panel.iPanelMaxLength = double.Parse(panelSettings[j + 7]);
-                        panel.iPanelHeightOffset = double.Parse(panelSettings[j + 8]);
+                        panel.iPanelPreferredLength = string.IsNullOrEmpty(panelSettings[j + 6]) ? 0.0 : double.Parse(panelSettings[j + 6]);
+                        panel.iPanelMaxLength = string.IsNullOrEmpty(panelSettings[j + 7]) ? 0.0 : double.Parse(panelSettings[j + 7]);
+                        panel.iPanelHeightOffset = string.IsNullOrEmpty(panelSettings[j + 8]) ? 0.0 : double.Parse(panelSettings[j + 8]);
                         panel.strPanelHorizontalDirection = panelSettings[j + 9];
                         panel.strPanelVerticalDirection = panelSettings[j + 10];
-                        panel.iPanelHourRate = double.Parse(panelSettings[j + 11]);
+                        panel.iPanelHourRate = string.IsNullOrEmpty(panelSettings[j + 11]) ? 0.0 : double.Parse(panelSettings[j + 11]); ;
 
                         lstPanelParams.Add(panel);
 
