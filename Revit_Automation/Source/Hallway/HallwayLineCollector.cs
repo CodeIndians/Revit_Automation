@@ -7,6 +7,9 @@ using System.Linq;
 
 namespace Revit_Automation.Source.Hallway
 {
+    /// <summary>
+    /// Collect the hallway lines
+    /// </summary>
     public class HallwayLineCollector
     {
         private Document mDocument;
@@ -49,6 +52,10 @@ namespace Revit_Automation.Source.Hallway
             return hatchId;
         }
 
+        /// <summary>
+        /// Return the hallway lines
+        /// </summary>
+        /// <returns>list of hallway lines</returns>
         private List<HallwayLine> GetHallwayLines()
         {
             // collect all the filled regions
@@ -71,7 +78,7 @@ namespace Revit_Automation.Source.Hallway
             // hallway should have a single curve loop
             List<List<HallwayLine>> hallwayCurveLoop = new List<List<HallwayLine>>();
 
-            // gather external hatches
+            // gather hallway lines
             if (hallwayRegion != null)
             {
                 var curveLoops = hallwayRegion.GetBoundaries();
@@ -90,14 +97,14 @@ namespace Revit_Automation.Source.Hallway
                 hallwayCurveLoop.Add(curveLines);
             }
 
+            // only one hallyway curve loop should be present
             if(hallwayCurveLoop.Count > 1)
             {
                 TaskDialog.Show("Warning", "Extra hallway hatch is detected. Things might not work as expected");
             }
 
-            List<HallwayLine> hallwayLines = hallwayCurveLoop.ElementAtOrDefault(0);
+            return hallwayCurveLoop.ElementAtOrDefault(0);
 
-            return hallwayLines;
         }
 
     }
