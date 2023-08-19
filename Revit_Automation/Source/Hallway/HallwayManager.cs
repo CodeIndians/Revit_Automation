@@ -27,10 +27,17 @@ namespace Revit_Automation.Source.Hallway
 
         private void Initialize()
         {
+            // collect hallway lines
             var hallwayLineCollector = new HallwayLineCollector(ref mDocument);
 
+            var hallwayLabelgenerator = new HallwayLabelGenerator(ref mDocument, hallwayLineCollector.HallwayLines);
+
+            hallwayLabelgenerator.GenerateLabels();
+
+
+
             // COMMENT: comment this in the production release
-            FileLogger.WriteHallwayLineToFile(hallwayLineCollector.HallwayLines, @"C:\temp\hallway_lines");
+            //FileLogger.WriteHallwayLineToFile(hallwayLineCollector.HallwayLines, @"C:\temp\hallway_lines");
 
         }
 

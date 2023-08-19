@@ -94,8 +94,10 @@
     </Compile>
     <Compile Include="Source\CustomTypes.cs" />
     <Compile Include="Source\GlobalSettings.cs" />
+    <Compile Include="Source\Hallway\HallwayLabelGenerator.cs" />
     <Compile Include="Source\Hallway\HallwayLineCollector.cs" />
     <Compile Include="Source\Hallway\HallwayManager.cs" />
+    <Compile Include="Source\Hallway\HallwayUtils.cs" />
     <Compile Include="Source\Interfaces\CollisionInterface.cs" />
     <Compile Include="Source\Interfaces\PreprocessInterface.cs" />
     <Compile Include="Source\Interfaces\IWallPointsGenerator.cs" />

@@ -209,5 +209,34 @@ namespace Revit_Automation.CustomTypes
     {
         public HallwayExternalInputLine(XYZ start, XYZ end) : base(start, end) { }
     }
+
+    /// <summary>
+    /// Class for hallway labels
+    /// </summary>
+    public class HallwayLabelLine
+    {
+        //lable name ( H1, H2.... or V1, V2 ... )
+        public string mLabel;
+
+        public List<HallwayLine> mLines;
+        public HallwayLabelLine(string label, HallwayLine line)
+        {
+            mLabel = label;
+            mLines = new List<HallwayLine>
+                {
+                    line
+                };
+        }
+    }
+    /// <summary>
+    /// Enum for line orientation
+    /// </summary>
+    public enum LineOrientation
+    {
+        HORIZONTAL,
+        VERTICAL,
+        INVALID
+    }
+
 }
 
