@@ -149,12 +149,15 @@ namespace Revit_Automation.CustomTypes
         NoEndIntersection
     }
 
-    public struct HallwayLine
+    /// <summary>
+    /// Abstract class for all types of hallway lines
+    /// </summary>
+    public abstract class HallwayLineBase
     {
         public XYZ startpoint;
         public XYZ endpoint;
 
-        public HallwayLine(XYZ start, XYZ end)
+        public HallwayLineBase(XYZ start, XYZ end)
         {
             this.startpoint = start;
             this.endpoint = end;
@@ -167,7 +170,7 @@ namespace Revit_Automation.CustomTypes
         /// <summary>
         /// Sort based on X first and then Y
         /// </summary>
-        private void SortPoints()
+        public void SortPoints()
         {
             double epsilon = 0.016; // precision
 
@@ -180,6 +183,31 @@ namespace Revit_Automation.CustomTypes
             }
         }
 
+    }
+
+    /// <summary>
+    /// Hallway hatch line 
+    /// </summary>
+    public class HallwayLine : HallwayLineBase 
+    {
+        public HallwayLine(XYZ start, XYZ end) : base(start, end) { }
+        
+    }
+
+    /// <summary>
+    /// Internal Input line 
+    /// </summary>
+    public class HallwayInternalInputLine : HallwayLineBase
+    {
+        public HallwayInternalInputLine(XYZ start, XYZ end) : base(start, end) { }
+    }
+
+    /// <summary>
+    /// External InputLine
+    /// </summary>
+    public class HallwayExternalInputLine : HallwayLineBase
+    {
+        public HallwayExternalInputLine(XYZ start, XYZ end) : base(start, end) { }
     }
 }
 
