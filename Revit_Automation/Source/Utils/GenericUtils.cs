@@ -364,5 +364,10 @@ namespace Revit_Automation.Source.Utils
             if (wallType == null) { dPanelThickness = wallType.Width; }
             return dPanelThickness;
         }
+
+        public bool LineIntersectsHallway(XYZ startPt, XYZ endPt)
+        {
+            return true;
+        }
     }
 }

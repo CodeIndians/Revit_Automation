@@ -4,6 +4,7 @@ using Revit_Automation.CustomTypes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Configuration;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -21,6 +22,14 @@ namespace Revit_Automation.Source
         public static int s_bPanelAtHallway;
         public static string s_strPartitionStudType;
         public static string s_strHallwayPanelThickness;
+        public static string s_iPanelStrategy;
+        public static string s_strDeckSpan;
+        public static string s_strDragStructMaxLength;
+        public static string s_strDragStructType;
+        public static string s_strDragSturctContinuous;
+        public static string s_EaveStructMaxLength;
+        public static string s_EavStructType;
+        public static string s_EaveStructLocation;
 
         public static bool PopulateGlobalSettings()
         {
@@ -61,6 +70,30 @@ namespace Revit_Automation.Source
 
                 // Hallway Panel Thickness
                 s_strHallwayPanelThickness = settings[14];
+
+                // Panel Placement Strategy
+                s_iPanelStrategy = settings[15];
+
+                // Deck span
+                s_strDeckSpan = settings[16];
+
+                // Drag Struct Max Length
+                s_strDragStructMaxLength = settings[17];
+
+                // Drag StructType
+                s_strDragStructType = settings[18];
+
+                // Drag Struct Continuous at hallway
+                s_strDragSturctContinuous = settings[19];
+
+                // Eave stuct Max length
+                s_EaveStructMaxLength = settings[20];
+                
+                // Eave Struct type
+                s_EavStructType = settings[21];
+                
+                // Eave Struct Location
+                s_EaveStructLocation = settings[22];
 
                 string strPanelSettings = settings[0];
                 {
