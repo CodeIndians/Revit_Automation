@@ -282,5 +282,12 @@ namespace Revit_Automation.Source.Hallway
                 trans.Commit();
             }
         }
+    
+        public void AdjustHallwayLines()
+        {
+            var hallwayAdjust = new HallwayAdjustment(ref mDocument);
+
+            hallwayAdjust.AdjustHallwayLine(HallwayTrimData.HorizontalLabelLines[0], 2 * HPT );
+        }
     }
 }

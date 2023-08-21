@@ -87,5 +87,21 @@ namespace Revit_Automation.Source.Hallway
 
             return false;
         }
+
+        /// <summary>
+        /// checks if the lines are equal
+        /// </summary>
+        /// <param name="first"> first line </param>
+        /// <param name="second"> second line</param>
+        /// <param name="epsilon">precision ( fixed to 0.16 for now ) </param>
+        /// <returns></returns>
+        public static bool AreLinesEqual(HallwayLineBase first, HallwayLineBase second, double epsilon = 0.16f)
+        {
+
+            return Math.Abs(first.startpoint.X - second.startpoint.X) < epsilon &&
+          Math.Abs(first.startpoint.Y - second.startpoint.Y) < epsilon &&
+          Math.Abs(first.endpoint.X - second.endpoint.X) < epsilon &&
+          Math.Abs(first.endpoint.Y - second.endpoint.Y) < epsilon;
+        }
     }
 }

@@ -286,6 +286,7 @@ namespace Revit_Automation
                 // trim hallways based on hallway trim data 
                 _ = new HallwayTrim(ref doc, HallwayTrimData.HorizontalLabelLines, HallwayTrimData.VerticalLabelLines);
             }
+
             else
             {
                 TaskDialog.Show("Error", "Hallway lines are not present");
