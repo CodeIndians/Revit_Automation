@@ -97,6 +97,14 @@
     <Compile Include="Source\Hallway\HallwayLabelGenerator.cs" />
     <Compile Include="Source\Hallway\HallwayLineCollector.cs" />
     <Compile Include="Source\Hallway\HallwayManager.cs" />
+    <Compile Include="Source\Hallway\HallwayTrim.cs" />
+    <Compile Include="Source\Hallway\HallwayTrimData.cs" />
+    <Compile Include="Source\Hallway\HallwayTrimForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Source\Hallway\HallwayTrimForm.Designer.cs">
+      <DependentUpon>HallwayTrimForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="Source\Hallway\HallwayUtils.cs" />
     <Compile Include="Source\Interfaces\CollisionInterface.cs" />
     <Compile Include="Source\Interfaces\PreprocessInterface.cs" />

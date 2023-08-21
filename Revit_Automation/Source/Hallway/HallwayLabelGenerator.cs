@@ -17,10 +17,16 @@ namespace Revit_Automation.Source.Hallway
         private List<HallwayLine> mHallwayLines;
 
         // horizontal hallway label lines
-        public List<HallwayLabelLine> mHorizontalLabelLines;
+        private List<HallwayLabelLine> mHorizontalLabelLines;
 
         // vertical hallway label lines
-        public List<HallwayLabelLine> mVerticalLabelLines;
+        private List<HallwayLabelLine> mVerticalLabelLines;
+
+        // public accessor for horizontal label Lines
+        public List<HallwayLabelLine> HorizontalLabelLines { get { return mHorizontalLabelLines; } }
+
+        // public accessor vertical label lines
+        public List<HallwayLabelLine> VerticalLabelLines { get { return mVerticalLabelLines; } }
 
         /// <summary>
         /// CTOR
@@ -78,7 +84,7 @@ namespace Revit_Automation.Source.Hallway
         }
 
         /// <summary>
-        /// Returns the type idetifier for the specified font string type
+        /// Returns the type identifier for the specified font string type
         /// </summary>
         /// <param name="doc"> DB document </param>
         /// <param name="typeName"> Type Name ( which is the type of the text font) </param>
@@ -132,13 +138,13 @@ namespace Revit_Automation.Source.Hallway
                 }
 
                 // all the co linear lines are added to the same label
-                var index = mHorizontalLabelLines.FindIndex(x => x.mLabel == $"{prefix}{lineNum}");
+                var index = hallwayLabelLines.FindIndex(x => x.mLabel == $"{prefix}{lineNum}");
 
                 // add the line to the label list
                 if (index == -1)
-                    mHorizontalLabelLines.Add(new HallwayLabelLine($"{prefix}{lineNum}", parallelLines[i]));
+                    hallwayLabelLines.Add(new HallwayLabelLine($"{prefix}{lineNum}", parallelLines[i]));
                 else
-                    mHorizontalLabelLines[index].mLines.Add(parallelLines[i]);
+                    hallwayLabelLines[index].mLines.Add(parallelLines[i]);
 
                 // Create a text note at the midpoint
                 TextNote textNote = TextNote.Create(mDocument, mDocument.ActiveView.Id, midpoint, String.Format($"{prefix}{lineNum}"), new TextNoteOptions()

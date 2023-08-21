@@ -244,6 +244,31 @@ namespace Revit_Automation
     }
 
     [Transaction(TransactionMode.Manual)]
+    public class HallywayShowLabels : IExternalCommand
+    {
+        public Result Execute(
+          ExternalCommandData commandData,
+          ref string message,
+          ElementSet elements)
+        {
+            UIApplication uiapp = commandData.Application;
+            UIDocument uidoc = uiapp.ActiveUIDocument;
+            Document doc = uidoc.Document;
+
+            // Initialize the hallway manager 
+            var hallwayManager = new HallwayManager(ref doc);
+
+            // Generate the labels
+            hallwayManager.GenerateLabels();
+
+            // Show the trim form
+            hallwayManager.ShowForm();
+
+            return Result.Succeeded;
+        }
+    }
+
+    [Transaction(TransactionMode.Manual)]
     public class HallywayTrimAdjust : IExternalCommand
     {
         public Result Execute(
@@ -255,7 +280,17 @@ namespace Revit_Automation
             UIDocument uidoc = uiapp.ActiveUIDocument;
             Document doc = uidoc.Document;
 
-            _ = new HallwayManager(ref doc);
+            //validate data before trimming
+            if (HallwayTrimData.Validate())
+            {
+                // trim hallways based on hallway trim data 
+                _ = new HallwayTrim(ref doc, HallwayTrimData.HorizontalLabelLines, HallwayTrimData.VerticalLabelLines);
+            }
+            else
+            {
+                TaskDialog.Show("Error", "Hallway lines are not present");
+                return Result.Failed;
+            }
 
             return Result.Succeeded;
         }

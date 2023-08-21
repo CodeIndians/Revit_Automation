@@ -13,6 +13,10 @@ namespace Revit_Automation.Source.Hallway
     {
         private Document mDocument;
 
+        private HallwayLineCollector mHallwayLineCollector;
+
+        private HallwayLabelGenerator mHallwayLabelGenerator;
+
 
         /// <summary>
         /// CTOR
@@ -28,22 +32,26 @@ namespace Revit_Automation.Source.Hallway
         private void Initialize()
         {
             // collect hallway lines
-            var hallwayLineCollector = new HallwayLineCollector(ref mDocument);
+            mHallwayLineCollector = new HallwayLineCollector(ref mDocument);
 
-            var hallwayLabelgenerator = new HallwayLabelGenerator(ref mDocument, hallwayLineCollector.HallwayLines);
-
-            hallwayLabelgenerator.GenerateLabels();
-
-
+            mHallwayLabelGenerator = new HallwayLabelGenerator(ref mDocument, mHallwayLineCollector.HallwayLines);
 
             // COMMENT: comment this in the production release
             //FileLogger.WriteHallwayLineToFile(hallwayLineCollector.HallwayLines, @"C:\temp\hallway_lines");
 
         }
 
-        private void ShowForm()
+        // generate the hallway line labels
+        public void GenerateLabels()
         {
+            mHallwayLabelGenerator.GenerateLabels();
+        }
 
+        // show the hallway trim form
+        public void ShowForm()
+        {
+            HallwayTrimForm trimForm = new HallwayTrimForm(ref mDocument, mHallwayLabelGenerator.HorizontalLabelLines, mHallwayLabelGenerator.VerticalLabelLines);
+            trimForm.Show();
         }
     }
 }

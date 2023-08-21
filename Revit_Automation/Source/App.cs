@@ -110,6 +110,13 @@ namespace Revit_Automation
                     "Header.png");
 
                 AddRevitCommand(HallWayRB,
+                   "HallwayShowLabels",
+                   "Hallway Show \n Labels",
+                   "Revit_Automation.HallywayShowLabels",
+                   "Trim and Adjust Hallway lines",
+                   "Hallway.png");
+
+                AddRevitCommand(HallWayRB,
                    "HallwayTrimAdjust",
                    "Hallway Trim and \n Adjustment",
                    "Revit_Automation.HallywayTrimAdjust",
