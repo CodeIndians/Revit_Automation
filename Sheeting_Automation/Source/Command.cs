@@ -17,9 +17,12 @@ using Sheeting_Automation.Source.Interfaces;
 
 namespace Sheeting_Automation
 {
-
+    /// <summary>
+    /// Command for placing dimensions
+    /// This will open up a form for now 
+    /// </summary>
     [Transaction(TransactionMode.Manual)]
-    public class Command : IExternalCommand
+    public class PlaceDimensionsCommand : IExternalCommand
     {
         public Result Execute(
           ExternalCommandData commandData,
@@ -50,6 +53,53 @@ namespace Sheeting_Automation
                 dm.PlaceDimensions();
                 
              }
+            return Result.Succeeded;
+        }
+    }
+    /// <summary>
+    /// 
+    /// </summary>
+    [Transaction(TransactionMode.Manual)]
+    public class CreateSchedulesCommand : IExternalCommand
+    {
+        public Result Execute(
+          ExternalCommandData commandData,
+          ref string message,
+          ElementSet elements)
+        {
+
+            UIApplication uiapp = commandData.Application;
+
+            // Walls will be needed for the Properties Dialog
+            UIDocument uidoc = uiapp.ActiveUIDocument;
+            Document doc = uidoc.Document;
+
+            TaskDialog.Show("Info", "Create Schedules");
+
+            return Result.Succeeded;
+        }
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    [Transaction(TransactionMode.Manual)]
+    public class EditSchedulesCommand : IExternalCommand
+    {
+        public Result Execute(
+          ExternalCommandData commandData,
+          ref string message,
+          ElementSet elements)
+        {
+
+            UIApplication uiapp = commandData.Application;
+
+            // Walls will be needed for the Properties Dialog
+            UIDocument uidoc = uiapp.ActiveUIDocument;
+            Document doc = uidoc.Document;
+
+            TaskDialog.Show("Info", "Edit Schedules");
+
             return Result.Succeeded;
         }
     }
