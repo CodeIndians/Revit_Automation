@@ -294,7 +294,7 @@ namespace Revit_Automation.Source.Utils
 
         public static void AdjustWallEndPoints(InputLine inputLine,ref XYZ startpt, ref List<XYZ> middleIntersections, ref XYZ endPt, LineType linetype, PanelDirection panelDirection)
         {
-            double dParam = GenericUtils.GetPanelWidth(inputLine) ;
+            double dParam = GenericUtils.GetPanelWidth(inputLine)/2.0 ;
             List<XYZ> modifiedCollection = new List<XYZ>();
             if (linetype == LineType.Horizontal && (panelDirection == PanelDirection.R || panelDirection == PanelDirection.U))
             {
@@ -361,7 +361,7 @@ namespace Revit_Automation.Source.Utils
 
             WallType wallType = SymbolCollector.GetWall(pg.strWallName, "Basic Wall");
 
-            if (wallType == null) { dPanelThickness = wallType.Width; }
+            if (wallType != null) { dPanelThickness = wallType.Width; }
             return dPanelThickness;
         }
 

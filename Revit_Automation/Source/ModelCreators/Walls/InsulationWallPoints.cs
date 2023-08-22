@@ -13,12 +13,12 @@ namespace Revit_Automation.Source.ModelCreators.Walls
 {
     public class InsulationWallPoints : IWallPointsGenerator
     {
-        private XYZ studpoint = null;
+        private List<XYZ> studpoints = new List<XYZ>();
         private Document m_Document = null;
         private InputLine m_inputLine;
         public void AddStudsIfNeeded()
         {
-            if (studpoint != null)
+            foreach (XYZ studpoint in studpoints)
             {
                 PostCreationUtils.PlaceStudAtPoint(m_Document, studpoint, m_inputLine);
             }
@@ -91,37 +91,33 @@ namespace Revit_Automation.Source.ModelCreators.Walls
                     }
                 }
 
-                GenericUtils.AdjustWallEndPoints(inputLine, ref startpt, ref middleIntersections, ref endPt, linetype, i == 0 ? PanelDirection.R : PanelDirection.L);
+                XYZ AdditionVector = null;
+                double dPanelPreferredLength = GetPanelPreferredLength(inputLine);
 
-                if (inputLine.strPanelType == "Flat Panel")
+                if (linetype == LineType.Horizontal)
+                    AdditionVector = new XYZ(dPanelPreferredLength, 0, 0);
+                else
+                    AdditionVector = new XYZ(0, dPanelPreferredLength, 0);
+
+                XYZ middlePoint = startpt;
+
+                while (true)
                 {
-                    XYZ AdditionVector = null;
-                    double dPanelPreferredLength = GetPanelPreferredLength(inputLine);
+                    middlePoint = middlePoint + AdditionVector;
 
-                    if (linetype == LineType.Horizontal)
-                        AdditionVector = new XYZ(dPanelPreferredLength, 0, 0);
-                    else
-                        AdditionVector = new XYZ(0, dPanelPreferredLength, 0);
-
-                    XYZ middlePoint = startpt;
-                    
-                    while (true)
+                    if ((linetype == LineType.Horizontal && middlePoint.X < endPt.X) ||
+                        (linetype == LineType.vertical && middlePoint.Y < endPt.Y))
                     {
-                        middlePoint = middlePoint + AdditionVector;
-
-                        if ((linetype == LineType.Horizontal && middlePoint.X < endPt.X) ||
-                            (linetype == LineType.vertical && middlePoint.Y < endPt.Y))
-                        {
-                            // Add middle point 2 times, the processing order is
-                            // 1-2, 2-3, 3-4, 4-5, and so on
-                            middleIntersections.Add(middlePoint);
-                            middleIntersections.Add(middlePoint);
-                        }
-                        else
-                            break;
+                        // Add middle point 2 times, the processing order is
+                        // 1-2, 2-3, 3-4, 4-5, and so on
+                        middleIntersections.Add(middlePoint);
+                        middleIntersections.Add(middlePoint);
                     }
-                   
+                    else
+                        break;
                 }
+
+                GenericUtils.AdjustWallEndPoints(inputLine, ref startpt, ref middleIntersections, ref endPt, linetype, i == 0 ? PanelDirection.R : PanelDirection.L);
 
                 wallEndPointsCollection.Add(startpt);
                 wallEndPointsCollection.AddRange(middleIntersections);
@@ -161,7 +157,7 @@ namespace Revit_Automation.Source.ModelCreators.Walls
                             StartPoint = new XYZ(inputLine.startpoint.X + iIntersectingLineWebWidth + dHourrate,
                                                   inputLine.startpoint.Y + iInputLineWebWidth / 2,
                                                   inputLine.startpoint.Z);
-                            studpoint = new XYZ(StartPoint.X, inputLine.startpoint.Y, StartPoint.Z);
+                            studpoints.Add( new XYZ(StartPoint.X, inputLine.startpoint.Y, StartPoint.Z));
                         }
                         else
                             StartPoint = new XYZ(inputLine.startpoint.X - dHourrate,
@@ -175,7 +171,7 @@ namespace Revit_Automation.Source.ModelCreators.Walls
                             StartPoint = new XYZ(inputLine.startpoint.X + iInputLineWebWidth / 2,
                                                   inputLine.startpoint.Y + iIntersectingLineWebWidth + dHourrate,
                                                   inputLine.startpoint.Z);
-                            studpoint = new XYZ(inputLine.startpoint.X, StartPoint.Y, StartPoint.Z);
+                            studpoints.Add( new XYZ(inputLine.startpoint.X, StartPoint.Y, StartPoint.Z));
                         }
                         else
                             StartPoint = new XYZ(inputLine.startpoint.X - iInputLineWebWidth / 2,
@@ -192,7 +188,7 @@ namespace Revit_Automation.Source.ModelCreators.Walls
                             StartPoint = new XYZ(inputLine.startpoint.X + iIntersectingLineWebWidth + dHourrate,
                                                     inputLine.startpoint.Y - iInputLineWebWidth / 2,
                                                     inputLine.startpoint.Z);
-                            studpoint = new XYZ(StartPoint.X, inputLine.startpoint.Y, StartPoint.Z);
+                            studpoints.Add( new XYZ(StartPoint.X, inputLine.startpoint.Y, StartPoint.Z));
                         }
                         else
                             StartPoint = new XYZ(inputLine.startpoint.X - dHourrate,
@@ -206,7 +202,7 @@ namespace Revit_Automation.Source.ModelCreators.Walls
                             StartPoint = new XYZ(inputLine.startpoint.X - iInputLineWebWidth / 2,
                                                     inputLine.startpoint.Y + iIntersectingLineWebWidth + dHourrate,
                                                     inputLine.startpoint.Z);
-                            studpoint = new XYZ(inputLine.startpoint.X, StartPoint.Y, StartPoint.Z);
+                            studpoints.Add( new XYZ(inputLine.startpoint.X, StartPoint.Y, StartPoint.Z));
                         }
                         else
                             StartPoint = new XYZ(inputLine.startpoint.X + iInputLineWebWidth / 2,
@@ -350,7 +346,7 @@ namespace Revit_Automation.Source.ModelCreators.Walls
                             EndPoint = new XYZ(inputLine.endpoint.X - iIntersectingLineWebWidth - dHourrate,
                                                 inputLine.endpoint.Y + iInputLineWebWidth / 2,
                                                 inputLine.endpoint.Z);
-                            studpoint = new XYZ(EndPoint.X, inputLine.endpoint.Y, EndPoint.Z);
+                            studpoints.Add( new XYZ(EndPoint.X, inputLine.endpoint.Y, EndPoint.Z));
                         }
                         else
                         {
@@ -366,7 +362,7 @@ namespace Revit_Automation.Source.ModelCreators.Walls
                             EndPoint = new XYZ(inputLine.endpoint.X + iInputLineWebWidth / 2,
                                                 inputLine.endpoint.Y - iIntersectingLineWebWidth - dHourrate,
                                                 inputLine.endpoint.Z);
-                            studpoint = new XYZ(inputLine.startpoint.X, EndPoint.Y, EndPoint.Z);
+                            studpoints.Add( new XYZ(inputLine.startpoint.X, EndPoint.Y, EndPoint.Z));
                         }
                         else
                         {
@@ -384,7 +380,7 @@ namespace Revit_Automation.Source.ModelCreators.Walls
                             EndPoint = new XYZ(inputLine.endpoint.X - iIntersectingLineWebWidth - dHourrate,
                                                 inputLine.endpoint.Y - iInputLineWebWidth / 2,
                                                 inputLine.endpoint.Z);
-                            studpoint = new XYZ(EndPoint.X, inputLine.startpoint.Y, EndPoint.Z);
+                            studpoints.Add( new XYZ(EndPoint.X, inputLine.startpoint.Y, EndPoint.Z));
                         }
                         else
                         {
@@ -400,7 +396,7 @@ namespace Revit_Automation.Source.ModelCreators.Walls
                             EndPoint = new XYZ(inputLine.endpoint.X - iInputLineWebWidth / 2,
                                                 inputLine.endpoint.Y - iIntersectingLineWebWidth - dHourrate,
                                                 inputLine.endpoint.Z);
-                            studpoint = new XYZ(inputLine.startpoint.X, EndPoint.Y, EndPoint.Z);
+                            studpoints.Add( new XYZ(inputLine.startpoint.X, EndPoint.Y, EndPoint.Z));
                         }
                         else
                         {

@@ -225,9 +225,13 @@ namespace Revit_Automation.Source.ModelCreators
                     break;
                 case "LB":
                 case "LBS":
+                    LoadBearingWallPoints loadBearingWallPoints = new LoadBearingWallPoints();
+                    loadBearingWallPoints.ComputeEndPoints(m_Document, inputLine, rightPanelIntersection, leftPanelIntersections, endPanelIntersections, ref wallEndPointsCollection);
                     break;
                 case "NLB":
                 case "NLBS":
+                    NonLoadBearingWallPoints nonloadBearingWallPoints = new NonLoadBearingWallPoints();
+                    nonloadBearingWallPoints.ComputeEndPoints(m_Document, inputLine, rightPanelIntersection, leftPanelIntersections, endPanelIntersections, ref wallEndPointsCollection);
                     break;
                 default: break;
 
@@ -239,9 +243,9 @@ namespace Revit_Automation.Source.ModelCreators
             public int Compare(XYZ x, XYZ y)
             {
                 if (x.X < y.X)
-                    return 1;
-                if (x.X > y.X)
                     return -1;
+                if (x.X > y.X)
+                    return 1;
                 return 0;
             }
         }
@@ -251,9 +255,9 @@ namespace Revit_Automation.Source.ModelCreators
             public int Compare(XYZ x, XYZ y)
             {
                 if (x.Y < y.Y)
-                    return 1;
-                if (x.Y > y.Y)
                     return -1;
+                if (x.Y > y.Y)
+                    return 1;
                 return 0;
             }
         }
@@ -304,7 +308,10 @@ namespace Revit_Automation.Source.ModelCreators
 
                         PanelDirection panelDir = ComputePanelDirection(modelLine);
                         strLineInfo += "|";
-                        strLineInfo += panelDir.ToString(); 
+                        strLineInfo += panelDir.ToString();
+
+                        strLineInfo += "|";
+                        strLineInfo += modelLine.Id.ToString();
 
                         XYZ intersectionPT = GetNearestPointToLine(inputLine, pt1, pt2);
                         XYZ endPt = null;

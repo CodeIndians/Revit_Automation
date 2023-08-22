@@ -537,5 +537,328 @@ namespace Revit_Automation.Source
 
             return prjSettingsLine;
         }
+
+        internal static InputLine GetInputLineFromID(ElementId iDStartIntersectingLine)
+        {
+            if (iDStartIntersectingLine == null)
+                return new InputLine();
+
+            Element locCurve = m_Document.GetElement(iDStartIntersectingLine);
+            {
+
+                InputLine iLine = new InputLine();
+
+                if (locCurve.Location is LocationCurve location)
+                {
+                    iLine.locationCurve = location;
+                }
+
+                XYZ pt1 = null, pt2 = null;
+                GenericUtils.GetlineStartAndEndPoints(locCurve, out pt1, out pt2);
+
+                iLine.startpoint = pt1;
+                iLine.endpoint = pt2;
+
+                iLine.id = locCurve.Id;
+
+                Parameter tempParam;
+
+                // Whether give line is extended or trimmed;
+                iLine.bLineExtendedOrTrimmed = false;
+
+                // Additional Panel
+                tempParam = locCurve.LookupParameter("Additional Panel");
+                if (tempParam != null)
+                {
+                    iLine.strAdditionalPanel = tempParam.AsString();
+                }
+                tempParam = null;
+
+                // Additional Panel Gauge
+                tempParam = locCurve.LookupParameter("Additional Panel Gauge");
+                if (tempParam != null)
+                {
+                    iLine.strAdditionalPanelGuage = tempParam.AsString();
+                }
+                tempParam = null;
+
+                // Beam Size
+                tempParam = locCurve.LookupParameter("Beam Size");
+                if (tempParam != null)
+                {
+                    iLine.strBeamSize = tempParam.AsString();
+                }
+                tempParam = null;
+
+                // Bracing
+                tempParam = locCurve.LookupParameter("Bracing");
+                if (tempParam != null)
+                {
+                    iLine.strBracing = tempParam.AsString();
+                }
+                tempParam = null;
+
+                // Cee Header Gauge
+                tempParam = locCurve.LookupParameter("Cee Header Gauge");
+                if (tempParam != null)
+                {
+                    iLine.strCHeaderGuage = tempParam.AsString();
+                }
+                tempParam = null;
+
+                // Cee Header Quantity
+                tempParam = locCurve.LookupParameter("Cee Header Quantity");
+                if (tempParam != null)
+                {
+                    iLine.strCHeaderQuantity = tempParam.AsString();
+                }
+                tempParam = null;
+
+                // Cee Header Size
+                tempParam = locCurve.LookupParameter("Cee Header Size");
+                if (tempParam != null)
+                {
+                    iLine.strCHeaderSize = tempParam.AsString();
+                }
+                tempParam = null;
+
+                // Color
+                tempParam = locCurve.LookupParameter("Color");
+                if (tempParam != null)
+                {
+                    iLine.strColor = tempParam.AsString();
+                }
+                tempParam = null;
+
+                // HSS Type
+                tempParam = locCurve.LookupParameter("HSS Type");
+                if (tempParam != null)
+                {
+                    iLine.strHSSType = tempParam.AsString();
+                }
+                tempParam = null;
+
+                //Panel Horizontal Direction
+                tempParam = locCurve.LookupParameter("Horizontal Panel Direction");
+                if (tempParam != null)
+                {
+                    iLine.strHorizontalPanelDirection = tempParam.AsString();
+                }
+                tempParam = null;
+
+                // Panel Vertical Direction
+                tempParam = locCurve.LookupParameter("Vertical Panel Direction");
+                if (tempParam != null)
+                {
+                    iLine.strVerticalPanelDirection = tempParam.AsString();
+                }
+                tempParam = null;
+                // Material
+                tempParam = locCurve.LookupParameter("Material");
+                if (tempParam != null)
+                {
+                    iLine.strMaterial = tempParam.AsString();
+                }
+                tempParam = null;
+
+                // Panel Type
+                tempParam = locCurve.LookupParameter("Panel Type");
+                if (tempParam != null)
+                {
+                    iLine.strPanelType = tempParam.AsString();
+                }
+                tempParam = null;
+
+                // Partition Panel Gauge
+                tempParam = locCurve.LookupParameter("Partition Panel Gauge");
+                if (tempParam != null)
+                {
+                    iLine.strPartitionPanelGuage = tempParam.AsString();
+                }
+                tempParam = null;
+
+                // Roof System
+                tempParam = locCurve.LookupParameter("Roof System");
+                if (tempParam != null)
+                {
+                    iLine.strRoofSystem = tempParam.AsString();
+                }
+                tempParam = null;
+
+                // Row Name
+                tempParam = locCurve.LookupParameter("Row Name");
+                if (tempParam != null)
+                {
+                    iLine.strRowName = tempParam.AsString();
+                }
+                tempParam = null;
+
+                // Color (Door Header)
+                tempParam = locCurve.LookupParameter("Color (Door Header)");
+                if (tempParam != null)
+                {
+                    iLine.strColorDoorHeader = tempParam.AsString();
+                }
+                tempParam = null;
+
+                // HSS Height
+                tempParam = locCurve.LookupParameter("HSS Height");
+                if (tempParam != null)
+                {
+                    iLine.dHSSHeight = tempParam.AsDouble();
+                }
+                tempParam = null;
+
+                // Material Height
+                tempParam = locCurve.LookupParameter("Material Height");
+                if (tempParam != null)
+                {
+                    iLine.dMaterialHeight = tempParam.AsDouble();
+                }
+                tempParam = null;
+
+                // Material Thickness
+                tempParam = locCurve.LookupParameter("Material Thickness");
+                if (tempParam != null)
+                {
+                    iLine.dMaterialThickness = tempParam.AsDouble();
+                }
+                tempParam = null;
+
+                // Panel Offset Height
+                tempParam = locCurve.LookupParameter("Panel Offset Height");
+                if (tempParam != null)
+                {
+                    iLine.dPanelOffsetHeight = tempParam.AsDouble();
+                }
+                tempParam = null;
+
+                // Panel Offset Height
+                tempParam = locCurve.LookupParameter("Partition Panel Each Side (Y/N)");
+                if (tempParam != null)
+                {
+                    iLine.dPartitionPanelEachSide = tempParam.AsInteger();
+                }
+                tempParam = null;
+
+                Parameter studGuageParam = locCurve.LookupParameter("Stud Gauge");
+                if (studGuageParam != null)
+                {
+                    iLine.strStudGuage = studGuageParam.AsString();
+                }
+
+                Parameter studSizeParam = locCurve.LookupParameter("Stud Size");
+                if (studSizeParam != null)
+                {
+                    iLine.strStudType = studSizeParam.AsString();
+                }
+
+                Parameter T62GaugeParam = locCurve.LookupParameter("T62 Gauge");
+                if (T62GaugeParam != null)
+                {
+                    iLine.strT62Guage = T62GaugeParam.AsString();
+                }
+
+                Parameter T62TypeParam = locCurve.LookupParameter("T62 Type");
+                if (T62TypeParam != null)
+                {
+                    iLine.strT62Type = T62TypeParam.AsString();
+                }
+
+                Parameter WallTypeParam = locCurve.LookupParameter("Wall Type");
+                if (WallTypeParam != null)
+                {
+                    iLine.strWallType = WallTypeParam.AsString();
+                }
+
+                Parameter TopTrackGaugeParam = locCurve.LookupParameter("Top Track Gauge");
+                if (TopTrackGaugeParam != null)
+                {
+                    iLine.strTopTrackGuage = TopTrackGaugeParam.AsString();
+                }
+
+                Parameter TopTrackSizeParam = locCurve.LookupParameter("Top Track Size");
+                if (TopTrackSizeParam != null)
+                {
+                    iLine.strTopTrackSize = TopTrackSizeParam.AsString();
+                }
+
+                Parameter phaseCreated = locCurve.get_Parameter(BuiltInParameter.PHASE_CREATED);
+                if (phaseCreated != null)
+                {
+                    iLine.strBuildingName = phaseCreated.AsValueString();
+                }
+
+                Parameter BottomTrackGaugeParam = locCurve.LookupParameter("Bottom Track Gauge");
+                if (BottomTrackGaugeParam != null)
+                {
+                    iLine.strBottomTrackGuage = BottomTrackGaugeParam.AsString();
+                }
+
+                Parameter BottomTrackSizeParam = locCurve.LookupParameter("Bottom Track Size");
+                if (BottomTrackSizeParam != null)
+                {
+                    iLine.strBottomTrackSize = BottomTrackSizeParam.AsString();
+                }
+
+                Parameter BottomTrackPunchParam = locCurve.LookupParameter("Bottom Track Punch");
+                if (BottomTrackPunchParam != null)
+                {
+                    iLine.strBottomTrackPunch = BottomTrackPunchParam.AsString();
+                }
+
+                Parameter FlangeOffsetParam = locCurve.LookupParameter("Flange Offset");
+                if (FlangeOffsetParam != null)
+                {
+                    iLine.dFlangeOfset = FlangeOffsetParam.AsInteger();
+                }
+
+                Parameter StudOnCenterParam = locCurve.LookupParameter("Stud O.C.");
+                if (StudOnCenterParam != null)
+                {
+                    iLine.dOnCenter = StudOnCenterParam.AsDouble();
+                }
+
+                Parameter ParapetHeightParam = locCurve.LookupParameter("Parapet Height");
+                if (ParapetHeightParam != null)
+                {
+                    iLine.dParapetHeight = ParapetHeightParam.AsDouble();
+                }
+
+                Parameter DoubleStudParam = locCurve.LookupParameter("Double Stud");
+                if (DoubleStudParam != null)
+                {
+                    iLine.strDoubleStudType = DoubleStudParam.AsString();
+                }
+
+                Parameter MaterialTypeParameter = locCurve.LookupParameter("Material Type");
+                if (MaterialTypeParameter != null)
+                {
+                    iLine.strMaterialType = MaterialTypeParameter.AsString();
+                }
+
+                // Compute Intersection Points with Grids. 
+                GridCollector GridCollectionHelper = new GridCollector(m_Document);
+
+                LocationCurve locationCurve = (LocationCurve)locCurve.Location;
+                Tuple<XYZ, XYZ> linecoords = Tuple.Create(locationCurve.Curve.GetEndPoint(0), locationCurve.Curve.GetEndPoint(1));
+
+                // Compute if the Line is parallel, or perpendicular to roof slope.
+                XYZ lineDirection = locationCurve.Curve.GetEndPoint(1) - locationCurve.Curve.GetEndPoint(0);
+                XYZ roofSlope = GenericUtils.GetRoofSlopeDirection(locationCurve.Curve.GetEndPoint(1));
+                iLine.dirWRTRoofSlope = MathUtils.IsParallel(roofSlope, lineDirection)
+                    ? DirectionWithRespectToRoofSlope.Parallel
+                    : DirectionWithRespectToRoofSlope.Perpendicular;
+
+                // Compute Grid Intersections for T62 Placement
+                iLine.gridIntersectionPoints = GridCollectionHelper.computeIntersectionPoints(linecoords);
+
+                // Compute Main intesection points for Stud placement offset
+                iLine.mainGridIntersectionPoints = GridCollectionHelper.computeIntersectionPoints(linecoords, true);
+                
+                
+                return iLine;
+            }
+        }
     }
 }

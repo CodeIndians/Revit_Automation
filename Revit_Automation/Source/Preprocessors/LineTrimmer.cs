@@ -236,10 +236,19 @@ namespace Revit_Automation.Source.Preprocessors
 
             // Panel Direction 
             if (MathUtils.ApproximatelyEqual(lineToRemain.startpoint.X, lineToRemain.endpoint.X))
-                strPanelDirection = pg.strPanelVerticalDirection.ToString();
+            {
+                if (string.IsNullOrEmpty(lineToRemain.strVerticalPanelDirection))
+                    strPanelDirection = pg.strPanelVerticalDirection.ToString();
+                else
+                    strPanelDirection = lineToRemain.strVerticalPanelDirection;
+             }
             else
-                strPanelDirection = pg.strPanelHorizontalDirection.ToString();
-
+            {
+                if (string.IsNullOrEmpty(lineToRemain.strHorizontalPanelDirection))
+                    strPanelDirection = pg.strPanelHorizontalDirection.ToString();
+                else
+                    strPanelDirection = lineToRemain.strHorizontalPanelDirection;
+            }
             // For Exteriror or Fire wall or Insulating wall, panels will be placed on both sides
             if (lineToRemain.strWallType == "Fire" ||
                 lineToRemain.strWallType == "Insulation" ||

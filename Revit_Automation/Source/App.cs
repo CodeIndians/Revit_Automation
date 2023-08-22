@@ -32,7 +32,7 @@ namespace Revit_Automation
         /// <returns></returns>
         public Result OnStartup(UIControlledApplication a)
         {
-            //if (LicenseValidator.ValidateLicense())
+            if (LicenseValidator.ValidateLicense())
             {
 
                 // Create a custom ribbon tab
@@ -133,11 +133,11 @@ namespace Revit_Automation
 
                 return Result.Succeeded;
             }
-            //else
-            //{
-            //    MessageBox.Show("Revit Plugin license verification failed", "License Error");
-            //    return Result.Failed;
-            //}
+            else
+            {
+                MessageBox.Show("Revit Plugin license verification failed", "License Error");
+                return Result.Failed;
+            }
         }
 
         private void AddRevitCommand(RibbonPanel rb,

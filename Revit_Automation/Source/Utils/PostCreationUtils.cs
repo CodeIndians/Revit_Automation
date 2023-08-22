@@ -13,80 +13,87 @@ namespace Revit_Automation.Source.Utils
     {
         public static void PlaceStudAtPoint(Document doc, XYZ studPoint, InputLine inputLine)
         {
-            
-            // Input line start and end points
-            XYZ pt1 = null, pt2 = null;
-            GenericUtils.GetlineStartAndEndPoints(inputLine, out pt1, out pt2);
-
-            // Line orientation
-            LineType lineType = MathUtils.ApproximatelyEqual(pt1.Y, pt2.Y) ? LineType.Horizontal : LineType.vertical;
-
-            // Get Top and base levels
-            IOrderedEnumerable<Level> levels = ModelCreator.FindAndSortLevels(doc);
-            Level toplevel = null, baselevel = null;
-            ComputeTopAndBaseLevels(inputLine, levels, out toplevel, out baselevel);
-
-            // Get Top and Bottom Attachment Elements
-            Element topAttachElement = null, bottomAttachElement = null;
-            topAttachElement = GenericUtils.GetNearestFloorOrRoof(toplevel, pt1, doc);
-            bottomAttachElement = GenericUtils.GetNearestFloorOrRoof(baselevel, pt1, doc);
-            if (topAttachElement == null)
+            try
             {
-                topAttachElement = GetRoofAtPoint(doc, pt1);
+                // Remove any existing studs
+                RemoveStudAtPoint(studPoint, inputLine.endpoint - inputLine.startpoint, doc);
+
+                // Input line start and end points
+                XYZ pt1 = null, pt2 = null;
+                GenericUtils.GetlineStartAndEndPoints(inputLine, out pt1, out pt2);
+
+                // Line orientation
+                LineType lineType = MathUtils.ApproximatelyEqual(pt1.Y, pt2.Y) ? LineType.Horizontal : LineType.vertical;
+
+                // Get Top and base levels
+                         IOrderedEnumerable<Level> levels = ModelCreator.FindAndSortLevels(doc);
+                Level toplevel = null, baselevel = null;
+                ComputeTopAndBaseLevels(inputLine, levels, out toplevel, out baselevel);
+
+                // Get Top and Bottom Attachment Elements
+                Element topAttachElement = null, bottomAttachElement = null;
+                topAttachElement = GenericUtils.GetNearestFloorOrRoof(toplevel, pt1, doc);
+                bottomAttachElement = GenericUtils.GetNearestFloorOrRoof(baselevel, pt1, doc);
+                if (topAttachElement == null)
+                {
+                    topAttachElement = GetRoofAtPoint(doc, pt1);
+                }
+
+                // Get the  family Symbol for the Stud
+                string strFamilySymbol = inputLine.strStudType.ToString() + string.Format(" x {0}ga", inputLine.strStudGuage);
+                FamilySymbol columnType = SymbolCollector.GetSymbol(strFamilySymbol, "Post", SymbolCollector.FamilySymbolType.posts);
+
+                if (!columnType.IsActive)
+                    columnType.Activate();
+
+                // Compute whether the point is at start or end
+                bool bAtStart = lineType == LineType.vertical ?
+                                    (Math.Abs(studPoint.Y - pt1.Y) > Math.Abs(studPoint.Y - pt2.Y) ? false : true) :
+                                    (Math.Abs(studPoint.X - pt1.X) > Math.Abs(studPoint.X - pt2.X) ? false : true);
+
+                // Create the column instance at the point
+                FamilyInstance column = doc.Create.NewFamilyInstance(studPoint, columnType, baselevel, StructuralType.Column);
+
+                // Set top level based on parapet conditions
+                if (inputLine.dParapetHeight == 0)
+                {
+                    _ = column.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(toplevel.Id);
+                    _ = column.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM).Set(0);
+                }
+                else
+                {
+                    _ = column.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(baselevel.Id);
+                    _ = column.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM).Set(inputLine.dParapetHeight);
+                }
+
+                // Add Top and Bottom attachments
+                if (topAttachElement != null)
+                {
+                    ColumnAttachment.AddColumnAttachment(doc, column, topAttachElement, 1, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
+                }
+
+                if (bottomAttachElement != null)
+                {
+                    ColumnAttachment.AddColumnAttachment(doc, column, bottomAttachElement, 0, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
+                }
+
+                ElementId columnID = column.Id;
+                XYZ ColumnOrientation = column.FacingOrientation;
+
+                // update the orientation - based on start or end and the roof slope
+                UpdateOrientation(doc, columnID, ColumnOrientation, studPoint, bAtStart ? pt2 : pt1, true);
+
+                // Flange width
+                double dFlangeWidth = GenericUtils.FlangeWidth(inputLine.strStudType);
+
+                // Adjust the stud location
+                XYZ Adjustedpt1 = AdjustLinePoint(studPoint, bAtStart ? pt2 : pt1, lineType, dFlangeWidth / 2);
+                MoveColumn(doc, columnID, Adjustedpt1);
+                Logger.logMessage("ProcessStudInputLine - Move Column at end");
             }
-
-            // Get the  family Symbol for the Stud
-            string strFamilySymbol = inputLine.strStudType.ToString() + string.Format(" x {0}ga", inputLine.strStudGuage);
-            FamilySymbol columnType = SymbolCollector.GetSymbol(strFamilySymbol, "Post", SymbolCollector.FamilySymbolType.posts);
-
-            if (!columnType.IsActive)
-                columnType.Activate();
-
-            // Compute whether the point is at start or end
-            bool bAtStart = lineType == LineType.vertical ?
-                                (Math.Abs(studPoint.Y - pt1.Y) > Math.Abs(studPoint.Y - pt2.Y) ? false : true) :
-                                (Math.Abs(studPoint.X - pt1.X) > Math.Abs(studPoint.X - pt2.X) ? false : true);
-
-            // Create the column instance at the point
-            FamilyInstance column = doc.Create.NewFamilyInstance(studPoint, columnType, baselevel, StructuralType.Column);
-
-            // Set top level based on parapet conditions
-            if (inputLine.dParapetHeight == 0)
-            {
-                _ = column.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(toplevel.Id);
-                _ = column.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM).Set(0);
+            catch (Exception)
+            { 
             }
-            else
-            {
-                _ = column.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(baselevel.Id);
-                _ = column.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM).Set(inputLine.dParapetHeight);
-            }
-
-            // Add Top and Bottom attachments
-            if (topAttachElement != null)
-            {
-                ColumnAttachment.AddColumnAttachment(doc, column, topAttachElement, 1, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
-            }
-
-            if (bottomAttachElement != null)
-            {
-                ColumnAttachment.AddColumnAttachment(doc, column, bottomAttachElement, 0, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
-            }
-
-            ElementId columnID = column.Id;
-            XYZ ColumnOrientation = column.FacingOrientation;
-
-            // update the orientation - based on start or end and the roof slope
-            UpdateOrientation(doc, columnID, ColumnOrientation, studPoint, bAtStart ? pt2:pt1, true);
-
-            // Flange width
-            double dFlangeWidth = GenericUtils.FlangeWidth(inputLine.strStudType);
-
-            // Adjust the stud location
-            XYZ Adjustedpt1 = AdjustLinePoint(studPoint, bAtStart ? pt2 : pt1, lineType, dFlangeWidth / 2);
-            MoveColumn(doc, columnID, Adjustedpt1);
-            Logger.logMessage("ProcessStudInputLine - Move Column at end");
-
         }
 
         public static void ComputeTopAndBaseLevels(InputLine inputLine, IOrderedEnumerable<Level> levels, out Level toplevel, out Level baselevel)
@@ -247,6 +254,45 @@ namespace Revit_Automation.Source.Utils
             {
                 // Set the new location for the column
                 locationPoint.Point = newLocation;
+            }
+        }
+
+        internal static void RemoveStudAtPoint(XYZ endpoint, XYZ webOrientation, Document doc)
+        {
+            try
+            {
+                // build a bounding box intersects filter to get the studs at a give point
+                // Create a Outline, uses a minimum and maximum XYZ point to initialize the Bounding Box. 
+                Outline myOutLn = new Outline(
+                    new XYZ(endpoint.X - 0.1,
+                    endpoint.Y - 0.1,
+                    endpoint.Z - 0.1),
+                    new XYZ(endpoint.X + 0.1,
+                    endpoint.Y + 0.1,
+                    endpoint.Z + 0.1));
+                Logger.logMessage("Outline for Collection Objects Created");
+
+                // Create a BoundingBoxIntersects filter with this Outline
+                BoundingBoxIntersectsFilter filter = new BoundingBoxIntersectsFilter(myOutLn);
+
+                // Apply the filter to the elements in the active document to retrieve posts at a point
+                FilteredElementCollector collector = new FilteredElementCollector(doc);
+                IList<Element> postElements = collector.WherePasses(filter).OfCategory(BuiltInCategory.OST_StructuralColumns).ToElements();
+
+                // Delete only that stud which is parallel to the web orientation
+                foreach (Element column in postElements)
+                {
+                    FamilyInstance post = doc.GetElement(column.Id) as FamilyInstance;
+                    XYZ postorientation = post.FacingOrientation;
+
+                    if (MathUtils.IsParallel(postorientation, webOrientation))
+                    {
+                        doc.Delete(post.Id);
+                    }
+                }
+            }
+            catch (Exception ex) 
+            { 
             }
         }
     }
