@@ -158,5 +158,12 @@ namespace Revit_Automation.CustomTypes
         NoEndIntersection
     }
 
+    public enum Direction
+    {
+        StartToEnd,
+        EndToStart,
+        NoDirection
+    }
+
 }
 

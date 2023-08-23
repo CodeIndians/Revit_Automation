@@ -109,33 +109,9 @@ namespace Revit_Automation.Source.ModelCreators.Walls
 
             }
 
-
-            XYZ AdditionVector = null;
-            double dPanelPreferredLength = GetPanelPreferredLength(inputLine);
-
-            if (linetype == LineType.Horizontal)
-                AdditionVector = new XYZ(dPanelPreferredLength, 0, 0);
-            else
-                AdditionVector = new XYZ(0, dPanelPreferredLength, 0);
-
-            XYZ middlePoint = startpt;
-
-            while (true)
-            {
-                middlePoint = middlePoint + AdditionVector;
-
-                if ((linetype == LineType.Horizontal && middlePoint.X < endPt.X) ||
-                    (linetype == LineType.vertical && middlePoint.Y < endPt.Y))
-                {
-                    // Add middle point 2 times, the processing order is
-                    // 1-2, 2-3, 3-4, 4-5, and so on
-                    intermediatePts.Add(middlePoint);
-                    intermediatePts.Add(middlePoint);
-                }
-                else
-                    break;
-            }
-
+            // For firewall T Intersections, Continue the boards. Do not stop at the intersection. 
+            PanelUtils panelUtils = new PanelUtils(doc);
+            intermediatePts = panelUtils.ComputeMiddleIntersectionPts(inputLine, rightPanelIntersection.Count > 0 ? rightPanelIntersection : leftPanelIntersections, startpt, endPt);
 
             GenericUtils.AdjustWallEndPoints(inputLine, ref startpt, ref intermediatePts, ref endPt, linetype, panelDirection);
 

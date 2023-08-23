@@ -43,7 +43,10 @@ namespace Revit_Automation.Source.Utils
             {
                 return 0.291666;
             }
-
+            else if (result[1].Contains("1 5/8\""))
+            {
+                return 0.135416;
+            }
             return width;
         }
 
@@ -454,6 +457,14 @@ namespace Revit_Automation.Source.Utils
             }
 
             return false;
+        }
+
+        internal static LineType GetLineType(InputLine inputLine)
+        {
+            if (MathUtils.ApproximatelyEqual(inputLine.startpoint.X, inputLine.endpoint.X))
+                return LineType.vertical;
+            else
+                return LineType.Horizontal;
         }
     }
 }

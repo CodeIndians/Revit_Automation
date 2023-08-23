@@ -370,7 +370,7 @@ namespace Revit_Automation
                     break; // This is the last row 
                 }
 
-                strProjectSettings += checkBoxCell.Value?.ToString();
+                strProjectSettings += (checkBoxCell.Value != null)? checkBoxCell.Value.ToString() : "False";
                 strProjectSettings += ";";
 
                 strProjectSettings += panelType.Value?.ToString();
@@ -500,7 +500,7 @@ namespace Revit_Automation
                 {
                     break; // This is the last row 
                 }
-                StrCeeHeaderSettings += checkBoxCell.Value?.ToString();
+                StrCeeHeaderSettings += (checkBoxCell.Value != null) ? checkBoxCell.Value.ToString() : "False";
                 StrCeeHeaderSettings += ";";
 
                 StrCeeHeaderSettings += GridCell.Value?.ToString();
