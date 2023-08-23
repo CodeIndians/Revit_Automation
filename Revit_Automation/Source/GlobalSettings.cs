@@ -19,6 +19,7 @@ namespace Revit_Automation.Source
         public static double s_dBottomTrackMaxLength;
         public static int s_PanelDirectionComputation;
         public static List<PanelTypeGlobalParams> lstPanelParams = new List<PanelTypeGlobalParams>();
+        public static List<CeeHeaderSettings> lstCeeHeaderSettings = new List<CeeHeaderSettings>();
         public static int s_bPanelAtHallway;
         public static string s_strPartitionStudType;
         public static string s_strHallwayPanelThickness;
@@ -97,7 +98,7 @@ namespace Revit_Automation.Source
 
                 string strPanelSettings = settings[0];
                 {
-                    int j = 0, rowNumber = 0;
+                    int j = 0;
                     string[] panelSettings = strPanelSettings.Split(';');
 
                     while (j < panelSettings.Length - 1)
@@ -120,7 +121,24 @@ namespace Revit_Automation.Source
                         lstPanelParams.Add(panel);
 
                         j += 12;
-                        rowNumber++;
+                    }
+                }
+
+                string strCeeHeaderSettings = settings[23];
+                {
+                    int j = 0;
+                    string[] ceeHeaderSettings = strCeeHeaderSettings.Split(';');
+
+                    while (j < ceeHeaderSettings.Length - 1)
+                    {
+                        CeeHeaderSettings ceeHeader = new CeeHeaderSettings();
+                        ceeHeader.bIsValidGrid = bool.Parse(ceeHeaderSettings[j++]);
+                        ceeHeader.strGridName = ceeHeaderSettings[j++];
+                        ceeHeader.ceeHeaderName = ceeHeaderSettings[j++];
+                        ceeHeader.ceeHeaderCount = ceeHeaderSettings[j++];
+                        ceeHeader.HallwayCeeHeaderName = ceeHeaderSettings[j++];
+                        ceeHeader.HallwayCeeHeaderCount = ceeHeaderSettings[j++];
+                        lstCeeHeaderSettings.Add(ceeHeader);
                     }
                 }
             }
@@ -143,10 +161,10 @@ namespace Revit_Automation.Source
             s_dBottomTrackMaxLength = 0.0;
             s_PanelDirectionComputation = 0;
             lstPanelParams.Clear();
+            lstCeeHeaderSettings.Clear();
             s_bPanelAtHallway = 0;
             s_strPartitionStudType = "";
             s_strHallwayPanelThickness = "";
-
         }
     }
 }

@@ -121,20 +121,26 @@ namespace Revit_Automation.Source.ModelCreators.Walls
 
             XYZ middlePoint = startpt;
 
-            while (true)
-            {
-                middlePoint = middlePoint + AdditionVector;
+            double dLineLength = linetype == LineType.Horizontal ? Math.Abs(inputLine.startpoint.X - inputLine.endpoint.X) : Math.Abs(inputLine.startpoint.Y - inputLine.endpoint.Y);
 
-                if ((linetype == LineType.Horizontal && middlePoint.X < endPt.X) ||
-                    (linetype == LineType.vertical && middlePoint.Y < endPt.Y))
+            if (dLineLength > 25.0)
+            {
+
+                while (true)
                 {
-                    // Add middle point 2 times, the processing order is
-                    // 1-2, 2-3, 3-4, 4-5, and so on
-                    intermediatePts.Add(middlePoint);
-                    intermediatePts.Add(middlePoint);
+                    middlePoint = middlePoint + AdditionVector;
+
+                    if ((linetype == LineType.Horizontal && middlePoint.X < endPt.X) ||
+                        (linetype == LineType.vertical && middlePoint.Y < endPt.Y))
+                    {
+                        // Add middle point 2 times, the processing order is
+                        // 1-2, 2-3, 3-4, 4-5, and so on
+                        intermediatePts.Add(middlePoint);
+                        intermediatePts.Add(middlePoint);
+                    }
+                    else
+                        break;
                 }
-                else
-                    break;
             }
 
 

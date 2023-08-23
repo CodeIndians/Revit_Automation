@@ -104,6 +104,16 @@ namespace Revit_Automation.CustomTypes
         public double iPanelHourRate;
     }
 
+    public struct CeeHeaderSettings
+    {
+        public bool bIsValidGrid;
+        public string strGridName;
+        public string ceeHeaderName;
+        public string ceeHeaderCount;
+        public string HallwayCeeHeaderName;
+        public string HallwayCeeHeaderCount;
+    }
+
     public enum WallPriority
     {
         Fire = 7,
