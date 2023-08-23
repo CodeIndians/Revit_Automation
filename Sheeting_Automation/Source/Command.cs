@@ -1,19 +1,11 @@
-﻿using Microsoft.SqlServer.Server;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Autodesk.Revit.Attributes;
+﻿using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
-using Autodesk.Revit.UI.Selection;
-using System.Windows.Forms;
 using Sheeting_Automation.Dialogs;
-using Sheeting_Automation.Utils;
-using Sheeting_Automation.Source.GeometryCollectors;
 using Sheeting_Automation.Source.Dimensions;
-using Sheeting_Automation.Source.Interfaces;
+using Sheeting_Automation.Source.Schedules;
+using Sheeting_Automation.Utils;
+using System.Windows.Forms;
 
 namespace Sheeting_Automation
 {
@@ -57,7 +49,7 @@ namespace Sheeting_Automation
         }
     }
     /// <summary>
-    /// 
+    /// Command to create schedules 
     /// </summary>
     [Transaction(TransactionMode.Manual)]
     public class CreateSchedulesCommand : IExternalCommand
@@ -74,7 +66,10 @@ namespace Sheeting_Automation
             UIDocument uidoc = uiapp.ActiveUIDocument;
             Document doc = uidoc.Document;
 
-            TaskDialog.Show("Info", "Create Schedules");
+            // initialize schedule manager class
+            _ = new ScheduleManager(ref doc);
+
+           // TaskDialog.Show("Info", "Create Schedules");
 
             return Result.Succeeded;
         }

@@ -74,6 +74,9 @@
     <Compile Include="Source\GeometryCollectors\FloorGeometryCollector.cs" />
     <Compile Include="Source\GeometryCollectors\GridCollector.cs" />
     <Compile Include="Source\Interfaces\DimensionPlacement.cs" />
+    <Compile Include="Source\Schedules\Comparers.cs" />
+    <Compile Include="Source\Schedules\ScheduleData.cs" />
+    <Compile Include="Source\Schedules\ScheduleManager.cs" />
     <Compile Include="Utilities\SheetUtils.cs" />
   </ItemGroup>
   <ItemGroup>
