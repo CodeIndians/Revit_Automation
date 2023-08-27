@@ -234,21 +234,10 @@ namespace Revit_Automation.Source.Preprocessors
             // Panel Thickness
             dPanelThickness = GetThickness(pg.iPanelHourRate);
 
-            // Panel Direction 
-            if (MathUtils.ApproximatelyEqual(lineToRemain.startpoint.X, lineToRemain.endpoint.X))
-            {
-                if (string.IsNullOrEmpty(lineToRemain.strVerticalPanelDirection))
-                    strPanelDirection = pg.strPanelVerticalDirection.ToString();
-                else
-                    strPanelDirection = lineToRemain.strVerticalPanelDirection;
-             }
-            else
-            {
-                if (string.IsNullOrEmpty(lineToRemain.strHorizontalPanelDirection))
-                    strPanelDirection = pg.strPanelHorizontalDirection.ToString();
-                else
-                    strPanelDirection = lineToRemain.strHorizontalPanelDirection;
-            }
+
+            // Panel Direction - Line > Automatic/ Manual > Project Properties
+            strPanelDirection = ComputePanelDirection(lineToRemain);
+
             // For Exteriror or Fire wall or Insulating wall, panels will be placed on both sides
             if (lineToRemain.strWallType == "Fire" ||
                 lineToRemain.strWallType == "Insulation" ||
@@ -467,6 +456,58 @@ namespace Revit_Automation.Source.Preprocessors
                 }
             }
             return iContinuousLine;
+        }
+
+        private string ComputePanelDirection(InputLine inputLine)
+        {
+            // Panel Direction computation has the following priority.
+            // Line > Settings > Automatic Computation
+
+            PanelDirection panelDirection = PanelDirection.B;
+
+            // Get Line End points.
+            XYZ pt1 = inputLine.startpoint, pt2 = inputLine.endpoint;
+
+            // Get the orientation of the line
+            LineType lineType = MathUtils.ApproximatelyEqual(pt1.Y, pt2.Y) ? LineType.Horizontal : LineType.vertical;
+
+            string strPanelDirection = (lineType == LineType.Horizontal) ?
+                                            inputLine.strHorizontalPanelDirection :
+                                            inputLine.strVerticalPanelDirection;
+
+            if (strPanelDirection != string.Empty)
+            {
+                panelDirection = (PanelDirection)Enum.Parse(typeof(PanelDirection), strPanelDirection);
+                return panelDirection.ToString();
+            }
+            else
+            {
+                XYZ lineOrientation = pt2 - pt1;
+                XYZ SlopeDirection = RoofUtility.GetRoofSlopeDirection(pt1);
+
+                //if Panel Direction Computation is automatic and Line is perpendicular to slope determine direction
+                if ((GlobalSettings.s_PanelDirectionComputation == 0) && !(MathUtils.IsParallel(SlopeDirection, lineOrientation)) && SlopeDirection != null)
+                {
+                    if (lineType == LineType.Horizontal && SlopeDirection.Y < 0)
+                        panelDirection = PanelDirection.D;
+                    else if (lineType == LineType.Horizontal && SlopeDirection.Y > 0)
+                        panelDirection = PanelDirection.U;
+                    else if (lineType == LineType.vertical && SlopeDirection.X > 0)
+                        panelDirection = PanelDirection.R;
+                    else if (lineType == LineType.vertical && SlopeDirection.X < 0)
+                        panelDirection = PanelDirection.L;
+                }
+                else
+                {
+                    PanelTypeGlobalParams pg = string.IsNullOrEmpty(inputLine.strPanelType) ?
+                            GlobalSettings.lstPanelParams.Find(panelParams => panelParams.bIsUNO == true) :
+                            GlobalSettings.lstPanelParams.Find(panelParams => panelParams.strWallName == inputLine.strPanelType);
+
+                    string strPanelDir = (lineType == LineType.Horizontal) ? pg.strPanelHorizontalDirection : pg.strPanelVerticalDirection;
+                    panelDirection = (PanelDirection)Enum.Parse(typeof(PanelDirection), strPanelDir);
+                }
+                return panelDirection.ToString();
+            }
         }
     }
 }

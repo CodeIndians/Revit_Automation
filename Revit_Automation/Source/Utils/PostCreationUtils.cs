@@ -6,15 +6,21 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace Revit_Automation.Source.Utils
 {
     public class PostCreationUtils
     {
-        public static void PlaceStudAtPoint(Document doc, XYZ studPoint, InputLine inputLine)
+        // For Firewalls, Insulation and Etxterior insulation, we have 3C condition and the stud will be at end
+        // But for LB/NLB the stud additions will happen at the middle, so the code should be different.
+        public static void PlaceStudAtPoint(Document doc, XYZ studPoint, InputLine inputLine, bool bEndingColumns = false, PanelDirection panelDirection = PanelDirection.B, double dPanelThickness = 0.0)
         {
             try
             {
+                // For Panel directions of Top and left, Flip will be true. Bottom and Right Flip will be false
+                bool bFlip = (panelDirection == PanelDirection.U || panelDirection == PanelDirection.L);
+
                 // Remove any existing studs
                 RemoveStudAtPoint(studPoint, inputLine.endpoint - inputLine.startpoint, doc);
 
@@ -80,20 +86,79 @@ namespace Revit_Automation.Source.Utils
                 ElementId columnID = column.Id;
                 XYZ ColumnOrientation = column.FacingOrientation;
 
-                // update the orientation - based on start or end and the roof slope
-                UpdateOrientation(doc, columnID, ColumnOrientation, studPoint, bAtStart ? pt2 : pt1, true);
-
                 // Flange width
                 double dFlangeWidth = GenericUtils.FlangeWidth(inputLine.strStudType);
 
-                // Adjust the stud location
-                XYZ Adjustedpt1 = AdjustLinePoint(studPoint, bAtStart ? pt2 : pt1, lineType, dFlangeWidth / 2);
-                MoveColumn(doc, columnID, Adjustedpt1);
-                Logger.logMessage("ProcessStudInputLine - Move Column at end");
+                // update the orientation - based on start or end and the roof slope
+                if (bEndingColumns)
+                {
+                    UpdateOrientation(doc, columnID, ColumnOrientation, studPoint, bAtStart ? pt2 : pt1, true);
+
+                    // Adjust the stud location
+                    XYZ Adjustedpt1 = AdjustLinePoint(studPoint, bAtStart ? pt2 : pt1, lineType, dFlangeWidth / 2);
+                    MoveColumn(doc, columnID, Adjustedpt1);
+                    Logger.logMessage("ProcessStudInputLine - Move Column at end");
+                }
+
+                else
+                {
+                    UpdateOrientation(doc, columnID, ColumnOrientation, studPoint, pt2);
+                    
+                    // Adjust the stud location
+                    XYZ Adjustedpt1 = AdjustStudAccordingToPanel(studPoint, lineType, dFlangeWidth / 2, bFlip, column.FacingOrientation, dPanelThickness);
+                    MoveColumn(doc, columnID, Adjustedpt1);
+                    Logger.logMessage("ProcessStudInputLine - Move Column at end");
+                }
             }
             catch (Exception)
             { 
             }
+        }
+
+        private static XYZ AdjustStudAccordingToPanel(XYZ studPoint, LineType lineType, double v, bool bFlip, XYZ facingOrientation, double dPanelThickness)
+        {
+            XYZ AdjustedStudPoint = studPoint;
+            
+            if (lineType == LineType.Horizontal)
+            {
+                if (bFlip == false && facingOrientation.X < 0)
+                {
+                    AdjustedStudPoint = new XYZ(studPoint.X + v + dPanelThickness, studPoint.Y, studPoint.Z);
+                }
+                else if (bFlip == true && facingOrientation.X > 0)
+                {
+                    AdjustedStudPoint = new XYZ(studPoint.X - v - dPanelThickness, studPoint.Y, studPoint.Z);
+                }
+                else if (bFlip == false && facingOrientation.X > 0)
+                {
+                    AdjustedStudPoint = new XYZ(studPoint.X - v, studPoint.Y, studPoint.Z);
+                }
+                else if (bFlip == true && facingOrientation.X < 0)
+                {
+                    AdjustedStudPoint = new XYZ(studPoint.X + v, studPoint.Y, studPoint.Z);
+                }
+            }
+            else
+            {
+                if (bFlip == false && facingOrientation.Y < 0)
+                {
+                    AdjustedStudPoint = new XYZ(studPoint.X , studPoint.Y + v , studPoint.Z);
+                }
+                else if (bFlip == true && facingOrientation.Y > 0)
+                {
+                    AdjustedStudPoint = new XYZ(studPoint.X , studPoint.Y - v, studPoint.Z);
+                }
+                else if (bFlip == false && facingOrientation.Y > 0)
+                {
+                    AdjustedStudPoint = new XYZ(studPoint.X, studPoint.Y - v - dPanelThickness, studPoint.Z);
+                }
+                else if (bFlip == true && facingOrientation.Y < 0)
+                {
+                    AdjustedStudPoint = new XYZ(studPoint.X, studPoint.Y + v + dPanelThickness, studPoint.Z);
+                }
+
+            }
+            return AdjustedStudPoint;
         }
 
         public static void ComputeTopAndBaseLevels(InputLine inputLine, IOrderedEnumerable<Level> levels, out Level toplevel, out Level baselevel)
@@ -207,7 +272,6 @@ namespace Revit_Automation.Source.Utils
                     }
                 }
             }
-
         }
 
         private static XYZ AdjustLinePoint(XYZ pt1, XYZ pt2, LineType lineType, double dOffset)
@@ -264,12 +328,12 @@ namespace Revit_Automation.Source.Utils
                 // build a bounding box intersects filter to get the studs at a give point
                 // Create a Outline, uses a minimum and maximum XYZ point to initialize the Bounding Box. 
                 Outline myOutLn = new Outline(
-                    new XYZ(endpoint.X - 0.1,
-                    endpoint.Y - 0.1,
-                    endpoint.Z - 0.1),
-                    new XYZ(endpoint.X + 0.1,
-                    endpoint.Y + 0.1,
-                    endpoint.Z + 0.1));
+                    new XYZ(endpoint.X - 0.05,
+                    endpoint.Y - 0.05,
+                    endpoint.Z - 0.05),
+                    new XYZ(endpoint.X + 0.05,
+                    endpoint.Y + 0.05,
+                    endpoint.Z + 0.05));
                 Logger.logMessage("Outline for Collection Objects Created");
 
                 // Create a BoundingBoxIntersects filter with this Outline

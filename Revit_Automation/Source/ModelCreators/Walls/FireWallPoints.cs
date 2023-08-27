@@ -18,7 +18,7 @@ namespace Revit_Automation.Source.ModelCreators.Walls
         {
             foreach (XYZ studpoint in studpoints)
             {
-                PostCreationUtils.PlaceStudAtPoint(m_Document, studpoint, m_inputLine);
+                PostCreationUtils.PlaceStudAtPoint(m_Document, studpoint, m_inputLine, true);
             }
         }
 

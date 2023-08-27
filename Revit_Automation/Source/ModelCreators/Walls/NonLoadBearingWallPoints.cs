@@ -12,8 +12,8 @@ namespace Revit_Automation.Source.ModelCreators.Walls
 {
     public class NonLoadBearingWallPoints : IWallPointsGenerator
     {
-        private bool bExteriorAtStart = false;
-        private bool bExteriorAtEnd = false;
+        private bool bIntersectionAtStart = false;
+        private bool bIntersectionAtEnd = false;
         private ElementId iDStartIntersectingLine = null;
         private ElementId iDEndIntersectingLine = null;
         private XYZ startStudPt;
@@ -26,11 +26,14 @@ namespace Revit_Automation.Source.ModelCreators.Walls
             InputLine startInputLine = InputLineUtility.GetInputLineFromID(iDStartIntersectingLine);
             InputLine EndInputLine = InputLineUtility.GetInputLineFromID(iDEndIntersectingLine);
 
-            if (bExteriorAtStart)
-                PostCreationUtils.PlaceStudAtPoint(m_Document, startStudPt, startInputLine);
+            PanelDirection panelDirection = ComputePanelDirection(m_inputLine);
+            double dPanelThickness = GenericUtils.GetPanelWidth(m_inputLine);
 
-            if (bExteriorAtEnd)
-                PostCreationUtils.PlaceStudAtPoint(m_Document, endStudPt, EndInputLine);
+            if (bIntersectionAtStart)
+                PostCreationUtils.PlaceStudAtPoint(m_Document, startStudPt, startInputLine, false, panelDirection, dPanelThickness);
+
+            if (bIntersectionAtEnd)
+                PostCreationUtils.PlaceStudAtPoint(m_Document, endStudPt, EndInputLine, false, panelDirection, dPanelThickness);
         }
 
         public void ComputeEndPoints(Document doc, InputLine inputLine, SortedDictionary<XYZ, string> rightPanelIntersection, SortedDictionary<XYZ, string> leftPanelIntersections, SortedDictionary<XYZ, string> endPanelIntersections, ref List<XYZ> wallEndPointsCollection)
@@ -163,7 +166,7 @@ namespace Revit_Automation.Source.ModelCreators.Walls
                         EndPoint = intersectionPt + new XYZ(0, iIntersectingLineWebWidth / 2.0, 0);
 
                     
-                    bExteriorAtEnd = true;
+                    bIntersectionAtEnd = true;
 
                     int elementID = int.Parse(tokens[3]);
                     iDEndIntersectingLine = new ElementId(elementID);
@@ -213,7 +216,7 @@ namespace Revit_Automation.Source.ModelCreators.Walls
                         StartPoint = intersectionPt + new XYZ(0, -iIntersectingLineWebWidth / 2.0, 0);
 
 
-                    bExteriorAtStart = true;
+                    bIntersectionAtStart = true;
 
                     int elementID = int.Parse(tokens[3]);
                     iDStartIntersectingLine = new ElementId(elementID);

@@ -24,14 +24,17 @@ namespace Revit_Automation.Source.ModelCreators.Walls
 
         public void AddStudsIfNeeded()
         {
+            PanelDirection panelDirection = ComputePanelDirection(m_inputLine);
+            double dPanelThickness = GenericUtils.GetPanelWidth(m_inputLine);
+
             InputLine startInputLine = InputLineUtility.GetInputLineFromID(iDStartIntersectingLine);
             InputLine EndInputLine = InputLineUtility.GetInputLineFromID(iDEndIntersectingLine);
 
             if (bExteriorAtStart)
-                PostCreationUtils.PlaceStudAtPoint(m_Document, startStudPt, startInputLine);
+                PostCreationUtils.PlaceStudAtPoint(m_Document, startStudPt, startInputLine, false, panelDirection, dPanelThickness);
 
             if (bExteriorAtEnd)
-                PostCreationUtils.PlaceStudAtPoint(m_Document, endStudPt, EndInputLine);
+                PostCreationUtils.PlaceStudAtPoint(m_Document, endStudPt, EndInputLine, false, panelDirection, dPanelThickness);
         }
 
         public void ComputeEndPoints(Document doc, InputLine inputLine, SortedDictionary<XYZ, string> rightPanelIntersection, SortedDictionary<XYZ, string> leftPanelIntersections, SortedDictionary<XYZ, string> endPanelIntersections, ref List<XYZ> wallEndPointsCollection)
@@ -258,9 +261,6 @@ namespace Revit_Automation.Source.ModelCreators.Walls
                 return panelDirection;
             }
         }
-
-
-
 
         public void ComputePanelLength()
         {

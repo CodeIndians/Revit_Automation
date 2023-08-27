@@ -141,13 +141,31 @@ namespace Revit_Automation.Source.ModelCreators
             bool bFlip = false;
             
             ComputeWallEndPoints(pt1, pt2, inputLine, lineType, out wallEndPtsCollection, out bFlip);
-
+            PanelDirection panelDirection = ComputePanelDirection(inputLine);
+            
             for (int i = 0; i < wallEndPtsCollection.Count; i++)
             {
                 XYZ wp1 = wallEndPtsCollection[i];
                 XYZ wp2 = wallEndPtsCollection[i + 1];
+
+                bool bStartingPoint = false;
+                bool bEndingPoint = false;
+                if (i == 0)
+                    bStartingPoint = true;
+
+                if (panelDirection == PanelDirection.B)
+                {
+                    if ((i == wallEndPtsCollection.Count - 2) || (i == wallEndPtsCollection.Count / 2  - 2))
+                        bEndingPoint = true;
+                }
+                else if (i == wallEndPtsCollection.Count - 2)
+                    bEndingPoint = true;
+
+                XYZ awp1 = null, awp2 = null;
+                RoundoffToNearestInch(lineType, wp1, wp2, out awp1, out awp2, bStartingPoint, bEndingPoint);
+
                 // Create Wall Curve
-                Line wallLine = Line.CreateBound(wp1, wp2);
+                Line wallLine = Line.CreateBound(awp1, awp2);
                 List<Curve> wallCurves = new List<Curve> { wallLine };
 
                 // Place Wall
@@ -159,6 +177,73 @@ namespace Revit_Automation.Source.ModelCreators
 
                 i++;
             }  
+        }
+
+        private void RoundoffToNearestInch(LineType lineType, XYZ wp1, XYZ wp2, out XYZ awp1, out XYZ awp2, bool bStartingPoint, bool bEndingPoint)
+        {
+            awp1 = wp1; awp2 = wp2;
+
+            //return;
+            if (lineType == LineType.Horizontal)
+            {
+                double fraction = Math.Abs(wp2.X - wp1.X) % 1;
+                double roundedFraction = RoundInches(fraction);
+                if (!bEndingPoint)
+                {
+                    awp1 = wp1;
+                    awp2 = wp2 + new XYZ(roundedFraction - fraction, 0, 0);
+                }
+                else
+                {
+                    awp1 = wp1 - new XYZ(roundedFraction - fraction, 0, 0);
+                    awp2 = wp2;
+                }
+            }
+            else
+            {
+                double fraction = Math.Abs(wp2.Y - wp1.Y) % 1;
+                double roundedFraction = RoundInches(fraction);
+                if (!bEndingPoint)
+                {
+                    awp1 = wp1;
+                    awp2 = wp2 + new XYZ(0, roundedFraction - fraction, 0);
+                }
+                else
+                {
+                    awp1 = wp1 - new XYZ(0, roundedFraction - fraction, 0);
+                    awp2 = wp2;
+                }
+            }
+        }
+
+        private double RoundInches(double fraction)
+        {
+            if (0.00 < fraction && fraction <= 0.0833333)
+                return 0.0833333;
+            else if (0.0833333 < fraction && fraction <= 0.166666)
+                return 0.166666;
+            else if (0.166666 < fraction && fraction <= 0.25)
+                return 0.25;
+            else if ( 0.25 < fraction && fraction <= 0.333333)
+                return 0.333333;
+            else if (0.333333 < fraction && fraction <= 0.416666)
+                return 0.416666;
+            else if (0.416666 < fraction && fraction <= 0.5)
+                return 0.5;
+            else if (0.5 < fraction && fraction <= 0.583333)
+                return 0.583333;
+            else if (0.583333 < fraction && fraction <= 0.666666)
+                return 0.666666;
+            else if (0.666666 < fraction && fraction <= 0.75)
+                return 0.75;
+            else if (0.75 < fraction && fraction <= 0.833333)
+                return 0.833333;
+            else if (0.833333 < fraction && fraction <= 0.916666)
+                return 0.916666;
+            else if (0.916666 < fraction && fraction < 1.0)
+                return 1.0;
+
+            return 0.0;
         }
 
         private string GetPanelType(InputLine inputLine)
@@ -457,6 +542,9 @@ namespace Revit_Automation.Source.ModelCreators
             // Line > Settings > Automatic Computation
 
             PanelDirection panelDirection = PanelDirection.B ;
+
+            if (inputLine.strWallType == "Fire" || inputLine.strWallType == "Insulation")
+                return PanelDirection.B ;
 
             // Get Line End points.
             XYZ pt1 = null, pt2 = null;
