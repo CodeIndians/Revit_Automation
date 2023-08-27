@@ -67,9 +67,12 @@ namespace Sheeting_Automation
             Document doc = uidoc.Document;
 
             // initialize schedule manager class
-            _ = new ScheduleManager(ref doc);
+            var scheduleManager = new ScheduleManager(ref doc);
 
-           // TaskDialog.Show("Info", "Create Schedules");
+            //show the schedule creation form
+            scheduleManager.ShowCreateForm();
+
+            // TaskDialog.Show("Info", "Create Schedules");
 
             return Result.Succeeded;
         }
@@ -93,7 +96,12 @@ namespace Sheeting_Automation
             UIDocument uidoc = uiapp.ActiveUIDocument;
             Document doc = uidoc.Document;
 
-            TaskDialog.Show("Info", "Edit Schedules");
+            // initialize schedule manager class
+            var scheduleManager = new ScheduleManager(ref doc);
+
+            scheduleManager.UpdateMarkers();
+
+            //TaskDialog.Show("Info", "Edit Schedules");
 
             return Result.Succeeded;
         }

@@ -75,13 +75,24 @@
     <Compile Include="Source\GeometryCollectors\GridCollector.cs" />
     <Compile Include="Source\Interfaces\DimensionPlacement.cs" />
     <Compile Include="Source\Schedules\Comparers.cs" />
+    <Compile Include="Source\Schedules\ScheduleCreateForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Source\Schedules\ScheduleCreateForm.Designer.cs">
+      <DependentUpon>ScheduleCreateForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Source\Schedules\ScheduleCreator.cs" />
     <Compile Include="Source\Schedules\ScheduleData.cs" />
     <Compile Include="Source\Schedules\ScheduleManager.cs" />
+    <Compile Include="Source\Schedules\ScheduleUtils.cs" />
     <Compile Include="Utilities\SheetUtils.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Dialogs\SheetingConfiguration.resx">
       <DependentUpon>SheetingConfiguration.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Source\Schedules\ScheduleCreateForm.resx">
+      <DependentUpon>ScheduleCreateForm.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
