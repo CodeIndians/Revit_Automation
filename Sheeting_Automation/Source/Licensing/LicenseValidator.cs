@@ -40,13 +40,8 @@ namespace Sheeting_Automation.Source.Licensing
         {
 
             TcpClient client = new TcpClient();
-
-            // set license as true for debug mode
-#if DEBUG
-            bool isValidLicense = true;
-#else
+            
             bool isValidLicense = false;
-#endif
             try
             {
                 // Set the server's IP address and port number
@@ -98,6 +93,10 @@ namespace Sheeting_Automation.Source.Licensing
             {
                 client.Close();
             }
+#if DEBUG
+            // set license as true always in debug mode
+            isValidLicense = true;
+#endif
             return isValidLicense;
         }
     }
