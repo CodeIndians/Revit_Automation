@@ -25,7 +25,7 @@ namespace Sheeting_Automation
     {
         public Result OnStartup(UIControlledApplication a)
         {
-            //if (LicenseValidator.ValidateLicense())
+            if (Source.Licensing.LicenseValidator.ValidateLicense())
             {
                 // Create a custom ribbon tab
                 string tabName = "Sheeting Automation";
@@ -58,11 +58,11 @@ namespace Sheeting_Automation
 
                 return Result.Succeeded;
             }
-            //else
-            //{
-            //    MessageBox.Show("Revit Plugin license verification failed", "License Error");
-            //    return Result.Failed;
-            //}
+            else
+            {
+                MessageBox.Show("Revit Plugin license verification failed", "License Error");
+                return Result.Failed;
+            }
         }
 
         private void AddRevitCommand(RibbonPanel rb,
