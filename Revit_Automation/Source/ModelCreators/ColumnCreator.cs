@@ -1243,6 +1243,15 @@ namespace Revit_Automation.Source.ModelCreators
                     }
                 }
             }
+
+            if (!bAtStart)
+            {
+                PostCreationUtils.PlaceStudAtPoint(m_Document, inputLine.startpoint, inputLine, true);
+            }
+            if (!bAtEnd)
+            {
+                PostCreationUtils.PlaceStudAtPoint(m_Document, inputLine.endpoint, inputLine, true);
+            }
         }
 
         private void MoveColumn(ElementId columnId, XYZ newLocation)

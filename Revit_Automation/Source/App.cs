@@ -32,7 +32,7 @@ namespace Revit_Automation
         /// <returns></returns>
         public Result OnStartup(UIControlledApplication a)
         {
-            if (true)//(LicenseValidator.ValidateLicense())
+            if (LicenseValidator.ValidateLicense())
             {
 
                 // Create a custom ribbon tab

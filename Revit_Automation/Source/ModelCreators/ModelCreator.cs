@@ -140,7 +140,7 @@ namespace Revit_Automation
             }
 
             // 9. Place Columns
-            if (commandCode == CommandCode.Posts )
+            if (commandCode == CommandCode.Posts)
             {
                 ColumnCreator columnCreator = new ColumnCreator(doc, form);
                 columnCreator.SetPhase(desiredPhase);
@@ -155,6 +155,11 @@ namespace Revit_Automation
             {
                 BottomTrackCreator bottomTrackCreator = new BottomTrackCreator(doc, form);
                 bottomTrackCreator.CreateModel(InputLineUtility.colInputLines, levels);
+            }
+            else if (commandCode == CommandCode.CeeHeaders)
+            {
+                CeeHeaderCreator ceeHeaderCreator = new CeeHeaderCreator(doc, form);
+                ceeHeaderCreator.CreateModel(InputLineUtility.colInputLines, levels);
             }
             //uidoc.ActiveView = activeView;
 

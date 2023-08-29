@@ -41,6 +41,10 @@ namespace Revit_Automation.Source.Licensing
 
         public static bool ValidateLicense()
         {
+            #if DEBUG
+                return true;
+            #endif
+
             TcpClient client = new TcpClient();
             bool isValidLicense = false;
             try

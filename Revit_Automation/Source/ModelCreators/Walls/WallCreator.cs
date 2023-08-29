@@ -164,6 +164,9 @@ namespace Revit_Automation.Source.ModelCreators
                 XYZ awp1 = null, awp2 = null;
                 RoundoffToNearestInch(lineType, wp1, wp2, out awp1, out awp2, bStartingPoint, bEndingPoint);
 
+                // Panel Clearance - 
+                AddPanelClearance(inputLine, ref awp1, ref awp2);
+
                 // Create Wall Curve
                 Line wallLine = Line.CreateBound(awp1, awp2);
                 List<Curve> wallCurves = new List<Curve> { wallLine };
@@ -177,6 +180,45 @@ namespace Revit_Automation.Source.ModelCreators
 
                 i++;
             }  
+        }
+
+        private void AddPanelClearance(InputLine inputLine, ref XYZ awp1, ref XYZ awp2)
+        {
+            if (inputLine.strWallType == "Fire" || inputLine.strPanelType == "Flat Panel")
+                return;
+
+            double dPanelClearance = GetPanelClearance(inputLine);
+
+            if (GenericUtils.GetLineType(inputLine) == LineType.Horizontal)
+            {
+                awp1 = awp1 + new XYZ(dPanelClearance / 2.0, 0, 0);
+                awp2 = awp2 + new XYZ(-dPanelClearance / 2.0, 0, 0);
+            }
+            else
+            {
+                awp1 = awp1 + new XYZ(0, dPanelClearance / 2.0, 0);
+                awp2 = awp2 + new XYZ(0, -dPanelClearance / 2.0, 0);
+            }
+        }
+
+        private double GetPanelClearance(InputLine inputLine)
+        {
+            PanelTypeGlobalParams pg = string.IsNullOrEmpty(inputLine.strPanelType) ?
+                 GlobalSettings.lstPanelParams.Find(panelParams => panelParams.bIsUNO == true) :
+                 GlobalSettings.lstPanelParams.Find(panelParams => panelParams.strWallName == inputLine.strPanelType);
+
+            double dPanelClearance = pg.iPanelClearance;
+
+            if (dPanelClearance == 0.08)
+                return 0.0833333;
+            if (dPanelClearance == 0.17)
+                return 0.1666666;
+            if (dPanelClearance == 0.25)
+                return 0.25;
+            if (dPanelClearance == 0.33)
+                return 0.333333;
+
+            return 0.0;
         }
 
         private void RoundoffToNearestInch(LineType lineType, XYZ wp1, XYZ wp2, out XYZ awp1, out XYZ awp2, bool bStartingPoint, bool bEndingPoint)
@@ -202,45 +244,50 @@ namespace Revit_Automation.Source.ModelCreators
             else
             {
                 double fraction = Math.Abs(wp2.Y - wp1.Y) % 1;
-                double roundedFraction = RoundInches(fraction);
-                if (!bEndingPoint)
+
+                if (!MathUtils.ApproximatelyEqual(fraction, 0))
                 {
-                    awp1 = wp1;
-                    awp2 = wp2 + new XYZ(0, roundedFraction - fraction, 0);
-                }
-                else
-                {
-                    awp1 = wp1 - new XYZ(0, roundedFraction - fraction, 0);
-                    awp2 = wp2;
+                    double roundedFraction = RoundInches(fraction);
+
+                    if (!bEndingPoint)
+                    {
+                        awp1 = wp1;
+                        awp2 = wp2 + new XYZ(0, roundedFraction - fraction, 0);
+                    }
+                    else
+                    {
+                        awp1 = wp1 - new XYZ(0, roundedFraction - fraction, 0);
+                        awp2 = wp2;
+                    }
                 }
             }
         }
 
         private double RoundInches(double fraction)
         {
-            if (0.00 < fraction && fraction <= 0.0833333)
+            if (0.00 < fraction && (fraction < 0.0833333 || MathUtils.ApproximatelyEqual(0.0833333, fraction)))
                 return 0.0833333;
-            else if (0.0833333 < fraction && fraction <= 0.166666)
+            else if (0.0833333 < fraction && (fraction <= 0.166666 || MathUtils.ApproximatelyEqual(0.166666, fraction)))
                 return 0.166666;
-            else if (0.166666 < fraction && fraction <= 0.25)
+            else if (0.166666 < fraction && (fraction <= 0.25 || MathUtils.ApproximatelyEqual(0.25, fraction)))
                 return 0.25;
-            else if ( 0.25 < fraction && fraction <= 0.333333)
+            else if ( 0.25 < fraction && (fraction <= 0.333333 || MathUtils.ApproximatelyEqual(0.333333, fraction)))
                 return 0.333333;
-            else if (0.333333 < fraction && fraction <= 0.416666)
+            else if (0.333333 < fraction && (fraction <= 0.416666 || MathUtils.ApproximatelyEqual(0.416666, fraction)))
                 return 0.416666;
-            else if (0.416666 < fraction && fraction <= 0.5)
+            else if (0.416666 < fraction && (fraction <= 0.5 || MathUtils.ApproximatelyEqual(0.5, fraction)))
                 return 0.5;
-            else if (0.5 < fraction && fraction <= 0.583333)
+            else if (0.5 < fraction && (fraction <= 0.583333 || MathUtils.ApproximatelyEqual(0.583333, fraction)))
                 return 0.583333;
-            else if (0.583333 < fraction && fraction <= 0.666666)
+            else if (0.583333 < fraction && (fraction <= 0.666666 || MathUtils.ApproximatelyEqual(0.666666, fraction)))
                 return 0.666666;
-            else if (0.666666 < fraction && fraction <= 0.75)
+            else if (0.666666 < fraction && (fraction <= 0.75 || MathUtils.ApproximatelyEqual(0.75, fraction)))
                 return 0.75;
-            else if (0.75 < fraction && fraction <= 0.833333)
+            else if (0.75 < fraction && (fraction <= 0.833333 || MathUtils.ApproximatelyEqual(0.833333, fraction)))
                 return 0.833333;
-            else if (0.833333 < fraction && fraction <= 0.916666)
+            else if (0.833333 < fraction && (fraction <= 0.916666 || MathUtils.ApproximatelyEqual(0.916666, fraction)))
                 return 0.916666;
-            else if (0.916666 < fraction && fraction < 1.0)
+            else if (0.916666 < fraction && (fraction < 1.0 || MathUtils.ApproximatelyEqual(1.0, fraction)))
                 return 1.0;
 
             return 0.0;

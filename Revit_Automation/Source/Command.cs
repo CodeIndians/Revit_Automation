@@ -56,7 +56,8 @@ namespace Revit_Automation
         Posts = 1,
         Walls = 2,
         BottomTracks = 3,
-        Beams
+        Beams,
+        CeeHeaders
     }
 
 

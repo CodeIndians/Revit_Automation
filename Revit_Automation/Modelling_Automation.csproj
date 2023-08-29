@@ -99,6 +99,7 @@
     <Compile Include="Source\Interfaces\IWallPointsGenerator.cs" />
     <Compile Include="Source\Licensing\LicenseValidator.cs" />
     <Compile Include="Source\ModelCreators\BottomTrackCreator.cs" />
+    <Compile Include="Source\ModelCreators\CeeHeaderCreator.cs" />
     <Compile Include="Source\ModelCreators\ColumnCreator.cs" />
     <Compile Include="Source\ModelCreators\T62Valiations.cs" />
     <Compile Include="Source\ModelCreators\Walls\ExteriorInsulationWallPoints.cs" />
