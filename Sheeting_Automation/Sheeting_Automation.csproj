@@ -39,6 +39,9 @@
     </AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="RevitAPI">
       <HintPath>..\..\..\Program Files\Autodesk\Revit 2022\RevitAPI.dll</HintPath>
@@ -74,11 +77,35 @@
     <Compile Include="Source\GeometryCollectors\FloorGeometryCollector.cs" />
     <Compile Include="Source\GeometryCollectors\GridCollector.cs" />
     <Compile Include="Source\Interfaces\DimensionPlacement.cs" />
+    <Compile Include="Source\Licensing\LicenseValidator.cs" />
+    <Compile Include="Source\Schedules\Comparers.cs" />
+    <Compile Include="Source\Schedules\ScheduleCreateForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Source\Schedules\ScheduleCreateForm.Designer.cs">
+      <DependentUpon>ScheduleCreateForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Source\Schedules\ScheduleCreator.cs" />
+    <Compile Include="Source\Schedules\ScheduleData.cs" />
+    <Compile Include="Source\Schedules\ScheduleManager.cs" />
+    <Compile Include="Source\Schedules\ScheduleUpdateForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Source\Schedules\ScheduleUpdateForm.Designer.cs">
+      <DependentUpon>ScheduleUpdateForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Source\Schedules\ScheduleUtils.cs" />
     <Compile Include="Utilities\SheetUtils.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Dialogs\SheetingConfiguration.resx">
       <DependentUpon>SheetingConfiguration.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Source\Schedules\ScheduleCreateForm.resx">
+      <DependentUpon>ScheduleCreateForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Source\Schedules\ScheduleUpdateForm.resx">
+      <DependentUpon>ScheduleUpdateForm.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
