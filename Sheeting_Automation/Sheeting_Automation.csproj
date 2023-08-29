@@ -84,6 +84,12 @@
     <Compile Include="Source\Schedules\ScheduleCreator.cs" />
     <Compile Include="Source\Schedules\ScheduleData.cs" />
     <Compile Include="Source\Schedules\ScheduleManager.cs" />
+    <Compile Include="Source\Schedules\ScheduleUpdateForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Source\Schedules\ScheduleUpdateForm.Designer.cs">
+      <DependentUpon>ScheduleUpdateForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="Source\Schedules\ScheduleUtils.cs" />
     <Compile Include="Utilities\SheetUtils.cs" />
   </ItemGroup>
@@ -93,6 +99,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Source\Schedules\ScheduleCreateForm.resx">
       <DependentUpon>ScheduleCreateForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Source\Schedules\ScheduleUpdateForm.resx">
+      <DependentUpon>ScheduleUpdateForm.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>

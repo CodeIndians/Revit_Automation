@@ -50,10 +50,10 @@ namespace Sheeting_Automation
                     "Sheets.png");
 
                 AddRevitCommand(schedulesRB,
-                    "EditSchedulesCMD",
-                    "Edit Schedules",
-                    "Sheeting_Automation.EditSchedulesCommand",
-                    "Edit Schedules",
+                    "UpdateSchedulesCMD",
+                    "Update Schedule",
+                    "Sheeting_Automation.UpdateScheduleCommand",
+                    "Update Schedule",
                     "Sheets.png");
 
                 return Result.Succeeded;

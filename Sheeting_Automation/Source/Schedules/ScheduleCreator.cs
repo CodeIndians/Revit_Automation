@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.Rebar;
 using System;
+using System.Windows.Media;
 
 namespace Sheeting_Automation.Source.Schedules
 {
@@ -19,7 +20,7 @@ namespace Sheeting_Automation.Source.Schedules
         /// <summary>
         /// CTOR
         /// </summary>
-        public ScheduleCreator() 
+        public ScheduleCreator()
         {
             // Initialize the DB document
             mDoc = ScheduleData.DBDoc;
@@ -46,7 +47,7 @@ namespace Sheeting_Automation.Source.Schedules
 
             // set the name of the view schedule
             viewSchedule.Name = name;
-            
+
             // get the selected phase id from the dictionary
             ElementId phaseid = ScheduleData.PhaseDictionary[phase];
 
@@ -64,26 +65,38 @@ namespace Sheeting_Automation.Source.Schedules
             //commmit the transaction
             trans1.Commit();
 
+            //Fill the element ids
+            FillElementIds(viewSchedule);
+
+            ItemizeInstancesInView(viewSchedule, true);
+            ShowHideElementField(viewSchedule, true);
+
+            List<string> elementIds = GetOrderedElementsInView(viewSchedule);
+
+            ItemizeInstancesInView(viewSchedule, false);
+            ShowHideElementField(viewSchedule, false);
+
             //show the count field
             ShowHideCountField(viewSchedule, true);
 
             // Fill the markers 
-            FillMarkers(viewSchedule,prefix,start,suffix);
+            FillMarkers(viewSchedule, prefix, start, suffix, elementIds);
 
             //hide the count field 
             ShowHideCountField(viewSchedule, false);
 
         }
 
-        public void FillMarkers(ViewSchedule viewSchedule, string prefix, string start, string suffix)
+        /// <summary>
+        /// Fills the mark 
+        /// </summary>
+        /// <param name="viewSchedule"> </param>
+        /// <param name="prefix"></param>
+        /// <param name="start"></param>
+        /// <param name="suffix"></param>
+        /// <param name="orderedElementIds"></param>
+        public void FillMarkers(ViewSchedule viewSchedule, string prefix, string start, string suffix, List<string> orderedElementIds)
         {
-            //ViewSchedule viewSchedule = mDoc.ActiveView as ViewSchedule;
-
-            //if (viewSchedule == null)
-            //{
-            //    TaskDialog.Show("Error", "Not a schedule view");
-            //    return;
-            //}
 
             TableData tableData = viewSchedule.GetTableData();
 
@@ -95,8 +108,10 @@ namespace Sheeting_Automation.Source.Schedules
 
             int countIndex = -1;
 
+            // check for count 
             for (int i = 0; i < colums; i++)
             {
+                var cellText = viewSchedule.GetCellText(SectionType.Body, 0, i);
                 if (viewSchedule.GetCellText(SectionType.Body, 0, i) == "Count")
                 {
                     countIndex = i;
@@ -104,16 +119,32 @@ namespace Sheeting_Automation.Source.Schedules
                 }
             }
 
+            // this means that Count is mapped to Qty
+            if (countIndex == -1)
+            {
+                // check for count 
+                for (int i = 0; i < colums; i++)
+                {
+                    var cellText = viewSchedule.GetCellText(SectionType.Body, 0, i);
+                    if (viewSchedule.GetCellText(SectionType.Body, 0, i) == "Qty")
+                    {
+                        countIndex = i;
+                        break;
+                    }
+                }
+            }
+
+
             List<int> counts = new List<int>();
 
+            // update the counts array from the view schedule table data
             for (int i = 1; i < rows; i++)
             {
                 counts.Add(int.Parse(viewSchedule.GetCellText(SectionType.Body, i, countIndex)));
             }
 
-            List<string> sortGroupFields = GetSortGroupFieldNames(viewSchedule);
-
-            UpdateMarkers(viewSchedule, prefix, start,suffix, counts,sortGroupFields);
+            // update the markers 
+            UpdateMarkers(viewSchedule, prefix, start, suffix, counts, orderedElementIds);
         }
 
         /// <summary>
@@ -126,11 +157,52 @@ namespace Sheeting_Automation.Source.Schedules
             Transaction trans2 = new Transaction(mDoc, "Hide Show count field");
             trans2.Start();
 
-            IList<ScheduleFieldId> fieldOrder = viewSchedule.Definition.GetFieldOrder();
+            ScheduleField countField = ScheduleUtils.GetScheduleFieldFromName(viewSchedule, "Count");
 
-            ScheduleField countField = ScheduleUtils.GetScheduleFieldFromName(viewSchedule,"Count");
+            if (countField.ColumnHeading != "Qty")
+                countField.IsHidden = !isShow;
+
+            trans2.Commit();
+        }
+
+        /// <summary>
+        /// Show or hide Element filed on the view schedule
+        /// </summary>
+        /// <param name="viewSchedule">Current view </param>
+        /// <param name="isShow"> set this to true to show this field else false</param>
+        private void ShowHideElementField(ViewSchedule viewSchedule, bool isShow)
+        {
+            Transaction trans2 = new Transaction(mDoc, "Show or Hide element field");
+            trans2.Start();
+
+            ScheduleField countField = ScheduleUtils.GetScheduleFieldFromName(viewSchedule, "Element");
+
+            if(countField == null)
+            {
+                MessageBox.Show("Element field is not present");
+                return;
+            }
 
             countField.IsHidden = !isShow;
+
+            trans2.Commit();
+        }
+
+        /// <summary>
+        /// Itemize or un itemize the instances in the view 
+        /// </summary>
+        /// <param name="viewSchedule">current view </param>
+        /// <param name="itemize"> true to itemize, false to revert</param>
+        private void ItemizeInstancesInView(ViewSchedule viewSchedule, bool itemize)
+        {
+            Transaction trans2 = new Transaction(mDoc, "Itemize instances");
+
+            trans2.Start();
+
+            ScheduleDefinition scheduleDefinition = viewSchedule.Definition;
+
+            scheduleDefinition.IsItemized = itemize;
+
             trans2.Commit();
         }
 
@@ -142,13 +214,13 @@ namespace Sheeting_Automation.Source.Schedules
         /// <param name="start">start string ( 1 or 1.1 etc) </param>
         /// <param name="suffix">suffix string</param>
         /// <param name="Counts">group counts in the view schedule</param>
-        /// <param name="sortgroupFields">list of sort group fields in the given order</param>
-        private void UpdateMarkers(ViewSchedule viewSchedule, string prefix, string start, string suffix, List<int> Counts, List<string> sortgroupFields)
+        /// <param name="orderedElementIds">list of element ids in the sorted order</param>
+        private void UpdateMarkers(ViewSchedule viewSchedule, string prefix, string start, string suffix, List<int> Counts, List<string> orderedElementIds)
         {
             // Get all the elements in the view
             FilteredElementCollector collector = new FilteredElementCollector(mDoc, viewSchedule.Id);
 
-            IEnumerable<Element> sortedElements = GetSortedElements(collector, sortgroupFields);
+            //IEnumerable<Element> sortedElements = GetSortedElements(collector, sortgroupFields, sortGroupFieldTypeNames);
 
             string[] splitStrings = start.Split('.');
 
@@ -156,7 +228,7 @@ namespace Sheeting_Automation.Source.Schedules
             double startValue = 1;
 
             // if the value is decimal 
-            if(splitStrings.Length ==2)
+            if (splitStrings.Length == 2)
             {
                 // prefix = prefix + integer part + "."
                 prefix = prefix + splitStrings[0] + ".";
@@ -165,7 +237,7 @@ namespace Sheeting_Automation.Source.Schedules
                 startValue = double.Parse(splitStrings[1]);
             }
             // if the value is an integer 
-            else if(splitStrings.Length == 1)
+            else if (splitStrings.Length == 1)
             {
                 startValue = double.Parse(splitStrings[0]);
             }
@@ -179,15 +251,15 @@ namespace Sheeting_Automation.Source.Schedules
                 int currentIndex = 0;
 
                 // loop through the counts array 
-                foreach(var count in  Counts)
+                foreach (var count in Counts)
                 {
                     // update the mark value , based on start value 
                     string markValue = prefix + startValue.ToString() + suffix;
 
-                    for( int i = 0; i < count; i++ )
+                    for (int i = 0; i < count; i++)
                     {
                         // read the mark param
-                        Parameter markParam = sortedElements.ElementAt(currentIndex).LookupParameter("Mark");
+                        Parameter markParam = mDoc.GetElement(new ElementId(int.Parse(orderedElementIds[currentIndex]))).LookupParameter("Mark");
 
                         // set the mark parameter
                         if (markParam != null && !markParam.IsReadOnly)
@@ -205,106 +277,107 @@ namespace Sheeting_Automation.Source.Schedules
                 trans.Commit();
             }
         }
-    
+
         /// <summary>
-        ///  Get the sort field group names on the schedule in the provided order 
+        /// Update the markers on the current view
+        /// This is called when clicked on Update Schedule
+        /// </summary>
+        /// <param name="prefix"></param>
+        /// <param name="start"></param>
+        /// <param name="suffix"></param>
+        public void UpdateMarkersCurrentView(string prefix, string start, string suffix)
+        {
+            // get the current view as view schedule 
+            ViewSchedule viewSchedule = mDoc.ActiveView as ViewSchedule;
+
+            // throw an error if this is not a view schedule
+            if (viewSchedule == null)
+            {
+                TaskDialog.Show("Error", "Not a schedule view");
+                return;
+            }
+
+            //Fill the element ids
+            FillElementIds(viewSchedule);
+
+            // Itemize the instances and show the element field
+            ItemizeInstancesInView(viewSchedule, true);
+            ShowHideElementField(viewSchedule, true);
+
+            // capture the element ids
+            List<string> elementIds = GetOrderedElementsInView(viewSchedule);
+
+            //Hide element filed and unchceck itemize 
+            ItemizeInstancesInView(viewSchedule, false);
+            ShowHideElementField(viewSchedule, false);
+
+            //show the count field
+            ShowHideCountField(viewSchedule, true);
+
+            // Fill the markers 
+            FillMarkers(viewSchedule, prefix, start, suffix, elementIds);
+
+            //hide the count field 
+            ShowHideCountField(viewSchedule, false);
+        }
+
+        /// <summary>
+        /// Update the param "Element" on each of the element in the given view schedule
         /// </summary>
         /// <param name="viewSchedule"></param>
-        /// <returns>list of sort group field strings</returns>
-        private List<string> GetSortGroupFieldNames(ViewSchedule viewSchedule)
+        private void FillElementIds(ViewSchedule viewSchedule)
         {
-            List<string> fields = new List<string>();
 
-            ScheduleDefinition scheduleDefinition = viewSchedule.Definition;
-
-            List<ScheduleSortGroupField> sortGroupFields = scheduleDefinition.GetSortGroupFields().ToList();
-
-            foreach(ScheduleSortGroupField sortGroupField in sortGroupFields)
+            FilteredElementCollector collector = new FilteredElementCollector(mDoc, viewSchedule.Id);
+            using (Transaction trans = new Transaction(mDoc, "Update Element Ids"))
             {
-                ScheduleField field = scheduleDefinition.GetField(sortGroupField.FieldId);
+                trans.Start();
 
-                fields.Add(field.GetName());
+                foreach (Element element in collector)
+                {
+                    element.LookupParameter("Element").Set(element.Id.ToString());
+                }
+
+                trans.Commit();
             }
-
-            return fields;
         }
 
         /// <summary>
-        /// 
+        /// Get the element ids in the view in the sorted order specified by the view
         /// </summary>
-        /// <param name="collector"> filtered element collector on the current view schedule </param>
-        /// <param name="sortgroupFields">list of sort group field names </param>
-        /// <returns> IEnumerable of sorted elements </returns>
-        private IEnumerable<Element> GetSortedElements(FilteredElementCollector collector , List<string> sortgroupFields)
-        {
-            // Sort the elements based on the schedule field
-            IEnumerable<Element> sortedElements = collector;
-
-            if (sortgroupFields.Count == 1)
-            {
-                sortedElements = sortedElements.OrderBy(e => GetParameterValue(e, sortgroupFields[0]));
-            }
-
-            else if (sortgroupFields.Count == 2)
-            {
-                sortedElements = sortedElements.OrderBy(e => GetParameterValue(e, sortgroupFields[0]))
-                                               .ThenBy(e=>GetParameterValue(e, sortgroupFields[1]));
-            }
-
-            else if(sortgroupFields.Count == 3)
-            {
-                sortedElements = sortedElements.OrderBy(e => GetParameterValue(e, sortgroupFields[0]))
-                                              .ThenBy(e => GetParameterValue(e, sortgroupFields[1]))
-                                              .ThenBy(e => GetParameterValue(e, sortgroupFields[2]));
-            }
-            else if(sortgroupFields.Count == 4)
-            {
-                sortedElements = sortedElements.OrderBy(e => GetParameterValue(e, sortgroupFields[0]))
-                                              .ThenBy(e => GetParameterValue(e, sortgroupFields[1]))
-                                              .ThenBy(e => GetParameterValue(e, sortgroupFields[2]))
-                                              .ThenBy(e => GetParameterValue(e, sortgroupFields[3]));
-            }
-            else
-            {
-                // else case just sort based on the first field 
-                // this is just a default condition
-                sortedElements = sortedElements.OrderBy(e => GetParameterValue(e, sortgroupFields[0]));
-            }
-
-            return sortedElements;
-        }
-
-        /// <summary>
-        /// Get the comparable type of the schedule field parameter 
-        /// </summary>
-        /// <param name="element"> Revit element </param>
-        /// <param name="scheduleFieldName">schedule field name in string </param>
+        /// <param name="viewSchedule"></param>
         /// <returns></returns>
-        private IComparable GetParameterValue(Element element, string scheduleFieldName)
+        private List<string> GetOrderedElementsInView(ViewSchedule viewSchedule)
         {
-            Parameter parameter = element.LookupParameter(scheduleFieldName);
-            if (parameter != null)
-            {
-                if (parameter.StorageType == StorageType.Double)
-                {
-                    return parameter.AsDouble();
-                }
-                else if (parameter.StorageType == StorageType.Integer)
-                {
-                    return parameter.AsInteger();
-                }
-                else if(parameter.StorageType == StorageType.String)
-                {
-                    return parameter.AsString();
-                }
-                else if(parameter.StorageType == StorageType.ElementId)
-                {
-                    return parameter.AsValueString();
-                }
+            List<string> elementIds = new List<string>();
 
+            TableData tableData = viewSchedule.GetTableData();
+
+            TableSectionData tableSectionData = tableData.GetSectionData(SectionType.Body);
+
+            int rows = tableSectionData.NumberOfRows;
+
+            int colums = tableSectionData.NumberOfColumns;
+
+            int elementIndex = -1;
+
+            // check for count 
+            for (int i = 0; i < colums; i++)
+            {
+                var cellText = viewSchedule.GetCellText(SectionType.Body, 0, i);
+                if (viewSchedule.GetCellText(SectionType.Body, 0, i) == "Element")
+                {
+                    elementIndex = i;
+                    break;
+                }
             }
-            // lets use this as the default type
-            return parameter.AsValueString();
+
+            for (int i = 1; i < rows; i++)
+            {
+                elementIds.Add(viewSchedule.GetCellText(SectionType.Body, i, elementIndex));
+            }
+
+            return elementIds;
         }
     }
 }

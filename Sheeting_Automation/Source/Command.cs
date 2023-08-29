@@ -82,7 +82,7 @@ namespace Sheeting_Automation
     /// 
     /// </summary>
     [Transaction(TransactionMode.Manual)]
-    public class EditSchedulesCommand : IExternalCommand
+    public class UpdateScheduleCommand : IExternalCommand
     {
         public Result Execute(
           ExternalCommandData commandData,
@@ -99,7 +99,8 @@ namespace Sheeting_Automation
             // initialize schedule manager class
             var scheduleManager = new ScheduleManager(ref doc);
 
-            scheduleManager.UpdateMarkers();
+            // show the schedule updation form
+            scheduleManager.ShowUpdateForm();
 
             //TaskDialog.Show("Info", "Edit Schedules");
 

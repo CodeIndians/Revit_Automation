@@ -44,11 +44,12 @@ namespace Sheeting_Automation.Source.Schedules
             createForm.ShowDialog();
         }
 
-        public void UpdateMarkers() 
+        public void ShowUpdateForm()
         {
-            var scheduleCreator = new ScheduleCreator();
+            Form updateForm = new ScheduleUpdateForm();
 
-            //scheduleCreator.FillMarkers();
+            updateForm.ShowDialog();
         }
+       
     }
 }

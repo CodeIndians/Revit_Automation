@@ -151,7 +151,7 @@ namespace Sheeting_Automation.Source.Schedules
                 //except for the sufix all the rows must be filled
                 if (string.IsNullOrEmpty(sheetName) || string.IsNullOrEmpty(category) ||
                     string.IsNullOrEmpty(viewTemplate) || string.IsNullOrEmpty(phase) ||
-                    string.IsNullOrEmpty(prefix) || string.IsNullOrEmpty(start))
+                     string.IsNullOrEmpty(start))
                 {
                     row.ErrorText = "All fields must be filled";
                     isValid = false;
