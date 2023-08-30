@@ -238,6 +238,9 @@ namespace Revit_Automation
                 string StrCeeHeaderSettings = settings[23].ToString();
                 string[] strings = StrCeeHeaderSettings.Split(';');
 
+                if (string.IsNullOrEmpty(StrCeeHeaderSettings))
+                    PopulateDefaultCHeaderSettings();
+
                 int jCounter = 0;
 
                 while (jCounter < strings.Length - 1)

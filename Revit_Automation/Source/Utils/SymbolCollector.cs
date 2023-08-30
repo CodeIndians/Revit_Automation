@@ -164,5 +164,23 @@ namespace Revit_Automation
 
             return headers;
         }
+
+        internal static FamilySymbol GetCeeHeadersFamily(string CeeHeaderName, string v)
+        {
+            FamilySymbol familySymbol = null;
+            FilteredElementCollector ceeHeaderFamilies = new FilteredElementCollector(m_Document);
+
+            ceeHeaderFamilies.OfClass(typeof(FamilySymbol))
+                    .OfCategory(BuiltInCategory.OST_StructuralFraming);
+
+            foreach (FamilySymbol famSymbol in ceeHeaderFamilies)
+            {
+                if (famSymbol.FamilyName == v && famSymbol.Name == CeeHeaderName)
+                {
+                    return famSymbol;
+                }
+            }
+            return null;
+        }
     }
 }

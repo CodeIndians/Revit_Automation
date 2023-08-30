@@ -319,6 +319,18 @@ namespace Revit_Automation
 
             PrepareCommandClass.PrepareCommand(commandData);
 
+            Form1 form = new Form1
+            {
+                StartPosition = FormStartPosition.CenterScreen
+            };
+            //form.TopMost= true;
+            _ = form.ShowDialog();
+
+            if (form.CanCreateModel)
+            {
+                ModelCreator.CreateModel(uiapp, form, false, CommandCode.CeeHeaders);
+            }
+
             return Result.Succeeded;
         }
     }
