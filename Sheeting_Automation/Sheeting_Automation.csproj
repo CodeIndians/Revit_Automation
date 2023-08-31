@@ -95,6 +95,7 @@
       <DependentUpon>ScheduleUpdateForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Source\Schedules\ScheduleUtils.cs" />
+    <Compile Include="Source\Tags\TagsCommand.cs" />
     <Compile Include="Utilities\SheetUtils.cs" />
   </ItemGroup>
   <ItemGroup>
