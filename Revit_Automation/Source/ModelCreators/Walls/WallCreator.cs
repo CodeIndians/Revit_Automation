@@ -142,7 +142,14 @@ namespace Revit_Automation.Source.ModelCreators
             
             ComputeWallEndPoints(pt1, pt2, inputLine, lineType, out wallEndPtsCollection, out bFlip);
             PanelDirection panelDirection = ComputePanelDirection(inputLine);
-            
+
+            double dLineLength = 0.0;
+
+            if (lineType == LineType.Horizontal)
+                dLineLength = (Math.Abs(pt2.X - pt1.X));
+            else if (lineType == LineType.vertical)
+                dLineLength = (Math.Abs(pt2.Y - pt1.Y));
+
             for (int i = 0; i < wallEndPtsCollection.Count; i++)
             {
                 XYZ wp1 = wallEndPtsCollection[i];
@@ -164,8 +171,9 @@ namespace Revit_Automation.Source.ModelCreators
                 XYZ awp1 = null, awp2 = null;
                 RoundoffToNearestInch(lineType, wp1, wp2, out awp1, out awp2, bStartingPoint, bEndingPoint);
 
-                // Panel Clearance - 
-                AddPanelClearance(inputLine, ref awp1, ref awp2);
+                // Panel Clearance - only for single panels
+                if (dLineLength < 25.0)
+                    AddPanelClearance(inputLine, ref awp1, ref awp2);
 
                 // Create Wall Curve
                 Line wallLine = Line.CreateBound(awp1, awp2);

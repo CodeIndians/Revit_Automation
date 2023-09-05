@@ -98,7 +98,8 @@ namespace Revit_Automation.Source.ModelCreators
             // Get the orientation of the line
             LineType lineType = MathUtils.ApproximatelyEqual(pt1.Y, pt2.Y) ? LineType.Horizontal : LineType.vertical;
 
-            // Check for wall lines shorter that 25 Feet and Process only them
+            // Check for wall lines shorter than max length and process them as a single track
+            // Else 
             if (lineType == LineType.Horizontal)
                 dLineLength = (Math.Abs(pt2.X - pt1.X));
             else if (lineType == LineType.vertical)
@@ -106,7 +107,7 @@ namespace Revit_Automation.Source.ModelCreators
 
             if (dLineLength > dBottomTrackMaxLength)
             {
-                while ((dLineLength - dBottomTrackPreferredLength) > 0)
+                while (dLineLength > dBottomTrackMaxLength)
                 {
                     BTPlacementLengths.Add(dBottomTrackPreferredLength);
                     dLineLength -= dBottomTrackPreferredLength;

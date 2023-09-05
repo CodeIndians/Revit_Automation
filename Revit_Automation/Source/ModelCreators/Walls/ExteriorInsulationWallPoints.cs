@@ -161,7 +161,8 @@ namespace Revit_Automation.Source.ModelCreators.Walls
                             StartPoint = new XYZ(inputLine.startpoint.X + iIntersectingLineWebWidth + dHourrate,
                                                   inputLine.startpoint.Y + iInputLineWebWidth / 2,
                                                   inputLine.startpoint.Z);
-                            studpoints.Add( new XYZ(StartPoint.X, inputLine.startpoint.Y, StartPoint.Z));
+                            // For 3-C condition the stud should coincide with the intersecting line web. So no need of hour rate correction
+                            studpoints.Add( new XYZ(StartPoint.X - dHourrate, inputLine.startpoint.Y, StartPoint.Z));
                         }
                         else
                             StartPoint = new XYZ(inputLine.startpoint.X - dHourrate,
@@ -175,7 +176,8 @@ namespace Revit_Automation.Source.ModelCreators.Walls
                             StartPoint = new XYZ(inputLine.startpoint.X + iInputLineWebWidth / 2,
                                                   inputLine.startpoint.Y + iIntersectingLineWebWidth + dHourrate,
                                                   inputLine.startpoint.Z);
-                            studpoints.Add( new XYZ(inputLine.startpoint.X, StartPoint.Y, StartPoint.Z));
+                            // For 3-C condition the stud should coincide with the intersecting line web. So no need of hour rate correction
+                            studpoints.Add( new XYZ(inputLine.startpoint.X, StartPoint.Y - dHourrate, StartPoint.Z));
                         }
                         else
                             StartPoint = new XYZ(inputLine.startpoint.X - iInputLineWebWidth / 2,
@@ -192,7 +194,8 @@ namespace Revit_Automation.Source.ModelCreators.Walls
                             StartPoint = new XYZ(inputLine.startpoint.X + iIntersectingLineWebWidth + dHourrate,
                                                     inputLine.startpoint.Y - iInputLineWebWidth / 2,
                                                     inputLine.startpoint.Z);
-                            studpoints.Add( new XYZ(StartPoint.X, inputLine.startpoint.Y, StartPoint.Z));
+                            // For 3-C condition the stud should coincide with the intersecting line web. So no need of hour rate correction
+                            studpoints.Add( new XYZ(StartPoint.X - dHourrate, inputLine.startpoint.Y, StartPoint.Z));
                         }
                         else
                             StartPoint = new XYZ(inputLine.startpoint.X - dHourrate,
@@ -206,7 +209,8 @@ namespace Revit_Automation.Source.ModelCreators.Walls
                             StartPoint = new XYZ(inputLine.startpoint.X - iInputLineWebWidth / 2,
                                                     inputLine.startpoint.Y + iIntersectingLineWebWidth + dHourrate,
                                                     inputLine.startpoint.Z);
-                            studpoints.Add( new XYZ(inputLine.startpoint.X, StartPoint.Y, StartPoint.Z));
+                            // For 3-C condition the stud should coincide with the intersecting line web. So no need of hour rate correction
+                            studpoints.Add( new XYZ(inputLine.startpoint.X, StartPoint.Y - dHourrate, StartPoint.Z));
                         }
                         else
                             StartPoint = new XYZ(inputLine.startpoint.X + iInputLineWebWidth / 2,
@@ -350,7 +354,8 @@ namespace Revit_Automation.Source.ModelCreators.Walls
                             EndPoint = new XYZ(inputLine.endpoint.X - iIntersectingLineWebWidth - dHourrate,
                                                 inputLine.endpoint.Y + iInputLineWebWidth / 2,
                                                 inputLine.endpoint.Z);
-                            studpoints.Add( new XYZ(EndPoint.X, inputLine.endpoint.Y, EndPoint.Z));
+                            // For 3-C condition the stud should coincide with the intersecting line web. So no need of hour rate correction
+                            studpoints.Add( new XYZ(EndPoint.X + dHourrate, inputLine.endpoint.Y, EndPoint.Z));
                         }
                         else
                         {
@@ -366,7 +371,8 @@ namespace Revit_Automation.Source.ModelCreators.Walls
                             EndPoint = new XYZ(inputLine.endpoint.X + iInputLineWebWidth / 2,
                                                 inputLine.endpoint.Y - iIntersectingLineWebWidth - dHourrate,
                                                 inputLine.endpoint.Z);
-                            studpoints.Add( new XYZ(inputLine.startpoint.X, EndPoint.Y, EndPoint.Z));
+                            // For 3-C condition the stud should coincide with the intersecting line web. So no need of hour rate correction
+                            studpoints.Add( new XYZ(inputLine.startpoint.X, EndPoint.Y + dHourrate, EndPoint.Z));
                         }
                         else
                         {
@@ -384,7 +390,8 @@ namespace Revit_Automation.Source.ModelCreators.Walls
                             EndPoint = new XYZ(inputLine.endpoint.X - iIntersectingLineWebWidth - dHourrate,
                                                 inputLine.endpoint.Y - iInputLineWebWidth / 2,
                                                 inputLine.endpoint.Z);
-                            studpoints.Add( new XYZ(EndPoint.X, inputLine.startpoint.Y, EndPoint.Z));
+                            // For 3-C condition the stud should coincide with the intersecting line web. So no need of hour rate correction
+                            studpoints.Add( new XYZ(EndPoint.X + dHourrate, inputLine.startpoint.Y, EndPoint.Z));
                         }
                         else
                         {
@@ -400,7 +407,8 @@ namespace Revit_Automation.Source.ModelCreators.Walls
                             EndPoint = new XYZ(inputLine.endpoint.X - iInputLineWebWidth / 2,
                                                 inputLine.endpoint.Y - iIntersectingLineWebWidth - dHourrate,
                                                 inputLine.endpoint.Z);
-                            studpoints.Add( new XYZ(inputLine.startpoint.X, EndPoint.Y, EndPoint.Z));
+                            // For 3-C condition the stud should coincide with the intersecting line web. So no need of hour rate correction
+                            studpoints.Add( new XYZ(inputLine.startpoint.X, EndPoint.Y + dHourrate, EndPoint.Z));
                         }
                         else
                         {
