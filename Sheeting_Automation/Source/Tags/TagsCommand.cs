@@ -1,10 +1,7 @@
 ﻿using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
-using Sheeting_Automation.Dialogs;
-using Sheeting_Automation.Source.Dimensions;
 using Sheeting_Automation.Utils;
-using System.Windows.Forms;
 
 namespace Sheeting_Automation.Source.Tags
 {
@@ -23,9 +20,23 @@ namespace Sheeting_Automation.Source.Tags
             UIDocument uidoc = uiapp.ActiveUIDocument;
             Document doc = uidoc.Document;
 
+            // assign the document
             SheetUtils.m_Document = doc;
 
-            TaskDialog.Show("Info", "create tags command");
+            // check if the current view is view plan 
+            if(!TagUtils.IsCurrentViewPlan())
+            {
+                TaskDialog.Show("Error", "Current view is not a view plan");
+                return Result.Failed;
+            }
+
+            // intialize the tag data 
+            TagData.Initialize();
+
+
+            var form = new TagCreationForm();
+
+            form.ShowDialog();
 
             return Result.Succeeded;
         }
@@ -48,8 +59,6 @@ namespace Sheeting_Automation.Source.Tags
             Document doc = uidoc.Document;
 
             SheetUtils.m_Document = doc;
-
-            TaskDialog.Show("Info", "check tags command");
 
             return Result.Succeeded;
         }
