@@ -11,10 +11,10 @@ namespace Sheeting_Automation.Source.Tags
     public class TagCreator
     {
         // data captured from the form
-        private List<TagData.TagFormData> mFormDataList;
+        private List<TagData.TagCreateFormData> mFormDataList;
 
         //ctor 
-        public TagCreator(List<TagData.TagFormData> tagFormData) 
+        public TagCreator(List<TagData.TagCreateFormData> tagFormData) 
         {
             mFormDataList = tagFormData;
         }
@@ -35,7 +35,7 @@ namespace Sheeting_Automation.Source.Tags
         /// Create tag for each form row 
         /// </summary>
         /// <param name="formData"></param>
-        private void CreateTag(TagData.TagFormData formData)
+        private void CreateTag(TagData.TagCreateFormData formData)
         {
             // retrieve tags dict ( 3rd form column) 
             var tagsDict = TagUtils.GetAnnotationSymbolFamilyNames(TagData.TaggableCategoriesDict[formData.CategoryColumn]);
@@ -71,11 +71,20 @@ namespace Sheeting_Automation.Source.Tags
                             // create a ref with the element 
                             Reference reference = new Reference(element);
 
-                            // extract the location of the element
-                            LocationCurve location  = element.Location as LocationCurve;
+                            // extract the location curve of the element
+                            LocationCurve locationCurve  = element.Location as LocationCurve;
 
-                            // mid point o
-                            XYZ tagLocation = (location.Curve.GetEndPoint(0) + location.Curve.GetEndPoint(1)) / 2.0;
+                            // extract the location point of the element
+                            LocationPoint locationPoint = element.Location as LocationPoint;
+
+                            // initialize the tag location
+                            XYZ tagLocation = new XYZ();
+
+                            // handling curve or point 
+                            if (locationCurve != null)
+                                tagLocation = (locationCurve.Curve.GetEndPoint(0) + locationCurve.Curve.GetEndPoint(1)) / 2.0;
+                            else if (locationPoint != null)
+                                tagLocation = locationPoint.Point;
 
                             // create the tag 
                             IndependentTag tag = IndependentTag.Create(SheetUtils.m_Document, SheetUtils.m_Document.ActiveView.Id, reference, formData.Leader,TagMode.TM_ADDBY_CATEGORY,TagOrientation.Vertical,tagLocation);

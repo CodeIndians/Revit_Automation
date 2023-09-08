@@ -58,7 +58,22 @@ namespace Sheeting_Automation.Source.Tags
             UIDocument uidoc = uiapp.ActiveUIDocument;
             Document doc = uidoc.Document;
 
+            // assign the document
             SheetUtils.m_Document = doc;
+
+            // check if the current view is view plan 
+            if (!TagUtils.IsCurrentViewPlan())
+            {
+                TaskDialog.Show("Error", "Current view is not a view plan");
+                return Result.Failed;
+            }
+
+            // intialize the tag data 
+            TagData.Initialize();
+
+            var form = new TagCheckForm();
+
+            form.ShowDialog();
 
             return Result.Succeeded;
         }

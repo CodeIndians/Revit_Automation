@@ -95,6 +95,12 @@
       <DependentUpon>ScheduleUpdateForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Source\Schedules\ScheduleUtils.cs" />
+    <Compile Include="Source\Tags\TagCheckForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Source\Tags\TagCheckForm.Designer.cs">
+      <DependentUpon>TagCheckForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="Source\Tags\TagCreationForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -116,6 +122,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Source\Schedules\ScheduleUpdateForm.resx">
       <DependentUpon>ScheduleUpdateForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Source\Tags\TagCheckForm.resx">
+      <DependentUpon>TagCheckForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Source\Tags\TagCreationForm.resx">
       <DependentUpon>TagCreationForm.cs</DependentUpon>

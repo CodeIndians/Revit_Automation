@@ -28,12 +28,18 @@ namespace Sheeting_Automation.Source.Tags
                                                     .ToDictionary(kv => kv.Key, kv => kv.Value);
         }
 
-        public struct TagFormData
+        public struct TagCreateFormData
         {
             public string CategoryColumn;
             public List<string> ElementColumn;
             public string TagColumn;
             public bool Leader;
+        }
+
+        public struct TagCheckFormData
+        {
+            public string CategoryColumn;
+            public List<string> ElementColumn;
         }
     }
 }

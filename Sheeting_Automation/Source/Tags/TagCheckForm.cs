@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -11,14 +10,12 @@ using System.Windows.Forms;
 
 namespace Sheeting_Automation.Source.Tags
 {
-    public partial class TagCreationForm : Form
+    public partial class TagCheckForm : Form
     {
-        private int m_ActiveCellCol = -1;
-        public TagCreationForm()
+        public TagCheckForm()
         {
             InitializeComponent();
 
-            // set the form properties 
             SetForm();
 
             InitializeDataGridView();
@@ -43,23 +40,20 @@ namespace Sheeting_Automation.Source.Tags
             // Define the column types 
             DataGridViewComboBoxColumn modelCategoryTagColumn = new DataGridViewComboBoxColumn();
             DataGridViewComboBoxColumn familyNameColumn = new DataGridViewComboBoxColumn();
-            DataGridViewComboBoxColumn familyTagColumn = new DataGridViewComboBoxColumn();
-            DataGridViewCheckBoxColumn leaderColumn = new DataGridViewCheckBoxColumn();
+            DataGridViewButtonColumn checkTagButtonColumn = new DataGridViewButtonColumn();
             DataGridViewButtonColumn deleteButtonColumn = new DataGridViewButtonColumn();
 
             // add the columns 
             dataGridView1.Columns.Add(modelCategoryTagColumn);
             dataGridView1.Columns.Add(familyNameColumn);
-            dataGridView1.Columns.Add(familyTagColumn);
-            dataGridView1.Columns.Add(leaderColumn);
+            dataGridView1.Columns.Add(checkTagButtonColumn);
             dataGridView1.Columns.Add(deleteButtonColumn);
 
             // Set column headers
             dataGridView1.Columns[0].HeaderText = "Category Tag";
             dataGridView1.Columns[1].HeaderText = "Element Family";
-            dataGridView1.Columns[2].HeaderText = "Tag family";
-            dataGridView1.Columns[3].HeaderText = "Leader";
-            dataGridView1.Columns[4].HeaderText = "Delete";
+            dataGridView1.Columns[2].HeaderText = "Check";
+            dataGridView1.Columns[3].HeaderText = "Delete";
 
             // Set AutoSizeMode to Fill for all columns
             foreach (DataGridViewColumn column in dataGridView1.Columns)
@@ -70,10 +64,13 @@ namespace Sheeting_Automation.Source.Tags
             // Populate combo box columns with the required data
             modelCategoryTagColumn.DataSource = new List<string>(TagData.TaggableCategoriesDict.Keys);
 
-
             // Set the delete button column properties
             deleteButtonColumn.UseColumnTextForButtonValue = true;
             deleteButtonColumn.Text = "Delete";
+
+            // set the check button column properties 
+            checkTagButtonColumn.UseColumnTextForButtonValue = true;
+            checkTagButtonColumn.Text = "Check";
 
             // add the cell content click call handler function
             dataGridView1.CellContentClick += dataGridView1_CellContentClick;
@@ -86,12 +83,11 @@ namespace Sheeting_Automation.Source.Tags
 
             // Add the DataGridView to the form's controls
             Controls.Add(dataGridView1);
-
         }
 
         // This event handler manually raises the CellValueChanged event 
         // by calling the CommitEdit method. 
-        void dataGridView1_CurrentCellDirtyStateChanged(object sender, EventArgs e)
+        private void dataGridView1_CurrentCellDirtyStateChanged(object sender, EventArgs e)
         {
             if (dataGridView1.IsCurrentCellDirty)
             {
@@ -102,28 +98,20 @@ namespace Sheeting_Automation.Source.Tags
 
         private void DataGridView1_CellValueChanged(object sender, DataGridViewCellEventArgs e)
         {
-            if(e.ColumnIndex == 0 && e.RowIndex >= 0)
+            if (e.ColumnIndex == 0 && e.RowIndex >= 0)
             {
                 // collect all the combo cells in the given row 
                 DataGridViewComboBoxCell categoryComboBoxCell = (DataGridViewComboBoxCell)dataGridView1.Rows[e.RowIndex].Cells[0];
                 DataGridViewComboBoxCell elementComboBoxCell = (DataGridViewComboBoxCell)dataGridView1.Rows[e.RowIndex].Cells[1];
-                DataGridViewComboBoxCell tagComboBoxCell = (DataGridViewComboBoxCell)dataGridView1.Rows[e.RowIndex].Cells[2];
 
                 // Get the selected value from the first ComboBox
                 string selectedValue = categoryComboBoxCell.Value.ToString();
 
                 // noTagvalue to remove the "Tags"
-                string noTagValue =  TagUtils.GetNoTagValue(selectedValue);
+                string noTagValue = TagUtils.GetNoTagValue(selectedValue);
 
                 // get tag family names 
                 var tagDict = TagUtils.GetAnnotationSymbolFamilyNames(TagData.TaggableCategoriesDict[selectedValue]);
-
-                tagComboBoxCell.Items.Clear();
-
-                tagComboBoxCell.Items.AddRange((new List<string>(tagDict.Keys)).ToArray());
-
-                if (tagComboBoxCell.Items.Count > 0)
-                    tagComboBoxCell.Value = tagComboBoxCell.Items[0];
 
                 // get element family names in the view 
                 var eleDict = TagUtils.GetElementFamilyNames(TagData.ViewCategoriesDict[noTagValue]);
@@ -140,14 +128,6 @@ namespace Sheeting_Automation.Source.Tags
             }
         }
 
-        // Add rows 
-        private void addCategoryButtom_Click(object sender, EventArgs e)
-        {
-            // Add a new row to the DataGridView
-            int rowIndex = dataGridView1.Rows.Add();
-        }
-
-        // Event handler function for clicking the cell
         private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex >= 0 && dataGridView1.Columns[e.ColumnIndex] is DataGridViewButtonColumn)
@@ -155,32 +135,62 @@ namespace Sheeting_Automation.Source.Tags
                 // delete the row when the delete button is pressed
                 if (dataGridView1.Columns[e.ColumnIndex].HeaderText == "Delete")
                     dataGridView1.Rows.RemoveAt(e.RowIndex);
+                else if (dataGridView1.Columns[e.ColumnIndex].HeaderText == "Check")
+                {
+                    var formData = CollectFormData(e.RowIndex);
+                }
             }
-
         }
 
-        private void createButton_Click(object sender, EventArgs e)
+        // Add rows 
+        private void addRowsButton_Click(object sender, EventArgs e)
         {
-            // collect the form data 
-            var formDataList = CollectFormData();
+            // Add a new row to the DataGridView
+            int rowIndex = dataGridView1.Rows.Add();
+        }
 
-            var tagCreator = new TagCreator(formDataList);
-
-            tagCreator.CreateTags();
+        private void checkAllButton_Click(object sender, EventArgs e)
+        {
+            //TODO: Inmplement check all functionality 
+            var formData = CollectFormData();
 
             this.Close();
         }
 
-        // collect form data into TagFormData
-        private List<TagData.TagCreateFormData> CollectFormData()
+        private TagData.TagCheckFormData CollectFormData(int rowNum)
         {
-            List < TagData.TagCreateFormData> formDataList = new List<TagData.TagCreateFormData>();
+            // intialize check form data struct
+            TagData.TagCheckFormData formData = new TagData.TagCheckFormData();
+
+            DataGridViewRow row = dataGridView1.Rows[rowNum];
+
+            // skip if the row is empty 
+            if (row.Cells[0].Value == null)
+                return formData;
+
+            // capture cell data into form data struct
+            formData.CategoryColumn = row.Cells[0].Value.ToString();
+
+            if (row.Cells[1].Value.ToString() != "ALL")
+                formData.ElementColumn = new List<string> { row.Cells[1].Value.ToString() };
+            else
+            {
+                formData.ElementColumn = (row.Cells[1] as DataGridViewComboBoxCell).Items.Cast<string>().ToList();
+                formData.ElementColumn.RemoveAt(formData.ElementColumn.Count - 1);
+            }
+
+            return formData;
+        }
+
+        private List<TagData.TagCheckFormData> CollectFormData()
+        {
+            List<TagData.TagCheckFormData> formDataList = new List<TagData.TagCheckFormData>();
 
             // iterate through all the rows 
-            foreach(DataGridViewRow row in dataGridView1.Rows)
+            foreach (DataGridViewRow row in dataGridView1.Rows)
             {
-                // initialize  form data struct 
-                TagData.TagCreateFormData formData = new TagData.TagCreateFormData();
+                // intialize check form data struct
+                TagData.TagCheckFormData formData = new TagData.TagCheckFormData();
 
                 // skip if the row is empty 
                 if (row.Cells[0].Value == null)
@@ -188,6 +198,7 @@ namespace Sheeting_Automation.Source.Tags
 
                 // capture cell data into form data struct
                 formData.CategoryColumn = row.Cells[0].Value.ToString();
+
                 if (row.Cells[1].Value.ToString() != "ALL")
                     formData.ElementColumn = new List<string> { row.Cells[1].Value.ToString() };
                 else
@@ -195,15 +206,12 @@ namespace Sheeting_Automation.Source.Tags
                     formData.ElementColumn = (row.Cells[1] as DataGridViewComboBoxCell).Items.Cast<string>().ToList();
                     formData.ElementColumn.RemoveAt(formData.ElementColumn.Count - 1);
                 }
-                formData.TagColumn = row.Cells[2].Value.ToString();
-                formData.Leader = ((row.Cells[3] as DataGridViewCheckBoxCell).Value == null)  ? false : true;
 
                 // add it to the list 
                 formDataList.Add(formData);
             }
 
             return formDataList;
-
         }
     }
 }
