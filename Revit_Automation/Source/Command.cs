@@ -15,9 +15,12 @@ using Revit_Automation.Dialogs;
 using Revit_Automation.Source;
 using Revit_Automation.Source.Preprocessors;
 using Revit_Automation.Source.Utils;
+using System.Diagnostics;
+using System;
 using System.Linq;
 using System.Windows.Forms;
 using System.Windows.Media.Media3D;
+using System.Collections.Generic;
 
 #endregion
 
@@ -307,6 +310,7 @@ namespace Revit_Automation
     [Transaction(TransactionMode.Manual)]
     public class CeeHeaders : IExternalCommand
     {
+
         public Result Execute(
           ExternalCommandData commandData,
           ref string message,
@@ -317,19 +321,67 @@ namespace Revit_Automation
             Document doc = uidoc.Document;
             Selection selection = uidoc.Selection;
 
-            PrepareCommandClass.PrepareCommand(commandData);
+            CeeHeaderModeSelector ceeHeaderModeSelector = new CeeHeaderModeSelector()
+            { StartPosition = FormStartPosition.CenterScreen };
+            ceeHeaderModeSelector.ShowDialog();
 
-            Form1 form = new Form1
+            if (ceeHeaderModeSelector.m_bCreation)
             {
-                StartPosition = FormStartPosition.CenterScreen
-            };
-            //form.TopMost= true;
-            _ = form.ShowDialog();
+                CeeHeaderBoundaries.selectedInputlines = selection.GetElementIds().ToList();
+                CeeHeaderBoundaries.bSelectedModelling = selection.GetElementIds().ToList().Count > 0;
 
-            if (form.CanCreateModel)
-            {
-                ModelCreator.CreateModel(uiapp, form, false, CommandCode.CeeHeaders);
+                PrepareCommandClass.PrepareCommand(commandData);
+
+                Reference north = selection.PickObject(
+                    ObjectType.Element, "Pick Grid for North Boundary ");
+
+                Grid Northgrid = doc.GetElement(north) as Grid;
+
+                Reference south = selection.PickObject(
+                    ObjectType.Element, "Pick Grid for South Boundary ");
+
+                Grid Southgrid = doc.GetElement(south) as Grid;
+
+                Reference east = selection.PickObject(
+                    ObjectType.Element, "Pick Grid for East Boundary ");
+
+                Grid Eastgrid = doc.GetElement(east) as Grid;
+
+                Reference west = selection.PickObject(
+                    ObjectType.Element, "Pick Grid for West Boundary ");
+
+                Grid Westgrid = doc.GetElement(west) as Grid;
+
+                Reference elemRef = selection.PickObject(
+                    ObjectType.Element, "Pick Grid Span Starting  reference ");
+
+                Grid spanStartGrid = doc.GetElement(elemRef) as Grid;
+
+
+                CeeHeaderBoundaries.SetBoundaries(Northgrid, Southgrid, Eastgrid, Westgrid);
+                CeeHeaderBoundaries.SetSpanStartingGrid(spanStartGrid);
+
+                Form1 form = new Form1
+                {
+                    StartPosition = FormStartPosition.CenterScreen
+                };
+                //form.TopMost= true;
+                _ = form.ShowDialog();
+
+                if (form.CanCreateModel)
+                {
+                    ModelCreator.CreateModel(uiapp, form, false, CommandCode.CeeHeaders);
+                }
             }
+            else
+            {
+                CeeHeaderAdjustmentsForm ceeHeaderAdjustmentsForm = new CeeHeaderAdjustmentsForm(doc)
+                { StartPosition = FormStartPosition.CenterScreen};
+                ceeHeaderAdjustmentsForm.PopulateData();
+                ceeHeaderAdjustmentsForm.ShowDialog();
+            }
+
+            ceeHeaderModeSelector.Close();
 
             return Result.Succeeded;
         }

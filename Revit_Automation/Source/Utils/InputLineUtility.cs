@@ -64,39 +64,65 @@ namespace Revit_Automation.Source
             colInputLines?.Clear();
 
             FilteredElementCollector locationCurvedCol = null;
-
-            if (selection?.GetElementIds().Count == 0)
+            
+            if (commandcode == CommandCode.CeeHeaders)
             {
-                locationCurvedCol
-                  = new FilteredElementCollector(doc)
-                    .WhereElementIsNotElementType()
-                    .OfCategory(BuiltInCategory.OST_GenericModel);
+                if (CeeHeaderBoundaries.selectedInputlines.Count == 0)
+                {
+                    // For CeeHeaders we want only those input lines present in the view
+                    locationCurvedCol
+                      = new FilteredElementCollector(doc, doc.ActiveView.Id)
+                        .WhereElementIsNotElementType()
+                        .OfCategory(BuiltInCategory.OST_GenericModel);
+                }
+                else
+                {
+                    ElementCategoryFilter modelCategoryFilter = new ElementCategoryFilter(BuiltInCategory.OST_GenericModel);
+
+                    // Create a filtered element collector to filter the selected elements
+                    locationCurvedCol = new FilteredElementCollector(doc, CeeHeaderBoundaries.selectedInputlines);
+
+                    // Apply the category filter to the collector
+                    _ = locationCurvedCol.WherePasses(modelCategoryFilter);
+                }
             }
 
             else
             {
-                if (selection == null || selection.GetElementIds().Count == 0)
-                { 
-                    TaskDialog.Show("Automation Error", "Please Select Atleast 1 Input line to Proceed");
-                    return;
+                if (selection?.GetElementIds().Count == 0)
+                {
+
+                    locationCurvedCol
+                        = new FilteredElementCollector(doc)
+                        .WhereElementIsNotElementType()
+                        .OfCategory(BuiltInCategory.OST_GenericModel);
                 }
 
-                // Check if any elements are selected
-                if (selection.GetElementIds().Count > 0)
+                else
                 {
-                    // Get the selected elements
-                    ICollection<ElementId> selectedIds = selection.GetElementIds();
+                    if (selection == null || selection.GetElementIds().Count == 0)
+                    {
+                        TaskDialog.Show("Automation Error", "Please Select Atleast 1 Input line to Proceed");
+                        return;
+                    }
 
-                    // Create a filter to match elements of the OST_GenericModel category
-                    ElementCategoryFilter modelCategoryFilter = new ElementCategoryFilter(BuiltInCategory.OST_GenericModel);
+                    // Check if any elements are selected
+                    if (selection.GetElementIds().Count > 0)
+                    {
+                        // Get the selected elements
+                        ICollection<ElementId> selectedIds = selection.GetElementIds();
 
-                    // Create a filtered element collector to filter the selected elements
-                    locationCurvedCol = new FilteredElementCollector(doc, selectedIds);
+                        // Create a filter to match elements of the OST_GenericModel category
+                        ElementCategoryFilter modelCategoryFilter = new ElementCategoryFilter(BuiltInCategory.OST_GenericModel);
 
-                    // Apply the category filter to the collector
-                    _ = locationCurvedCol.WherePasses(modelCategoryFilter);
+                        // Create a filtered element collector to filter the selected elements
+                        locationCurvedCol = new FilteredElementCollector(doc, selectedIds);
+
+                        // Apply the category filter to the collector
+                        _ = locationCurvedCol.WherePasses(modelCategoryFilter);
 
 
+                    }
                 }
             }
 

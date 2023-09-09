@@ -6,16 +6,21 @@ using Revit_Automation.Source.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Runtime.Remoting.Messaging;
 using System.Security.Cryptography;
+using System.Windows.Forms;
+using static Autodesk.Revit.DB.SpecTypeId;
 
 namespace Revit_Automation
 {
+    // Assumptions : if Span is vertical - And we have vertical CMU walls in the span, consider Cee Header points
+    // If span is vertical - 
     internal class CeeHeaderCreator
     {
         private Document doc;
         private Form1 form;
-
+        private double m_SlabThickness = 0.0;
         enum SlopeDirection
         {
             Horizontal,
@@ -56,6 +61,13 @@ namespace Revit_Automation
 
                     InputLine temp = list[0];
                     Level level = GetLevelForInputLine(temp, levels);
+
+                    Element SlabElement = GenericUtils.GetNearestFloorOrRoof(level, temp.startpoint, doc);
+                    Parameter thicknessParam = SlabElement.get_Parameter(BuiltInParameter.FLOOR_ATTR_THICKNESS_PARAM);
+                    if (thicknessParam != null)
+                    {
+                        m_SlabThickness = thicknessParam.AsDouble();
+                    }
 
                     // Get the settings for this level
                     CeeHeaderSettings ceeHeaderSettings = GetCeeHeaderSettingsForGivenLevel(level.Name);
@@ -131,101 +143,485 @@ namespace Revit_Automation
 
         private void PlaceCeeHeaders(CeeHeaderSettings ceeHeaderSettings, List<InputLine> InputlineList, Level level)
         {
-            double dSpan = double.Parse(GlobalSettings.s_strDeckSpan);
+            int iSpan = 1;
+            // Points where Cee-Headers are to be placed
+            List<XYZ> ceeHeaderPts = new List<XYZ>();
 
-            List<XYZ> ceeHeaderPts = IdentifyCeeHeaderPoints(InputlineList);
+            // Get the starting grid
+            List<XYZ> spanStartPts = CeeHeaderBoundaries.GetSpanStartingGrid();
+            XYZ startPoint = spanStartPts.First();
 
+            // compute the orientation of the starting grid
+            LineType spanLineType = MathUtils.ApproximatelyEqual(spanStartPts[0].X, spanStartPts[1].X) ? LineType.vertical : LineType.Horizontal;
+            XYZ additionVector = spanLineType == LineType.vertical ? new XYZ(m_DeckSpan, 0, 0) : new XYZ(0, m_DeckSpan, 0);
 
-            for (int i = 0; i < ceeHeaderPts.Count - 1; i++)
-            {
-                XYZ ceeHeaderStartPoint = ceeHeaderPts[i++];
-                XYZ ceeHeaderEndPoint = ceeHeaderPts[i];
+            // 1st Span from the edge of the building
+            startPoint += additionVector;
 
-                bool bHeaderAtHallway = true; // GenericUtils.LineIntersectsHallway(doc, ceeHeaderStartPoint, ceeHeaderEndPoint);
-                
-                double dElevation = Math.Abs ( ceeHeaderStartPoint.Z - level.Elevation );
-                ceeHeaderStartPoint += new XYZ(0, 0, dElevation);
-                ceeHeaderEndPoint += new XYZ(0, 0, dElevation);
-                FamilySymbol ceeHeaderFamily = SymbolCollector.GetCeeHeadersFamily(bHeaderAtHallway ? ceeHeaderSettings.HallwayCeeHeaderName: ceeHeaderSettings.ceeHeaderName
-                    , "Cee Header");
+            // Sometimes we maynot have LB at span 10-7-10 condition
+            // Then we have to adjust the start point and start computing span from there
+            XYZ updatedStart = null;
 
-                
-                Line bounds = Line.CreateBound(ceeHeaderStartPoint, ceeHeaderEndPoint);
-                FamilyInstance ceeHeaderInstance = doc.Create.NewFamilyInstance(bounds, ceeHeaderFamily, level, StructuralType.Beam);
-                Parameter PostCLFaceOffsetParam = ceeHeaderInstance.LookupParameter("Post CL Face Offset");
-                if (PostCLFaceOffsetParam != null)
+            List<string> lstceeHeaderPoints = new List<string>();
+
+            // Get the CeeHeaderpoints
+            while (IdentifyCeeHederPoints(startPoint, InputlineList, out lstceeHeaderPoints, out updatedStart))
+            {                
+                // This is to handle 10-7-10 case. we check for LBs at Span and then move back until we find one
+                if (updatedStart != null)
                 {
+                    // Move to the next span
+                    startPoint = updatedStart;
+                    ceeHeaderPts.Clear();
+                    updatedStart = null;
+                    continue;
                 }
 
-                if (bHeaderAtHallway == true && ceeHeaderSettings.HallwayCeeHeaderCount == "Double" || bHeaderAtHallway == false && ceeHeaderSettings.ceeHeaderCount == "Double")
+                ceeHeaderPts = ProcessCeeHeaderPoints(lstceeHeaderPoints, spanLineType);
+                form.PostMessage($" \nPlacing Cee-Headers at Span {iSpan++} at location {ceeHeaderPts[0].X} , {ceeHeaderPts[0].Y}");
+
+                for (int i = 0; i < ceeHeaderPts.Count - 1; i++)
                 {
-                    Line bounds2 = Line.CreateBound(ceeHeaderEndPoint, ceeHeaderStartPoint);
-                    FamilyInstance ceeHeaderInstance2 = doc.Create.NewFamilyInstance(bounds2, ceeHeaderFamily, level, StructuralType.Beam);
-                    Parameter TopTrackSizeParam = ceeHeaderInstance.LookupParameter("Post CL Face Offset");
-                    if (TopTrackSizeParam != null)
+                    XYZ ceeHeaderStartPoint = ceeHeaderPts[i++];
+                    XYZ ceeHeaderEndPoint = ceeHeaderPts[i];
+
+                    bool bHeaderAtHallway = true; // GenericUtils.LineIntersectsHallway(doc, ceeHeaderStartPoint, ceeHeaderEndPoint);
+
+                    double dElevation = Math.Abs(ceeHeaderStartPoint.Z - level.Elevation);
+                    ceeHeaderStartPoint += new XYZ(0, 0, dElevation - m_SlabThickness);
+                    ceeHeaderEndPoint += new XYZ(0, 0, dElevation - m_SlabThickness);
+
+                    // if the points are apart only by 1, 1 1/2 feet do not place ceeHeaders
+                    if ((spanLineType == LineType.vertical && Math.Abs(ceeHeaderStartPoint.Y - ceeHeaderEndPoint.Y) < 1.5) || (spanLineType == LineType.Horizontal
+                            && Math.Abs(ceeHeaderStartPoint.X - ceeHeaderEndPoint.X) < 1.5))
+                        continue;
+
+                    // if lines greater than 20 feet do not place headers
+                    if ((spanLineType == LineType.vertical && Math.Abs(ceeHeaderStartPoint.Y - ceeHeaderEndPoint.Y) > 20.0) || (spanLineType == LineType.Horizontal
+                            && Math.Abs(ceeHeaderStartPoint.X - ceeHeaderEndPoint.X) > 20.0))
+                        continue;
+
+                    FamilySymbol ceeHeaderFamily = SymbolCollector.GetCeeHeadersFamily(bHeaderAtHallway ? ceeHeaderSettings.HallwayCeeHeaderName : ceeHeaderSettings.ceeHeaderName
+                        , "Cee Header");
+
+                    Line bounds = Line.CreateBound(ceeHeaderStartPoint, ceeHeaderEndPoint);
+                    FamilyInstance ceeHeaderInstance = doc.Create.NewFamilyInstance(bounds, ceeHeaderFamily, level, StructuralType.Beam);
+
+                    if (bHeaderAtHallway == true && ceeHeaderSettings.HallwayCeeHeaderCount == "Double" || bHeaderAtHallway == false && ceeHeaderSettings.ceeHeaderCount == "Double")
                     {
+                        Line bounds2 = Line.CreateBound(ceeHeaderEndPoint, ceeHeaderStartPoint);
+                        FamilyInstance ceeHeaderInstance2 = doc.Create.NewFamilyInstance(bounds2, ceeHeaderFamily, level, StructuralType.Beam);
                     }
                 }
+                
+                // Move to the next span
+                startPoint = startPoint + additionVector;
+                ceeHeaderPts.Clear();
             }
         }
 
-        private List<XYZ> IdentifyCeeHeaderPoints(List<InputLine> inputlineList)
+        private List<XYZ> ProcessCeeHeaderPoints(List<string> lstceeHeaderPoints, LineType spanDirection)
         {
+            // Cee headers points are added in such a way that we place Cee Headers at 1-2, 3-4, 5-6 etc
+            // we may have odd number of points - In below cases (1, 2) we have 5 points. so, 1,2 3,4 logic will not work 
+            // |--------------------------------| |--------------------------------| |--------------------------------|
+            // |       |          |             | |                                | |       |          |             |
+            // |       |__________|             | |                                | |       |__________|             |
+            // |                                | |            |                   | |                                |
+            // |            |                   | |            |                   | |            |                   | 
+            // |            |                   | |            |                   | |            |                   | 
+            // |                                | |       |----------|             | |       |----------|             | 
+            // |________________________________| |_______|__________|____________ | |_______|__________|____________ | 
+            // So we have to check if the two penultimate points are CMU points
+            // if 2nd point is CMU series will be 2-3 4-5, Leave out 1
+            // if 4th point is CMU like in adjacent figure 1-2, 3-4 leave out 5
+            // We may have 6 points like in figure 3 tyhen we need cee headers at 2-3, 4-5 leave out 1, 6
+            // So the logic is, if number of points are odd, make it even by stripping the relevant end point (Case 1 & 2)
+            // if even and penultimare points are CMU points strip both end points (Case 3)
+            
+            // In this method we also need to do adjustment for flange width,
+            // if we are having double studs, we have to make sure the Cee headers extend upto flange width
+            // If we are having CMU walls, the cee headers should terminate at the wall end
+
+            // We also need to get the floor thickness and subtract it from the elevation of the cee header.
+            
             List<XYZ> ceeHeaderPoints = new List<XYZ>();
-
-            if (m_direction == SlopeDirection.Vertical)
+            if (lstceeHeaderPoints.Count % 2 == 1)
             {
-                XYZ startPoint = m_startPoint;
-                if (m_bStartingFromExterior)
-                    startPoint = m_startPoint + new XYZ(m_DeckSpan, 0, 0);
+                if (lstceeHeaderPoints[lstceeHeaderPoints.Count - 2].Contains("CMU"))
+                    lstceeHeaderPoints.RemoveAt(lstceeHeaderPoints.Count - 1);
 
-                while (startPoint.X < m_endPoint.X)
+                if (lstceeHeaderPoints[1].Contains("CMU"))
+                    lstceeHeaderPoints.RemoveAt(0);
+            }
+            else
+            {
+                if (lstceeHeaderPoints[lstceeHeaderPoints.Count - 2].Contains("CMU") &&
+                    lstceeHeaderPoints[1].Contains("CMU"))
                 {
-                    List <InputLine> targetInputLines  = new List<InputLine>();
-                    Outline outline = new Outline(
-                    new XYZ(startPoint.X - 0.5,
-                    startPoint.Y - 0.5,
-                    startPoint.Z - 0.5),
-                    new XYZ(startPoint.X + 0.5,
-                    m_endPoint.Y + 0.5,
-                    startPoint.Z + 0.5));
-
-                    // Create a BoundingBoxIntersects filter with this Outline
-                    BoundingBoxIntersectsFilter filter = new BoundingBoxIntersectsFilter(outline);
-
-                    // Apply the filter to the elements in the active document to retrieve posts at a point
-                    FilteredElementCollector collector = new FilteredElementCollector(doc);
-                    IList<Element> GenericModelElems = collector.WherePasses(filter).OfCategory(BuiltInCategory.OST_GenericModel).ToElements();
-
-                    // Collect LB lines which are parallel to the slope direction and sort them by Y.
-                    foreach (Element genericModelElem in GenericModelElems)
-                    {
-                        InputLine input = inputlineList.FirstOrDefault(il => il.id == genericModelElem.Id && (il.strWallType == "LB" || il.strWallType == "LBS"));
-                        if (input.id != null)
-                            targetInputLines.Add(input);
-                    }
-
-                    // Sort lines vertically
-                    List<XYZ> linePoints = new List<XYZ>();
-                    foreach (var targetline in targetInputLines)
-                    {
-                        linePoints.Add(targetline.startpoint);
-                        linePoints.Add(targetline.endpoint);
-                    }
-
-                    List<XYZ> sortedList = linePoints.OrderBy(elem  => elem.Y).ToList();
-
-                    for (int i = 1; i < sortedList.Count - 1; i++)
-                    {
-                        ceeHeaderPoints.Add(sortedList[i++]);
-                        ceeHeaderPoints.Add(sortedList[i]);
-                    }
-
-                    startPoint = startPoint + new XYZ(m_DeckSpan, 0, 0);
+                    lstceeHeaderPoints.RemoveAt(lstceeHeaderPoints.Count - 1);
+                    lstceeHeaderPoints.RemoveAt(0);
                 }
             }
+            Dictionary<XYZ, string> ceeHeaderValues = new Dictionary<XYZ, string>();
+            
+            foreach (string str in lstceeHeaderPoints)
+            {
+                string[] tokens = str.Split('|');
+                string[] tokens2 = tokens[3].Split(';');
+                XYZ point = new XYZ(double.Parse(tokens[0]), double.Parse(tokens[1]), double.Parse(tokens2[1]));
+                ceeHeaderValues.Add(point, tokens[3]);
+            }
+
+            int i = 1;
+            foreach (KeyValuePair<XYZ, string> kvp in ceeHeaderValues)
+            {
+                string strWallTypeAndGuage = kvp.Value.ToString();
+                XYZ ceeHeaderPoint = kvp.Key;
+
+                string[] tokens = strWallTypeAndGuage.Split(';');
+                double dAdjustmentFactor  = double.Parse(tokens[1]);
+                string strPointType = tokens[0].ToString();
+
+                // Flange Width Adjustments
+                if (i % 2 == 1)
+                {
+                    if (spanDirection == LineType.vertical)
+                        ceeHeaderPoint += new XYZ(0, strPointType == "CMU" ? dAdjustmentFactor : -dAdjustmentFactor, 0);
+                    else
+                        ceeHeaderPoint += new XYZ(strPointType == "CMU" ? dAdjustmentFactor : -dAdjustmentFactor, 0, 0);
+                }
+                else
+                {
+                    if (spanDirection == LineType.vertical)
+                        ceeHeaderPoint += new XYZ(0, strPointType == "CMU" ? -dAdjustmentFactor : dAdjustmentFactor, 0);
+                    else
+                        ceeHeaderPoint += new XYZ(strPointType == "CMU" ? -dAdjustmentFactor : dAdjustmentFactor, 0, 0);
+                }
+
+                ceeHeaderPoints.Add(ceeHeaderPoint);
+                i++;
+                
+            }
+            
             return ceeHeaderPoints;
         }
+
+        private bool IdentifyCeeHederPoints(XYZ startPt, List<InputLine> inputlineList, out List<string> ceeHeaderPts, out XYZ updatedStart)
+        {
+            bool bCanPlaceCeeHeaders = false;
+            ceeHeaderPts  = new List<string >();
+            updatedStart = null;
+
+            double elevation = inputlineList[0].startpoint.Z;
+
+            // Compute the span Line type
+            List<XYZ> spanStartPts = CeeHeaderBoundaries.GetSpanStartingGrid();
+            LineType spanLineType = MathUtils.ApproximatelyEqual(spanStartPts[0].X, spanStartPts[1].X) ? LineType.vertical : LineType.Horizontal;
+ 
+            // Get the boundaries for Cee Header placements
+            List<XYZ> boundingBoxExtens = CeeHeaderBoundaries.GetFirstBoundingBoxCoordinates();
+
+            // Check if we reached end of the span.
+            XYZ endPoint = CeeHeaderBoundaries.GetExtentsEndPoint();
+            if ((spanLineType == LineType.vertical && startPt.X < endPoint.X && !MathUtils.ApproximatelyEqual(startPt.X,endPoint.X)) || 
+                (spanLineType == LineType.Horizontal && startPt.Y < endPoint.Y & !MathUtils.ApproximatelyEqual(startPt.Y, endPoint.Y)))
+                bCanPlaceCeeHeaders = true;
+
+            // if we reached the end just return without further computations
+            if (!bCanPlaceCeeHeaders)
+                return false;
+
+            // Get the boundingbox outline based on the Span starting grid orientation
+            Outline outline = GetBoundingBoxOutline (spanLineType, startPt, boundingBoxExtens, elevation);
+
+            List<string> points = new List<string> ();
+
+            // Get Inputline endpoints in a give bounding box
+            points.AddRange(GetInputLinePoints(outline, inputlineList, spanLineType));
+
+            // Special Processing
+            if (!CeeHeaderBoundaries.bSelectedModelling && points.Count == 0)
+            {
+                if (spanLineType == LineType.vertical)
+                    updatedStart = startPt + new XYZ(-2.0, 0.0, 0.0);
+                else
+                    updatedStart = startPt + new XYZ(0.0, -2.0, 0.0);
+
+                return bCanPlaceCeeHeaders;
+            }
+
+            double dCeeHeaderCoordinate = 0.0;
+            if (points.Count > 0)
+            {
+                string[] tokens = points[0].Split('|');
+                double XCoord = double.Parse(tokens[0]);
+                double YCoord = double.Parse(tokens[1]);
+
+                dCeeHeaderCoordinate = spanLineType == LineType.vertical ? XCoord : YCoord;
+            }
+
+            // Get the building endpoints
+            points.AddRange(GetEndPoints(outline, inputlineList, spanLineType, startPt, elevation, dCeeHeaderCoordinate));
+            
+            // Get the CMU wall endpoints in a given bounding box
+            points.AddRange(GetCMUWallPoints(outline, spanLineType, dCeeHeaderCoordinate));
+
+            // Sort the points according to Span Grid type
+            ceeHeaderPts = (spanLineType == LineType.vertical) ? points.OrderBy(elem => double.Parse(elem.Split('|')[1])).ToList() : points.OrderBy(elem => double.Parse(elem.Split('|')[0])).ToList();
+            
+            return bCanPlaceCeeHeaders;
+
+        }
+
+        private List<string> GetEndPoints(Outline outline, List<InputLine> inputlineList, LineType spanLineType, XYZ startPoint, double elevation, double dCeeHeaderCoordinate )
+        {
+
+            // If span line is vertical, we want to get the Y coordinates of the two extremities of the exterior
+            // if Horizontal, we need X coordinates of extremities of the exterior
+            
+            double min = 100000.0, max = 0.0;
+
+            string startWallType = "";
+            string endWallType = "";
+            double dStartAdjustment = 0.0;
+            double dEndAdjustment = 0.0;
+
+            // Construct a bounding box filter with the outline
+            BoundingBoxIntersectsFilter filter = new BoundingBoxIntersectsFilter(outline);
+
+            // Apply the filter to the elements in the active document to retrieve input lines in a range
+            FilteredElementCollector collector = new FilteredElementCollector(doc);
+            IList<Element> GenericModelElems = collector.WherePasses(filter).OfCategory(BuiltInCategory.OST_GenericModel).ToElements();
+
+            // Collect LB lines which are parallel to the slope direction and sort them accordingly
+            List<InputLine> targetInputLines = new List<InputLine>();
+            foreach (Element genericModelElem in GenericModelElems)
+            {
+                InputLine input = inputlineList.FirstOrDefault(il => il.id == genericModelElem.Id && (il.strWallType == "Ex" || il.strWallType == "Ex w/ Insulation"));
+                if (input.id != null)
+                {
+                    LineType inputlineType = GenericUtils.GetLineType(input);
+                    if (inputlineType != spanLineType) // Lines perpendicular to span type
+                    {
+                        double temp = (spanLineType == LineType.vertical ? input.startpoint.Y : input.startpoint.X);
+                        if (temp < min)
+                        {
+                            min = temp;
+                            startWallType = "StartStud";
+                            dStartAdjustment = GenericUtils.WebWidth(input.strStudGuage) / 2.0;
+                        }
+                        if (temp > max)
+                        {
+                            max = temp;
+                            endWallType = "EndStud" ;
+                            dStartAdjustment = GenericUtils.WebWidth(input.strStudGuage) / 2.0;
+                        } 
+                    } 
+                }
+            }
+
+            // Apply the filter to the elements in the active document to retrieve input lines in a range
+            FilteredElementCollector collector2 = new FilteredElementCollector(doc);
+            IList<Wall> wallElements = collector2.WherePasses(filter).OfCategory(BuiltInCategory.OST_Walls).Cast<Wall>().ToList();
+
+            // Collect CMU walls in the range that are parallel to span grid
+            foreach (Wall wall in wallElements)
+            {
+                XYZ startPt = null, endPt = null;
+                GenericUtils.GetlineStartAndEndPoints(wall, out startPt, out endPt);
+
+                LineType lineType = MathUtils.ApproximatelyEqual(startPt.X, endPt.X) ? LineType.vertical : LineType.Horizontal;
+
+                if (lineType != spanLineType)
+                {
+                    double temp = (spanLineType == LineType.vertical ? startPt.Y : startPt.X);
+                    if (temp < min)
+                    {
+                        dStartAdjustment = wall.WallType.Width;
+                        startWallType = "StartCMU";
+                        min = temp;
+                    }
+                    if (temp > max)
+                    {
+                        dEndAdjustment = wall.WallType.Width;
+                        endWallType = "EndCMU";
+                        max = temp;
+                    }
+                }
+            }
+            
+            List<string> points = new List<string>();
+
+            List<XYZ> endPts = new List<XYZ>();
+
+            XYZ start = null, end = null;
+
+            if (spanLineType == LineType.vertical)
+            {
+                start = new XYZ(dCeeHeaderCoordinate == 0.0 ? startPoint.X : dCeeHeaderCoordinate, min, elevation);
+                end = new XYZ(dCeeHeaderCoordinate == 0.0 ? startPoint.X : dCeeHeaderCoordinate, max, elevation);
+            }
+            else
+            {
+               start = new XYZ(min, dCeeHeaderCoordinate == 0.0 ? startPoint.Y : dCeeHeaderCoordinate, elevation);
+               end = new XYZ(max, dCeeHeaderCoordinate == 0.0 ? startPoint.Y : dCeeHeaderCoordinate, elevation);
+            }
+
+            points.Add(start.X
+                        + "|" + start.Y.ToString()
+                        + "|" + start.Z.ToString()
+                        + "|" + startWallType + ";" + dStartAdjustment.ToString() + ";");
+
+            points.Add(end.X
+                        + "|" + end.Y.ToString()
+                        + "|" + end.Z.ToString()
+                         + "|" + endWallType + ";" + dEndAdjustment.ToString() + ";");
+            return points;
+        }
+
+        private List<string> GetCMUWallPoints(Outline outline,LineType spanLineType, double dCeeHeaderCoordinate)
+        {
+            List<string> CMUPoints = new List<string>();
+
+            // we donot want to double count exterior CMU Walls once in end points and once in this method
+            // So, reduce the outline by 2 feet on either sides
+            if (spanLineType == LineType.vertical)
+            {
+                outline = new Outline(new XYZ(outline.MinimumPoint.X, outline.MinimumPoint.Y + 2.0, outline.MinimumPoint.Z),
+                                        new XYZ(outline.MaximumPoint.X, outline.MaximumPoint.Y - 2.0, outline.MaximumPoint.Z));
+            }
+            else
+            {
+                outline = new Outline(new XYZ(outline.MinimumPoint.X + 2.0, outline.MinimumPoint.Y , outline.MinimumPoint.Z),
+                                       new XYZ(outline.MaximumPoint.X - 2.0, outline.MaximumPoint.Y , outline.MaximumPoint.Z));
+            }
+
+            // Construct a bounding box filter with the outline
+            BoundingBoxIntersectsFilter filter = new BoundingBoxIntersectsFilter(outline);
+
+            // Apply the filter to the elements in the active document to retrieve input lines in a range
+            FilteredElementCollector collector = new FilteredElementCollector(doc);
+            IList<Wall> wallElements = collector.WherePasses(filter).OfCategory(BuiltInCategory.OST_Walls).Cast<Wall>().ToList();
+
+
+            // Collect CMU walls in the range that are parallel to span grid
+            foreach (Wall wall in wallElements)
+            {
+                if (!wall.Name.Contains("Masonry"))
+                    continue;
+                double halfWidth = wall.WallType.Width / 2.0;
+
+                XYZ startPt = null, endPt = null;
+                    GenericUtils.GetlineStartAndEndPoints(wall, out startPt, out endPt);
+
+                LineType lineType = MathUtils.ApproximatelyEqual(startPt.X, endPt.X) ? LineType.vertical : LineType.Horizontal;
+
+                string startString = "";
+
+                if (lineType != spanLineType && lineType == LineType.Horizontal)
+                {
+                    startString = dCeeHeaderCoordinate.ToString()
+                                           + "|" + startPt.Y.ToString()
+                                           + "|" + startPt.Z.ToString()
+                                            + "|" + "CMU" + ";" + halfWidth.ToString() + ";";
+
+                }
+                else if (lineType != spanLineType && lineType == LineType.vertical)
+                {
+                    startString = dCeeHeaderCoordinate.ToString()
+                       + "|" + startPt.Y.ToString()
+                       + "|" + startPt.Z.ToString()
+                        + "|" + "CMU" + ";" + halfWidth.ToString() + ";";
+                }
+
+                
+                if (!string.IsNullOrEmpty(startString))
+                    CMUPoints.Add(startString); 
+            }
+
+            // Sort lines vertically       
+            return CMUPoints;
+        }
+
+        private List<string> GetInputLinePoints(Outline outline, List<InputLine> inputlineList, LineType spanLineType)
+        {
+            // Construct a bounding box filter with the outline
+            BoundingBoxIntersectsFilter filter = new BoundingBoxIntersectsFilter(outline);
+
+            // Apply the filter to the elements in the active document to retrieve input lines in a range
+            FilteredElementCollector collector = new FilteredElementCollector(doc);
+            IList<Element> GenericModelElems = collector.WherePasses(filter).OfCategory(BuiltInCategory.OST_GenericModel).ToElements();
+
+
+            // Collect LB lines which are parallel to the slope direction and sort them accordingly
+            List<InputLine> targetInputLines = new List<InputLine>();
+            foreach (Element genericModelElem in GenericModelElems)
+            {
+                InputLine input = inputlineList.FirstOrDefault(il => il.id == genericModelElem.Id && (il.strWallType == "LB" || il.strWallType == "LBS"));
+
+
+                if (input.id != null)
+                {
+                    LineType inputlineType = GenericUtils.GetLineType(input);
+                    if (inputlineType == spanLineType)
+                        targetInputLines.Add(input);
+                }
+            }
+
+            // Get discontinuties of LB Lines     
+            List<string> linePoints = new List<string>();
+
+            foreach (var targetline in targetInputLines)
+            {
+                double dFlangeWidth = GenericUtils.FlangeWidth(targetline.strStudType);
+
+                bool bDoubleStudAtStart = targetline.strDoubleStudType == "At Ends" || targetline.strDoubleStudType == "At Ends - L";
+                bool bDoubleStudAtEnd = targetline.strDoubleStudType == "At Ends" || targetline.strDoubleStudType == "At Ends - R";
+
+                string startString = string.Format("{0}|{1}|{2}|Stud;{3};", targetline.startpoint.X.ToString(),
+                                                                            targetline.startpoint.Y.ToString(),
+                                                                            targetline.startpoint.Z.ToString(),
+                                                                            (bDoubleStudAtStart ? dFlangeWidth * 2 : dFlangeWidth).ToString());
+
+                string endString = string.Format("{0}|{1}|{2}|Stud;{3};", targetline.endpoint.X.ToString(),
+                                                            targetline.endpoint.Y.ToString(),
+                                                            targetline.endpoint.Z.ToString(),
+                                                            (bDoubleStudAtEnd ? dFlangeWidth * 2 : dFlangeWidth).ToString());
+
+                linePoints.Add(startString);
+                linePoints.Add(endString);
+
+            }
+
+            return linePoints;
+        }
+
+
+        private Outline GetBoundingBoxOutline(LineType spanLineType, XYZ startPt, List<XYZ> boundingBoxExtens, double elevation)
+        {
+            Outline outline = null;
+            
+            if (spanLineType == LineType.vertical)
+                outline = new Outline(
+                   new XYZ(startPt.X - 1.0,
+                   boundingBoxExtens[0].Y - 1.0,
+                   elevation - 0.5),
+                   new XYZ(startPt.X + 1.0,
+                  boundingBoxExtens[1].Y + 1.0,
+                  elevation + 0.5));
+            else
+                outline = new Outline(
+                   new XYZ(boundingBoxExtens[0].X - 1.0,
+                   startPt.Y - 1.0,
+                   elevation - 0.5),
+                   new XYZ(boundingBoxExtens[1].X + 1.0,
+                  startPt.Y + 1.0,
+                  elevation + 0.5));
+
+            return outline;
+        }
+
 
         private CeeHeaderSettings GetCeeHeaderSettingsForGivenLevel(string levelName)
         {

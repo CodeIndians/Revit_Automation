@@ -65,6 +65,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Dialogs\CeeHeaderAdjustmentsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Dialogs\CeeHeaderAdjustmentsForm.Designer.cs">
+      <DependentUpon>CeeHeaderAdjustmentsForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\CeeHeaderModeSelector.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Dialogs\CeeHeaderModeSelector.Designer.cs">
+      <DependentUpon>CeeHeaderModeSelector.cs</DependentUpon>
+    </Compile>
     <Compile Include="Dialogs\Form2.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -84,6 +96,7 @@
       <DependentUpon>ProjectProperties.cs</DependentUpon>
     </Compile>
     <Compile Include="Source\App.cs" />
+    <Compile Include="Source\Utils\CeeHeaderBoundaries.cs" />
     <Compile Include="Source\CollisionResolvers\PostCollisionResolver.cs" />
     <Compile Include="Source\Command.cs" />
     <Compile Include="Dialogs\Form1.cs">
@@ -155,6 +168,12 @@
     <Content Include="Artifacts\Revit_Automation.addin" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Dialogs\CeeHeaderAdjustmentsForm.resx">
+      <DependentUpon>CeeHeaderAdjustmentsForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Dialogs\CeeHeaderModeSelector.resx">
+      <DependentUpon>CeeHeaderModeSelector.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Dialogs\Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
     </EmbeddedResource>
