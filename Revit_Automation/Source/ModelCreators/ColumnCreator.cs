@@ -674,7 +674,6 @@ namespace Revit_Automation.Source.ModelCreators
                 }
             }
 
-
             return targetRoof.roofElementID != null ? m_Document.GetElement(targetRoof.roofElementID) : null;
         }
 

@@ -289,6 +289,33 @@ namespace Revit_Automation.Source.Utils
             return elemID;
         }
 
+        public static Element GetRoofAtPoint(XYZ pt1, Document m_Document)
+        {
+            Logger.logMessage("Method : GetRoofAtPoint");
+
+            RoofObject targetRoof;
+            targetRoof.slopeLine = null;
+            targetRoof.roofElementID = null;
+
+            foreach (RoofObject roof in RoofUtility.colRoofs)
+            {
+                double Xmin, Xmax, Ymin, Ymax = 0.0;
+                Xmin = Math.Min(roof.max.X, roof.min.X);
+                Xmax = Math.Max(roof.max.X, roof.min.X);
+                Ymin = Math.Min(roof.max.Y, roof.min.Y);
+                Ymax = Math.Max(roof.max.Y, roof.min.Y);
+
+                if (pt1.X >= Xmin && pt1.X <= Xmax && pt1.Y >= Ymin && pt1.Y <= Ymax)
+                {
+                    targetRoof = roof;
+                    break;
+                }
+            }
+
+
+            return targetRoof.roofElementID != null ? m_Document.GetElement(targetRoof.roofElementID) : null;
+        }
+
         public static XYZ GetRoofSlopeDirection(XYZ pt1)
         {
             XYZ SlopeDirect = null;

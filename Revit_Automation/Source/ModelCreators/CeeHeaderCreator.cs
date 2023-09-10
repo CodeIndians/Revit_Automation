@@ -67,8 +67,17 @@ namespace Revit_Automation
                     // Get the settings for this level
                     if (level != null)
                     {
+                        Parameter thicknessParam = null;
+
                         Element SlabElement = GenericUtils.GetNearestFloorOrRoof(level, temp.startpoint, doc);
-                        Parameter thicknessParam = SlabElement.get_Parameter(BuiltInParameter.FLOOR_ATTR_THICKNESS_PARAM);
+                        if (SlabElement != null)
+                            thicknessParam = SlabElement.get_Parameter(BuiltInParameter.FLOOR_ATTR_THICKNESS_PARAM);
+
+                        if (SlabElement == null)
+                        {
+                            Element roofElement = GenericUtils.GetRoofAtPoint(temp.startpoint, doc);
+                            thicknessParam = roofElement.get_Parameter(BuiltInParameter.ROOF_ATTR_THICKNESS_PARAM);
+                        }
                         if (thicknessParam != null)
                         {
                             m_SlabThickness = thicknessParam.AsDouble();
@@ -261,7 +270,7 @@ namespace Revit_Automation
             {
                 string[] tokens = str.Split('|');
                 string[] tokens2 = tokens[3].Split(';');
-                XYZ point = new XYZ(double.Parse(tokens[0]), double.Parse(tokens[1]), double.Parse(tokens2[1]));
+                XYZ point = new XYZ(double.Parse(tokens[0]), double.Parse(tokens[1]), double.Parse(tokens[2]));
                 ceeHeaderValues.Add(point, tokens[3]);
             }
 
@@ -281,7 +290,7 @@ namespace Revit_Automation
                     if (spanDirection == LineType.vertical)
                         ceeHeaderPoint += new XYZ(0, dAdjustmentFactor, 0);
                     else
-                        ceeHeaderPoint += new XYZ(dAdjustmentFactor , 0, 0);
+                        ceeHeaderPoint += new XYZ(dAdjustmentFactor, 0, 0);
                 }
                 else if (strPointType == "StartStud" || strPointType == "EndCMU")
                 {
@@ -290,23 +299,24 @@ namespace Revit_Automation
                     else
                         ceeHeaderPoint += new XYZ(-dAdjustmentFactor, 0, 0);
                 }
-
-                // Flange Width Adjustments
-                if (i % 2 == 1)
-                {
-                    if (spanDirection == LineType.vertical)
-                        ceeHeaderPoint += new XYZ(0, strPointType == "CMU" ? dAdjustmentFactor : -dAdjustmentFactor, 0);
-                    else
-                        ceeHeaderPoint += new XYZ(strPointType == "CMU" ? dAdjustmentFactor : -dAdjustmentFactor, 0, 0);
-                }
                 else
                 {
-                    if (spanDirection == LineType.vertical)
-                        ceeHeaderPoint += new XYZ(0, strPointType == "CMU" ? -dAdjustmentFactor : dAdjustmentFactor, 0);
+                    // Flange Width Adjustments
+                    if (i % 2 == 1)
+                    {
+                        if (spanDirection == LineType.vertical)
+                            ceeHeaderPoint += new XYZ(0, strPointType == "CMU" ? dAdjustmentFactor : -dAdjustmentFactor, 0);
+                        else
+                            ceeHeaderPoint += new XYZ(strPointType == "CMU" ? dAdjustmentFactor : -dAdjustmentFactor, 0, 0);
+                    }
                     else
-                        ceeHeaderPoint += new XYZ(strPointType == "CMU" ? -dAdjustmentFactor : dAdjustmentFactor, 0, 0);
+                    {
+                        if (spanDirection == LineType.vertical)
+                            ceeHeaderPoint += new XYZ(0, strPointType == "CMU" ? -dAdjustmentFactor : dAdjustmentFactor, 0);
+                        else
+                            ceeHeaderPoint += new XYZ(strPointType == "CMU" ? -dAdjustmentFactor : dAdjustmentFactor, 0, 0);
+                    }
                 }
-
                 ceeHeaderPoints.Add(ceeHeaderPoint);
                 i++;
                 
@@ -406,13 +416,13 @@ namespace Revit_Automation
                         {
                             min = temp;
                             startWallType = "StartStud";
-                            dStartAdjustment = GenericUtils.WebWidth(input.strStudGuage) / 2.0;
+                            dStartAdjustment = GenericUtils.WebWidth(input.strStudType) / 2.0;
                         }
                         if (temp > max)
                         {
                             max = temp;
                             endWallType = "EndStud" ;
-                            dStartAdjustment = GenericUtils.WebWidth(input.strStudGuage) / 2.0;
+                            dEndAdjustment = GenericUtils.WebWidth(input.strStudType) / 2.0;
                         } 
                     } 
                 }
@@ -435,13 +445,13 @@ namespace Revit_Automation
                     double temp = (spanLineType == LineType.vertical ? startPt.Y : startPt.X);
                     if (temp < min)
                     {
-                        dStartAdjustment = wall.WallType.Width;
+                        dStartAdjustment = wall.WallType.Width / 2.0;
                         startWallType = "StartCMU";
                         min = temp;
                     }
                     if (temp > max)
                     {
-                        dEndAdjustment = wall.WallType.Width;
+                        dEndAdjustment = wall.WallType.Width / 2.0;
                         endWallType = "EndCMU";
                         max = temp;
                     }
