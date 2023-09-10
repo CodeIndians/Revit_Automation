@@ -23,27 +23,27 @@ namespace Revit_Automation.Source.Utils
             {
                 return 0.083333;
             }
-            else if (result[1].Contains("1 1/2\""))
+            else if (result[1].Contains("1 1/2\"") || result[1] == " 1 1/2")
             {
                 return 0.125;
             }
-            else if (result[1].Contains(" 2\""))
+            else if (result[1].Contains(" 2\"") || result[1] == " 2")
             {
                 return 0.166666;
             }
-            else if (result[1].Contains("2 1/2\""))
+            else if (result[1].Contains("2 1/2\"") || result[1] == " 2 1/2")
             {
                 return 0.208333;
             }
-            else if (result[1].Contains(" 3\""))
+            else if (result[1].Contains(" 3\"") || result[1] == " 3")
             {
                 return 0.25;
             }
-            else if (result[1].Contains("3 1/2\""))
+            else if (result[1].Contains("3 1/2\"") || result[1] == " 3 1/2")
             {
                 return 0.291666;
             }
-            else if (result[1].Contains("1 5/8\""))
+            else if (result[1].Contains("1 5/8\"") || result[1] == " 1 5/8")
             {
                 return 0.135416;
             }
@@ -237,6 +237,9 @@ namespace Revit_Automation.Source.Utils
 
         public static Element GetNearestFloorOrRoof(Level level, XYZ pt1, Document m_Document)
         {
+            if (level == null)
+                return null;
+
             Logger.logMessage("Method : GetNearestFloorOrRoof");
 
             List<FloorObject> floorObjects = FloorHelper.colFloors;

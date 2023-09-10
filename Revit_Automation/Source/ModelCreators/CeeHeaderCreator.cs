@@ -2,6 +2,7 @@
 using Autodesk.Revit.DB.Structure;
 using Revit_Automation.CustomTypes;
 using Revit_Automation.Source;
+using Revit_Automation.Source.ModelCreators.Walls;
 using Revit_Automation.Source.Utils;
 using System;
 using System.Collections.Generic;
@@ -10,6 +11,7 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using System.Runtime.Remoting.Messaging;
 using System.Security.Cryptography;
 using System.Windows.Forms;
+using System.Xml;
 using static Autodesk.Revit.DB.SpecTypeId;
 
 namespace Revit_Automation
@@ -62,19 +64,21 @@ namespace Revit_Automation
                     InputLine temp = list[0];
                     Level level = GetLevelForInputLine(temp, levels);
 
-                    Element SlabElement = GenericUtils.GetNearestFloorOrRoof(level, temp.startpoint, doc);
-                    Parameter thicknessParam = SlabElement.get_Parameter(BuiltInParameter.FLOOR_ATTR_THICKNESS_PARAM);
-                    if (thicknessParam != null)
-                    {
-                        m_SlabThickness = thicknessParam.AsDouble();
-                    }
-
                     // Get the settings for this level
-                    CeeHeaderSettings ceeHeaderSettings = GetCeeHeaderSettingsForGivenLevel(level.Name);
+                    if (level != null)
+                    {
+                        Element SlabElement = GenericUtils.GetNearestFloorOrRoof(level, temp.startpoint, doc);
+                        Parameter thicknessParam = SlabElement.get_Parameter(BuiltInParameter.FLOOR_ATTR_THICKNESS_PARAM);
+                        if (thicknessParam != null)
+                        {
+                            m_SlabThickness = thicknessParam.AsDouble();
+                        }
+                        
+                        CeeHeaderSettings ceeHeaderSettings = GetCeeHeaderSettingsForGivenLevel(level.Name);
 
-                    // Place Cee Headers at given lines.
-                    PlaceCeeHeaders(ceeHeaderSettings, list, level);
-
+                        // Place Cee Headers at given lines.
+                        PlaceCeeHeaders(ceeHeaderSettings, list, level);
+                    }
                 }
 
                 tx.Commit();
@@ -158,24 +162,12 @@ namespace Revit_Automation
             // 1st Span from the edge of the building
             startPoint += additionVector;
 
-            // Sometimes we maynot have LB at span 10-7-10 condition
-            // Then we have to adjust the start point and start computing span from there
-            XYZ updatedStart = null;
-
             List<string> lstceeHeaderPoints = new List<string>();
 
             // Get the CeeHeaderpoints
-            while (IdentifyCeeHederPoints(startPoint, InputlineList, out lstceeHeaderPoints, out updatedStart))
+            while (IdentifyCeeHederPoints(ref startPoint, InputlineList, out lstceeHeaderPoints))
             {                
-                // This is to handle 10-7-10 case. we check for LBs at Span and then move back until we find one
-                if (updatedStart != null)
-                {
-                    // Move to the next span
-                    startPoint = updatedStart;
-                    ceeHeaderPts.Clear();
-                    updatedStart = null;
-                    continue;
-                }
+                Dictionary<XYZ, double> ceeHeadersPts = new Dictionary<XYZ, double>();
 
                 ceeHeaderPts = ProcessCeeHeaderPoints(lstceeHeaderPoints, spanLineType);
                 form.PostMessage($" \nPlacing Cee-Headers at Span {iSpan++} at location {ceeHeaderPts[0].X} , {ceeHeaderPts[0].Y}");
@@ -283,6 +275,22 @@ namespace Revit_Automation
                 double dAdjustmentFactor  = double.Parse(tokens[1]);
                 string strPointType = tokens[0].ToString();
 
+
+                if (strPointType == "StartCMU" || strPointType == "EndStud")
+                {
+                    if (spanDirection == LineType.vertical)
+                        ceeHeaderPoint += new XYZ(0, dAdjustmentFactor, 0);
+                    else
+                        ceeHeaderPoint += new XYZ(dAdjustmentFactor , 0, 0);
+                }
+                else if (strPointType == "StartStud" || strPointType == "EndCMU")
+                {
+                    if (spanDirection == LineType.vertical)
+                        ceeHeaderPoint += new XYZ(0, -dAdjustmentFactor, 0);
+                    else
+                        ceeHeaderPoint += new XYZ(-dAdjustmentFactor, 0, 0);
+                }
+
                 // Flange Width Adjustments
                 if (i % 2 == 1)
                 {
@@ -307,11 +315,11 @@ namespace Revit_Automation
             return ceeHeaderPoints;
         }
 
-        private bool IdentifyCeeHederPoints(XYZ startPt, List<InputLine> inputlineList, out List<string> ceeHeaderPts, out XYZ updatedStart)
+        private bool IdentifyCeeHederPoints(ref XYZ startPt, List<InputLine> inputlineList, out List<string> ceeHeaderPts )
         {
             bool bCanPlaceCeeHeaders = false;
             ceeHeaderPts  = new List<string >();
-            updatedStart = null;
+
 
             double elevation = inputlineList[0].startpoint.Z;
 
@@ -337,19 +345,8 @@ namespace Revit_Automation
 
             List<string> points = new List<string> ();
 
-            // Get Inputline endpoints in a give bounding box
-            points.AddRange(GetInputLinePoints(outline, inputlineList, spanLineType));
-
-            // Special Processing
-            if (!CeeHeaderBoundaries.bSelectedModelling && points.Count == 0)
-            {
-                if (spanLineType == LineType.vertical)
-                    updatedStart = startPt + new XYZ(-2.0, 0.0, 0.0);
-                else
-                    updatedStart = startPt + new XYZ(0.0, -2.0, 0.0);
-
-                return bCanPlaceCeeHeaders;
-            }
+            // Get Input lines at given span
+            points.AddRange(GetInputLinePoints(ref outline, inputlineList, spanLineType, ref startPt));
 
             double dCeeHeaderCoordinate = 0.0;
             if (points.Count > 0)
@@ -544,54 +541,146 @@ namespace Revit_Automation
             return CMUPoints;
         }
 
-        private List<string> GetInputLinePoints(Outline outline, List<InputLine> inputlineList, LineType spanLineType)
+        private List<string> GetInputLinePoints(ref Outline outline, List<InputLine> inputlineList, LineType spanLineType, ref XYZ startPt)
         {
-            // Construct a bounding box filter with the outline
-            BoundingBoxIntersectsFilter filter = new BoundingBoxIntersectsFilter(outline);
-
-            // Apply the filter to the elements in the active document to retrieve input lines in a range
-            FilteredElementCollector collector = new FilteredElementCollector(doc);
-            IList<Element> GenericModelElems = collector.WherePasses(filter).OfCategory(BuiltInCategory.OST_GenericModel).ToElements();
-
-
-            // Collect LB lines which are parallel to the slope direction and sort them accordingly
-            List<InputLine> targetInputLines = new List<InputLine>();
-            foreach (Element genericModelElem in GenericModelElems)
-            {
-                InputLine input = inputlineList.FirstOrDefault(il => il.id == genericModelElem.Id && (il.strWallType == "LB" || il.strWallType == "LBS"));
-
-
-                if (input.id != null)
-                {
-                    LineType inputlineType = GenericUtils.GetLineType(input);
-                    if (inputlineType == spanLineType)
-                        targetInputLines.Add(input);
-                }
-            }
-
-            // Get discontinuties of LB Lines     
+            // This method tries to find LB walls at given span
+            // if not it updates the startpoints and outline by 2 feet each time - for 4 times
+            // Get discontinuties of LB Lines
+            // 
+            XYZ initialStart = startPt;
+            Outline initialOutline = outline;
+            
             List<string> linePoints = new List<string>();
 
-            foreach (var targetline in targetInputLines)
+            for (int i = 0; i < 3; i++)
             {
-                double dFlangeWidth = GenericUtils.FlangeWidth(targetline.strStudType);
 
-                bool bDoubleStudAtStart = targetline.strDoubleStudType == "At Ends" || targetline.strDoubleStudType == "At Ends - L";
-                bool bDoubleStudAtEnd = targetline.strDoubleStudType == "At Ends" || targetline.strDoubleStudType == "At Ends - R";
+                // Construct a bounding box filter with the outline
+                BoundingBoxIntersectsFilter filter = new BoundingBoxIntersectsFilter(outline);
 
-                string startString = string.Format("{0}|{1}|{2}|Stud;{3};", targetline.startpoint.X.ToString(),
-                                                                            targetline.startpoint.Y.ToString(),
-                                                                            targetline.startpoint.Z.ToString(),
-                                                                            (bDoubleStudAtStart ? dFlangeWidth * 2 : dFlangeWidth).ToString());
+                // Apply the filter to the elements in the active document to retrieve input lines in a range
+                FilteredElementCollector collector = new FilteredElementCollector(doc);
+                IList<Element> GenericModelElems = collector.WherePasses(filter).OfCategory(BuiltInCategory.OST_GenericModel).ToElements();
 
-                string endString = string.Format("{0}|{1}|{2}|Stud;{3};", targetline.endpoint.X.ToString(),
-                                                            targetline.endpoint.Y.ToString(),
-                                                            targetline.endpoint.Z.ToString(),
-                                                            (bDoubleStudAtEnd ? dFlangeWidth * 2 : dFlangeWidth).ToString());
 
-                linePoints.Add(startString);
-                linePoints.Add(endString);
+                // Collect LB lines which are parallel to the slope direction and sort them accordingly
+                List<InputLine> targetInputLines = new List<InputLine>();
+                foreach (Element genericModelElem in GenericModelElems)
+                {
+                    InputLine input = inputlineList.FirstOrDefault(il => il.id == genericModelElem.Id && (il.strWallType == "LB" || il.strWallType == "LBS"));
 
+
+                    if (input.id != null)
+                    {
+                        LineType inputlineType = GenericUtils.GetLineType(input);
+                        if (inputlineType == spanLineType)
+                            targetInputLines.Add(input);
+                    }
+                }
+
+                foreach (var targetline in targetInputLines)
+                {
+                    double dFlangeWidth = GenericUtils.FlangeWidth(targetline.strStudType);
+                    double dWebWidth = GenericUtils.WebWidth(targetline.strStudType);
+
+                    bool bDoubleStudAtStart = targetline.strDoubleStudType == "At Ends" || targetline.strDoubleStudType == "At Ends - L";
+                    bool bDoubleStudAtEnd = targetline.strDoubleStudType == "At Ends" || targetline.strDoubleStudType == "At Ends - R";
+
+                    string startString = string.Format("{0}|{1}|{2}|Stud;{3};{4};", targetline.startpoint.X.ToString(),
+                                                                                targetline.startpoint.Y.ToString(),
+                                                                                targetline.startpoint.Z.ToString(),
+                                                                                (bDoubleStudAtStart ? dFlangeWidth * 2 : dFlangeWidth).ToString(),
+                                                                                dWebWidth.ToString());
+
+                    string endString = string.Format("{0}|{1}|{2}|Stud;{3};{4};", targetline.endpoint.X.ToString(),
+                                                                targetline.endpoint.Y.ToString(),
+                                                                targetline.endpoint.Z.ToString(),
+                                                                (bDoubleStudAtEnd ? dFlangeWidth * 2 : dFlangeWidth).ToString(),
+                                                                dWebWidth.ToString());
+
+                    linePoints.Add(startString);
+                    linePoints.Add(endString);
+
+                }
+
+                // Special Processing - look for LBs before span
+                if (linePoints.Count == 0)
+                {
+                    if (spanLineType == LineType.vertical)
+                    {
+                        startPt = startPt + new XYZ(-2.0, 0.0, 0.0);
+                        outline = new Outline(new XYZ(outline.MinimumPoint.X - 2.0, outline.MinimumPoint.Y, outline.MinimumPoint.Z),
+                                                new XYZ(outline.MaximumPoint.X - 2.0, outline.MaximumPoint.Y, outline.MaximumPoint.Z)) ;
+                    }
+                    else
+                    {
+                        startPt = startPt + new XYZ(0.0, -2.0, 0.0);
+                        outline = new Outline(new XYZ(outline.MinimumPoint.X , outline.MinimumPoint.Y - 2.0, outline.MinimumPoint.Z),
+                        new XYZ(outline.MaximumPoint.X , outline.MaximumPoint.Y - 2.0, outline.MaximumPoint.Z));
+                    }
+                }
+                else
+                    break;
+            }
+
+            // if at this stage we have zero points we need to add Cee Header points as per NLB Studs
+            if (linePoints.Count == 0)
+            {
+                startPt = initialStart;
+                outline = initialOutline;
+
+                for (int j = 0; j < 5; j++)
+                {
+                    // Construct a bounding box filter with the outline
+                    BoundingBoxIntersectsFilter filter = new BoundingBoxIntersectsFilter(outline);
+
+                    // Apply the filter to the elements in the active document to retrieve input lines in a range
+                    FilteredElementCollector collector = new FilteredElementCollector(doc);
+                    IList<Element> postElements = collector.WherePasses(filter).OfCategory(BuiltInCategory.OST_StructuralColumns).ToElements();
+                    List <XYZ> targetPoints = new List<XYZ>();
+                    foreach (Element postElement in postElements)
+                    {
+                        FamilyInstance post = doc.GetElement(postElement.Id) as FamilyInstance;
+                        Location location = post.Location;
+                        if (location is LocationPoint locationPoint)
+                        {
+                            XYZ point  = locationPoint.Point;
+                            targetPoints.Add(new XYZ(point.X, point.Y, startPt.Z));
+                        }
+
+                    }
+
+                    foreach (XYZ targetpoint in targetPoints)
+                    {
+                        string startString = string.Format("{0}|{1}|{2}|Stud;0.0;", targetpoint.X.ToString(),
+                                                                               targetpoint.Y.ToString(),
+                                                                                targetpoint.Z.ToString()
+                                                                                );
+
+                        // each point 2 times. only then when we process points like 1-2, 2-3, 3-4 etc, we will get continuous headers
+                        linePoints.Add(startString);
+                        linePoints.Add(startString);
+                    }
+
+                    if (linePoints.Count == 0)
+                    {
+                        if (spanLineType == LineType.vertical)
+                        {
+                            startPt = startPt + new XYZ(-2.0, 0.0, 0.0);
+                            outline = new Outline(new XYZ(outline.MinimumPoint.X - 2.0, outline.MinimumPoint.Y, outline.MinimumPoint.Z),
+                                                    new XYZ(outline.MaximumPoint.X - 2.0, outline.MaximumPoint.Y, outline.MaximumPoint.Z));
+                        }
+                        else
+                        {
+                            startPt = startPt + new XYZ(0.0, -2.0, 0.0);
+                            outline = new Outline(new XYZ(outline.MinimumPoint.X, outline.MinimumPoint.Y - 2.0, outline.MinimumPoint.Z),
+                            new XYZ(outline.MaximumPoint.X, outline.MaximumPoint.Y - 2.0, outline.MaximumPoint.Z));
+                        }
+                    }
+                    else
+                        break;
+                }
+                
             }
 
             return linePoints;
