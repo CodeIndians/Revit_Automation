@@ -158,7 +158,7 @@ namespace Revit_Automation
         {
             int iSpan = 1;
             // Points where Cee-Headers are to be placed
-            List<XYZ> ceeHeaderPts = new List<XYZ>();
+            Dictionary<XYZ, double> ceeHeaderPts = new Dictionary<XYZ, double>();
 
             // Get the starting grid
             List<XYZ> spanStartPts = CeeHeaderBoundaries.GetSpanStartingGrid();
@@ -176,17 +176,22 @@ namespace Revit_Automation
             // Get the CeeHeaderpoints
             while (IdentifyCeeHederPoints(ref startPoint, InputlineList, out lstceeHeaderPoints))
             {                
-                Dictionary<XYZ, double> ceeHeadersPts = new Dictionary<XYZ, double>();
-
                 ceeHeaderPts = ProcessCeeHeaderPoints(lstceeHeaderPoints, spanLineType);
-                form.PostMessage($" \nPlacing Cee-Headers at Span {iSpan++} at location {ceeHeaderPts[0].X} , {ceeHeaderPts[0].Y}");
+                
 
                 for (int i = 0; i < ceeHeaderPts.Count - 1; i++)
                 {
-                    XYZ ceeHeaderStartPoint = ceeHeaderPts[i++];
-                    XYZ ceeHeaderEndPoint = ceeHeaderPts[i];
+                    KeyValuePair<XYZ,  double> kvp1= ceeHeaderPts.ElementAt(i++);
+                    KeyValuePair<XYZ, double> kvp2 = ceeHeaderPts.ElementAt(i);
+                    
+                    XYZ ceeHeaderStartPoint = kvp1.Key;
+                    XYZ ceeHeaderEndPoint = kvp2.Key;
 
-                    bool bHeaderAtHallway = true; // GenericUtils.LineIntersectsHallway(doc, ceeHeaderStartPoint, ceeHeaderEndPoint);
+                    form.PostMessage($" \nPlacing Cee-Headers at location {ceeHeaderStartPoint.X} , {ceeHeaderStartPoint.Y}, {ceeHeaderEndPoint.X} , {ceeHeaderEndPoint.Y}");
+
+                    double dWebWitdth = Math.Max(kvp1.Value, kvp2.Value);
+
+                    bool bHeaderAtHallway = GenericUtils.LineIntersectsHallway(doc, ceeHeaderStartPoint, ceeHeaderEndPoint);
 
                     double dElevation = Math.Abs(ceeHeaderStartPoint.Z - level.Elevation);
                     ceeHeaderStartPoint += new XYZ(0, 0, dElevation - m_SlabThickness);
@@ -208,10 +213,18 @@ namespace Revit_Automation
                     Line bounds = Line.CreateBound(ceeHeaderStartPoint, ceeHeaderEndPoint);
                     FamilyInstance ceeHeaderInstance = doc.Create.NewFamilyInstance(bounds, ceeHeaderFamily, level, StructuralType.Beam);
 
+                    // set the Post CL Offset parameter
+                    if (dWebWitdth != 0.0)
+                        ceeHeaderInstance.LookupParameter("Post CL Face Offset").Set(dWebWitdth);
+
                     if (bHeaderAtHallway == true && ceeHeaderSettings.HallwayCeeHeaderCount == "Double" || bHeaderAtHallway == false && ceeHeaderSettings.ceeHeaderCount == "Double")
                     {
                         Line bounds2 = Line.CreateBound(ceeHeaderEndPoint, ceeHeaderStartPoint);
                         FamilyInstance ceeHeaderInstance2 = doc.Create.NewFamilyInstance(bounds2, ceeHeaderFamily, level, StructuralType.Beam);
+
+                        // set the Post CL Offset parameter
+                        if (dWebWitdth != 0.0)
+                            ceeHeaderInstance2.LookupParameter("Post CL Face Offset").Set(dWebWitdth);
                     }
                 }
                 
@@ -221,7 +234,7 @@ namespace Revit_Automation
             }
         }
 
-        private List<XYZ> ProcessCeeHeaderPoints(List<string> lstceeHeaderPoints, LineType spanDirection)
+        private Dictionary<XYZ, double> ProcessCeeHeaderPoints(List<string> lstceeHeaderPoints, LineType spanDirection)
         {
             // Cee headers points are added in such a way that we place Cee Headers at 1-2, 3-4, 5-6 etc
             // we may have odd number of points - In below cases (1, 2) we have 5 points. so, 1,2 3,4 logic will not work 
@@ -245,8 +258,8 @@ namespace Revit_Automation
             // If we are having CMU walls, the cee headers should terminate at the wall end
 
             // We also need to get the floor thickness and subtract it from the elevation of the cee header.
-            
-            List<XYZ> ceeHeaderPoints = new List<XYZ>();
+            Dictionary<XYZ, double> ceeHeaderPointsDict = new Dictionary<XYZ, double>();
+
             if (lstceeHeaderPoints.Count % 2 == 1)
             {
                 if (lstceeHeaderPoints[lstceeHeaderPoints.Count - 2].Contains("CMU"))
@@ -284,6 +297,9 @@ namespace Revit_Automation
                 double dAdjustmentFactor  = double.Parse(tokens[1]);
                 string strPointType = tokens[0].ToString();
 
+                double dhalfWebWidth = 0.0;
+                if (tokens.Length == 4 && !string.IsNullOrEmpty(tokens[2]))
+                    dhalfWebWidth  = double.Parse(tokens[2]) / 2.0;    
 
                 if (strPointType == "StartCMU" || strPointType == "EndStud")
                 {
@@ -317,12 +333,11 @@ namespace Revit_Automation
                             ceeHeaderPoint += new XYZ(strPointType == "CMU" ? -dAdjustmentFactor : dAdjustmentFactor, 0, 0);
                     }
                 }
-                ceeHeaderPoints.Add(ceeHeaderPoint);
+                ceeHeaderPointsDict.Add(ceeHeaderPoint, dhalfWebWidth);
                 i++;
-                
             }
             
-            return ceeHeaderPoints;
+            return ceeHeaderPointsDict;
         }
 
         private bool IdentifyCeeHederPoints(ref XYZ startPt, List<InputLine> inputlineList, out List<string> ceeHeaderPts )

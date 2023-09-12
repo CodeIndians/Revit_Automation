@@ -1,4 +1,6 @@
 ﻿using Autodesk.Revit.DB;
+using Revit_Automation.CustomTypes;
+using Revit_Automation.Source.ModelCreators;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -24,9 +26,46 @@ namespace Revit_Automation.Dialogs
 
         internal void AdjustHeaders()
         {
-           
+            using (Transaction tx = new Transaction(m_Document))
+            {
+                tx.Start("Adjusting Cee Headers");
+                List<CeeHeaderAdjustments> lst = GatherSettings();
+                CeeHeaderAdjustment ceeHeaderAdjustment = new CeeHeaderAdjustment(m_Document, lst);
+                ceeHeaderAdjustment.AdjustHeaders();
+                tx.Commit();
+            }
         }
 
+        internal List<CeeHeaderAdjustments> GatherSettings()
+        {
+            // Get the settings from the form
+            List<CeeHeaderAdjustments> lstCeeHeaderAdjustments = new List<CeeHeaderAdjustments>();
+            foreach (DataGridViewRow row in dataGridView1.Rows)
+            {
+                CeeHeaderAdjustments ceeHeaderAdjustments = new CeeHeaderAdjustments();
+                DataGridViewTextBoxCell ceeHeaderName = row.Cells[0] as DataGridViewTextBoxCell;
+                DataGridViewTextBoxCell ceeHeaderCount = row.Cells[1] as DataGridViewTextBoxCell;
+                DataGridViewTextBoxCell PostType = row.Cells[2] as DataGridViewTextBoxCell;
+                DataGridViewTextBoxCell PostGuage = row.Cells[3] as DataGridViewTextBoxCell;
+                DataGridViewTextBoxCell PostCount = row.Cells[4] as DataGridViewTextBoxCell;
+                DataGridViewComboBoxCell bChangeOrientation = row.Cells[5] as DataGridViewComboBoxCell;
+
+                //Empty row condition;
+                if (string.IsNullOrEmpty(ceeHeaderName.Value?.ToString()))
+                    break;
+
+                ceeHeaderAdjustments.strCeeHeaderName = ceeHeaderName.Value.ToString();
+                ceeHeaderAdjustments.iCeeHeaderCount = int.Parse(ceeHeaderCount.Value.ToString());
+                ceeHeaderAdjustments.postType = PostType.Value.ToString();
+                ceeHeaderAdjustments.postGuage = PostGuage.Value.ToString();
+                ceeHeaderAdjustments.postCount = string.IsNullOrEmpty (PostCount.Value.ToString()) ? 0 : int.Parse(PostCount.Value.ToString());
+                ceeHeaderAdjustments.bChangeOrientation = bChangeOrientation.Value?.ToString() == "Yes" ? true : false;
+
+                if (!string.IsNullOrEmpty(ceeHeaderAdjustments.postGuage) && !string.IsNullOrEmpty(ceeHeaderAdjustments.postType))
+                    lstCeeHeaderAdjustments.Add(ceeHeaderAdjustments);
+            }
+            return lstCeeHeaderAdjustments;
+        }
         internal void PopulateData()
         {
             FilteredElementCollector framingElements
@@ -52,35 +91,40 @@ namespace Revit_Automation.Dialogs
 
             foreach (string headername in headers)
             {
-                DataGridViewRow row = new DataGridViewRow();
+                for (int i = 0; i < 2; i++)
+                {
+                    DataGridViewRow row = new DataGridViewRow();
 
-                DataGridViewCell CeeHeaderName = new DataGridViewTextBoxCell();
-                CeeHeaderName.Value = headername;
+                    DataGridViewCell CeeHeaderName = new DataGridViewTextBoxCell();
+                    CeeHeaderName.Value = headername;
 
-                DataGridViewCell CeeHeaderQty = new DataGridViewTextBoxCell();
-                CeeHeaderQty.Value = "";
+                    DataGridViewCell CeeHeaderQty = new DataGridViewTextBoxCell();
+                    CeeHeaderQty.Value = i == 0 ? "1" : "2";
 
-                DataGridViewCell PostName = new DataGridViewTextBoxCell();
-                PostName.Value = "";
+                    DataGridViewCell PostName = new DataGridViewTextBoxCell();
+                    PostName.Value = "";
 
-                DataGridViewCell Postgauge = new DataGridViewTextBoxCell();
-                Postgauge.Value = "";
+                    DataGridViewCell Postgauge = new DataGridViewTextBoxCell();
+                    Postgauge.Value = "";
 
-                DataGridViewCell PostQty = new DataGridViewTextBoxCell();
-                PostQty.Value = "";
+                    DataGridViewCell PostQty = new DataGridViewTextBoxCell();
+                    PostQty.Value = "";
 
-                DataGridViewComboBoxCell ChangeOrientation = new DataGridViewComboBoxCell();
-                ChangeOrientation.Items.Add("Yes");
-                ChangeOrientation.Items.Add("No");
+                    DataGridViewComboBoxCell ChangeOrientation = new DataGridViewComboBoxCell();
+                    ChangeOrientation.Items.Add("Yes");
+                    ChangeOrientation.Items.Add("No");
 
-                row.Cells.Add(CeeHeaderName);
-                row.Cells.Add(CeeHeaderQty);
-                row.Cells.Add(PostName);
-                row.Cells.Add(Postgauge);
-                row.Cells.Add(PostQty);
-                row.Cells.Add(ChangeOrientation);
+                    row.Cells.Add(CeeHeaderName);
+                    row.Cells.Add(CeeHeaderQty);
+                    row.Cells.Add(PostName);
+                    row.Cells.Add(Postgauge);
+                    row.Cells.Add(PostQty);
+                    row.Cells.Add(ChangeOrientation);
 
-                dataGridView1.Rows.Add(row);
+
+
+                    dataGridView1.Rows.Add(row);
+                }
             }
         }
 

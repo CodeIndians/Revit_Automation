@@ -101,13 +101,21 @@ namespace Revit_Automation
                     "Place Panels at All Input Lines",
                     "Walls.png");
 
-                // Panels - ALL
+                // Cee Headers
                 AddRevitCommand(FullModellingRB,
                     "CeeHeadersCMD",
                     "   C-Headers  ",
                     "Revit_Automation.CeeHeaders",
                     "Place C-Header at All Input Lines",
                     "Header.png");
+
+                // Top Tracks
+                AddRevitCommand(FullModellingRB,
+                    "TopTracksCMD",
+                    "Top Tracks",
+                    "Revit_Automation.TopTracksCreator",
+                    "Place Top Tracks",
+                    "BottomTrack.png");
                 // 
                 //AddRevitCommand(HallWayRB,
                 //   "HallWayCreateHatch",

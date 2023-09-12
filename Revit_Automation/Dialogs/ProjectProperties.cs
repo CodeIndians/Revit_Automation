@@ -286,6 +286,18 @@ namespace Revit_Automation
                     dataGridView2.Rows.Add(dgvRow);
                 }
 
+                //Roof Perpendicular NLB splice
+                comboBox9.SelectedIndex = int.Parse(settings[24]);
+
+                // Round off
+                comboBox10.SelectedIndex = int.Parse(settings[25]);
+                
+                // Top track at rake side
+                comboBox11.SelectedIndex = int.Parse(settings[26]);
+                
+                // Top track splice at web
+                comboBox12.SelectedIndex = int.Parse(settings[27]);
+                
                 dataGridView1.Invalidate();
                 dataGridView1.Update();
             }
@@ -526,6 +538,18 @@ namespace Revit_Automation
             strProjectSettings += StrCeeHeaderSettings;
             strProjectSettings += "|";
 
+            strProjectSettings += comboBox9.SelectedIndex.ToString();
+            strProjectSettings += "|";
+            
+            strProjectSettings += comboBox10.SelectedIndex.ToString();
+            strProjectSettings += "|";
+            
+            strProjectSettings += comboBox11.SelectedIndex.ToString();
+            strProjectSettings += "|";
+            
+            strProjectSettings += comboBox12.SelectedIndex.ToString();
+            strProjectSettings += "|";
+            
             InputLineUtility.SetProjectSettings(strProjectSettings);
             GlobalSettings.UpdateSettings();
 
@@ -556,6 +580,11 @@ namespace Revit_Automation
         }
 
         private void dataGridView2_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+
+        }
+
+        private void textBox14_TextChanged(object sender, EventArgs e)
         {
 
         }

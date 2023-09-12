@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Configuration;
+using System.Runtime;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -32,7 +33,10 @@ namespace Revit_Automation.Source
         public static string s_EaveStructMaxLength;
         public static string s_EavStructType;
         public static string s_EaveStructLocation;
-
+        public static int s_bSpliceNLBRoof ;
+        public static int s_bTTRoundOff;
+        public static int s_bTTAtRake;
+        public static int s_bTTSpliceAtWeb;
         public static bool PopulateGlobalSettings()
         {
             ClearSettings();
@@ -142,6 +146,12 @@ namespace Revit_Automation.Source
                         lstCeeHeaderSettings.Add(ceeHeader);
                     }
                 }
+
+                s_bSpliceNLBRoof = int.Parse(settings[24]);
+                s_bTTRoundOff = int.Parse(settings[25]);
+                s_bTTAtRake = int.Parse(settings[26]);
+                s_bTTSpliceAtWeb = int.Parse(settings[27]);
+
             }
 
             return bSettingsFound;

@@ -1,5 +1,6 @@
 ﻿using Autodesk.Revit.DB;
 using System.Collections.Generic;
+using System.Security.Policy;
 
 namespace Revit_Automation.CustomTypes
 {
@@ -114,6 +115,15 @@ namespace Revit_Automation.CustomTypes
         public string HallwayCeeHeaderCount;
     }
 
+    public struct CeeHeaderAdjustments
+    {
+        public string strCeeHeaderName;
+        public int iCeeHeaderCount;
+        public string postType;
+        public string postGuage;
+        public int postCount;
+        public bool bChangeOrientation;
+    }
     public enum WallPriority
     {
         Fire = 7,

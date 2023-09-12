@@ -12,7 +12,7 @@ namespace Revit_Automation.Source.Utils
 {
     public class PostCreationUtils
     {
-        // For Firewalls, Insulation and Etxterior insulation, we have 3C condition and the stud will be at end
+        // For Firewalls, Insulation and Exterior insulation, we have 3C condition and the stud will be at end
         // But for LB/NLB the stud additions will happen at the middle, so the code should be different.
         public static void PlaceStudAtPoint(Document doc, XYZ studPoint, InputLine inputLine, bool bEndingColumns = false, PanelDirection panelDirection = PanelDirection.B, double dPanelThickness = 0.0)
         {
@@ -193,6 +193,8 @@ namespace Revit_Automation.Source.Utils
                 }
             }
         }
+
+
         private static Element GetRoofAtPoint(Document doc, XYZ pt1)
         {
             Logger.logMessage("Method : GetRoofAtPoint");
@@ -358,6 +360,79 @@ namespace Revit_Automation.Source.Utils
             catch (Exception ex) 
             { 
             }
+        }
+
+        internal static void PlaceStudForCeeHeader(Document doc, XYZ ceeHeaderStartPt, XYZ ceeHeaderEndPt, string postType, string postGuage, int postCount, Level topLevel, Level baseLevel)
+        {
+            try
+            {
+
+                // Remove any existing studs
+                //RemoveStudAtPoint(studPoint, inputLine.endpoint - inputLine.startpoint, doc);
+
+                // Get Top and Bottom Attachment Elements
+                Element topAttachElement = null, bottomAttachElement = null;
+                topAttachElement = GenericUtils.GetNearestFloorOrRoof(topLevel, ceeHeaderEndPt, doc);
+                bottomAttachElement = GenericUtils.GetNearestFloorOrRoof(baseLevel, ceeHeaderEndPt, doc);
+                if (topAttachElement == null)
+                {
+                    topAttachElement = GetRoofAtPoint(doc, ceeHeaderEndPt);
+                }
+                for (int i = 0; i < 2; i++)
+                {
+                    // Get the  family Symbol for the Stud
+                    string strFamilySymbol = postType + string.Format(" x {0}ga", postGuage);
+                    FamilySymbol columnType = SymbolCollector.GetSymbol(strFamilySymbol, "Post", SymbolCollector.FamilySymbolType.posts);
+
+                    if (!columnType.IsActive)
+                        columnType.Activate();
+
+                    // Create the column instance at the point
+                    FamilyInstance column = doc.Create.NewFamilyInstance( i == 0 ? ceeHeaderStartPt : ceeHeaderEndPt, columnType, baseLevel, StructuralType.Column);
+
+                    // Add Top and Bottom attachments
+                    if (topAttachElement != null)
+                    {
+                        ColumnAttachment.AddColumnAttachment(doc, column, topAttachElement, 1, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
+                    }
+
+                    if (bottomAttachElement != null)
+                    {
+                        ColumnAttachment.AddColumnAttachment(doc, column, bottomAttachElement, 0, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
+                    }
+
+                    //ElementId columnID = column.Id;
+                    //XYZ ColumnOrientation = column.FacingOrientation;
+
+                    //// Flange width
+                    //double dFlangeWidth = GenericUtils.FlangeWidth(inputLine.strStudType);
+
+                    //// update the orientation - based on start or end and the roof slope
+                    //if (bEndingColumns)
+                    //{
+                    //    UpdateOrientation(doc, columnID, ColumnOrientation, studPoint, bAtStart ? pt2 : pt1, true);
+
+                    //    // Adjust the stud location
+                    //    XYZ Adjustedpt1 = AdjustLinePoint(studPoint, bAtStart ? pt2 : pt1, lineType, dFlangeWidth / 2);
+                    //    MoveColumn(doc, columnID, Adjustedpt1);
+                    //    Logger.logMessage("ProcessStudInputLine - Move Column at end");
+                    //}
+
+                    //else
+                    //{
+                    //    UpdateOrientation(doc, columnID, ColumnOrientation, studPoint, pt2);
+
+                    //    // Adjust the stud location
+                    //    XYZ Adjustedpt1 = AdjustStudAccordingToPanel(studPoint, lineType, dFlangeWidth / 2, bFlip, column.FacingOrientation, dPanelThickness);
+                    //    MoveColumn(doc, columnID, Adjustedpt1);
+                    //    Logger.logMessage("ProcessStudInputLine - Move Column at end");
+                    //}
+                }
+            }
+            catch (Exception)
+            {
+            }
+
         }
     }
 }

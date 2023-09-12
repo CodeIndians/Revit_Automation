@@ -161,6 +161,12 @@ namespace Revit_Automation
                 CeeHeaderCreator ceeHeaderCreator = new CeeHeaderCreator(doc, form);
                 ceeHeaderCreator.CreateModel(InputLineUtility.colInputLines, levels);
             }
+            else if (commandCode == CommandCode.TopTracks)
+            {
+                TopTrackCreator topTracksCreator = new TopTrackCreator(doc, form);
+                topTracksCreator.CreateModel( InputLineUtility.colInputLines, levels);
+            }
+
             //uidoc.ActiveView = activeView;
 
             form.Visible = false;

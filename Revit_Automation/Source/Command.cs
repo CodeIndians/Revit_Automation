@@ -60,7 +60,8 @@ namespace Revit_Automation
         Walls = 2,
         BottomTracks = 3,
         Beams,
-        CeeHeaders
+        CeeHeaders, 
+        TopTracks
     }
 
 
@@ -143,6 +144,35 @@ namespace Revit_Automation
             if (form.CanCreateModel)
             {
                 ModelCreator.CreateModel(uiapp, form, false, CommandCode.BottomTracks);
+            }
+
+            return Result.Succeeded;
+        }
+    }
+
+
+    [Transaction(TransactionMode.Manual)]
+    public class TopTracksCreator : IExternalCommand
+    {
+        public Result Execute(
+          ExternalCommandData commandData,
+          ref string message,
+          ElementSet elements)
+        {
+            UIApplication uiapp = commandData.Application;
+
+            PrepareCommandClass.PrepareCommand(commandData);
+
+            Form1 form = new Form1
+            {
+                StartPosition = FormStartPosition.CenterScreen
+            };
+            //form.TopMost= true;
+            _ = form.ShowDialog();
+
+            if (form.CanCreateModel)
+            {
+                ModelCreator.CreateModel(uiapp, form, false, CommandCode.TopTracks);
             }
 
             return Result.Succeeded;

@@ -495,24 +495,31 @@ namespace Revit_Automation.Source.Utils
             IList<CurveLoop> curveLoops = hallwayRegion.GetBoundaries();
 
             // construct a line from the given points 
-            Line givenLine = Line.CreateBound(startPt, endPt);
-
-            // iterate through all the curveloops
-            foreach (CurveLoop curveLoop in curveLoops)
+            try
             {
-                // iterate through each curve in the curve loop
-                foreach (Curve curve in curveLoop)
+                Line givenLine = Line.CreateBound(startPt, endPt);
+
+                // iterate through all the curveloops
+                foreach (CurveLoop curveLoop in curveLoops)
                 {
-                    //create a line from the curve, assuming that hallways always have line curves
-                    Line hallwayLine = Line.CreateBound(curve.GetEndPoint(0), curve.GetEndPoint(1));
+                    // iterate through each curve in the curve loop
+                    foreach (Curve curve in curveLoop)
+                    {
+                        //create a line from the curve, assuming that hallways always have line curves
+                        Line hallwayLine = Line.CreateBound(curve.GetEndPoint(0), curve.GetEndPoint(1));
 
-                    // return true if the lines are intersecting
-                    if (givenLine.Intersect(hallwayLine) == SetComparisonResult.Overlap)
-                        return true;
+                        // return true if the lines are intersecting
+                        if (givenLine.Intersect(hallwayLine) == SetComparisonResult.Overlap)
+                            return true;
+                    }
                 }
-            }
 
-            return false;
+                return false;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
 
         internal static LineType GetLineType(InputLine inputLine)
