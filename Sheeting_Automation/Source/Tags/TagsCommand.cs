@@ -2,6 +2,7 @@
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Sheeting_Automation.Utils;
+using System.Collections.Generic;
 
 namespace Sheeting_Automation.Source.Tags
 {
@@ -60,6 +61,15 @@ namespace Sheeting_Automation.Source.Tags
 
             // assign the document
             SheetUtils.m_Document = doc;
+
+            // assign the selection
+            SheetUtils.m_Selection = uidoc.Selection;
+
+            // Clear the current selection
+            SheetUtils.m_Selection.SetElementIds(new List<ElementId>());
+
+            // assign the UI Document
+            SheetUtils.m_UIDocument = uidoc;
 
             // check if the current view is view plan 
             if (!TagUtils.IsCurrentViewPlan())

@@ -138,6 +138,7 @@ namespace Sheeting_Automation.Source.Tags
                 else if (dataGridView1.Columns[e.ColumnIndex].HeaderText == "Check")
                 {
                     var formData = CollectFormData(e.RowIndex);
+                    TagChecker.CheckTags(formData);
                 }
             }
         }
@@ -153,8 +154,9 @@ namespace Sheeting_Automation.Source.Tags
         {
             //TODO: Inmplement check all functionality 
             var formData = CollectFormData();
+            TagChecker.CheckTags(formData);
 
-            this.Close();
+            //this.Close();
         }
 
         private TagData.TagCheckFormData CollectFormData(int rowNum)

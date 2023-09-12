@@ -2,8 +2,10 @@
 using Autodesk.Revit.UI;
 using Sheeting_Automation.Source.Schedules;
 using Sheeting_Automation.Utils;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using static Sheeting_Automation.Source.Tags.TagData;
 
 namespace Sheeting_Automation.Source.Tags
 {
@@ -212,6 +214,41 @@ namespace Sheeting_Automation.Source.Tags
             return noTagValue;
         }
 
+        /// <summary>
+        /// Check if curve is horizontal or vertical
+        /// </summary>
+        /// <param name="locationCurve"></param>
+        /// <returns></returns>
+        public static TagOrientation GetCurveOrientation(LocationCurve locationCurve)
+        {
+            // get the curve as line 
+            Line curveLine = locationCurve?.Curve as Line;
+
+            if (curveLine != null)
+            {
+                XYZ direction = curveLine.Direction;
+
+                if (IsAlmostEqual(Math.Abs(direction.X), 0.0) && IsAlmostEqual(Math.Abs(direction.Y), 1.0))
+                {
+                    // The curve is vertical (Y-axis direction)
+                    return TagOrientation.Vertical;
+                }
+                else if (IsAlmostEqual(Math.Abs(direction.X), 1.0) && IsAlmostEqual(Math.Abs(direction.Y), 0.0))
+                {
+                    // The curve is horizontal (X-axis direction)
+                    return TagOrientation.Horizontal;
+                }
+            }
+
+            // The curve is treated as horizontal by default
+            return TagOrientation.Horizontal;
+        }
+
+        // Helper method to compare floating-point values with tolerance
+        private static bool IsAlmostEqual(double a, double b, double tolerance = 0.0001)
+        {
+            return Math.Abs(a - b) < tolerance;
+        }
     }
 
 

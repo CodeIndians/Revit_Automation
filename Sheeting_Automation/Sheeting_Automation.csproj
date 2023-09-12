@@ -95,6 +95,7 @@
       <DependentUpon>ScheduleUpdateForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Source\Schedules\ScheduleUtils.cs" />
+    <Compile Include="Source\Tags\TagChecker.cs" />
     <Compile Include="Source\Tags\TagCheckForm.cs">
       <SubType>Form</SubType>
     </Compile>
