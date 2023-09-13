@@ -1,15 +1,8 @@
 ﻿using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
-using Autodesk.Revit.Attributes;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Runtime.InteropServices;
 using System.Windows.Forms;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.Rebar;
-using System;
-using System.Windows.Media;
 
 namespace Sheeting_Automation.Source.Schedules
 {
@@ -64,6 +57,9 @@ namespace Sheeting_Automation.Source.Schedules
 
             //commmit the transaction
             trans1.Commit();
+
+            // update the schedule with "Element" field
+            UpdateViewScheduleWithElementField(viewSchedule);
 
             //Fill the element ids
             FillElementIds(viewSchedule);
@@ -297,6 +293,9 @@ namespace Sheeting_Automation.Source.Schedules
                 return;
             }
 
+            // update the schedule with "Element" field
+            UpdateViewScheduleWithElementField(viewSchedule);
+
             //Fill the element ids
             FillElementIds(viewSchedule);
 
@@ -340,6 +339,38 @@ namespace Sheeting_Automation.Source.Schedules
 
                 trans.Commit();
             }
+        }
+
+        private void UpdateViewScheduleWithElementField(ViewSchedule viewSchedule)
+        {
+            // Get the schedule definition
+            ScheduleDefinition scheduleDefinition = viewSchedule.Definition;
+
+            ScheduleField elementField = ScheduleUtils.GetScheduleFieldFromName(viewSchedule, "Element");
+
+            // need to add the element field 
+            if(elementField == null)
+            {
+                SchedulableField schedulableElementField = viewSchedule.Definition.GetSchedulableFields().Where(f => f.GetName(mDoc) == "Element").First();
+
+                if (schedulableElementField == null)
+                {
+                    TaskDialog.Show("Error", "Shared parameter 'Element' is not present in the project");
+                    return;
+                }
+                else
+                {
+                    using (Transaction trans = new Transaction(mDoc, "Adding Element field to schedule"))
+                    {
+                        trans.Start();
+
+                        scheduleDefinition.AddField(schedulableElementField);
+
+                        trans.Commit();
+                    }
+                }
+            }
+
         }
 
         /// <summary>
