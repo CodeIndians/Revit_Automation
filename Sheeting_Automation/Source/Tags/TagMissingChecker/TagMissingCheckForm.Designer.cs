@@ -1,6 +1,6 @@
 ﻿namespace Sheeting_Automation.Source.Tags
 {
-    partial class TagCheckForm
+    partial class TagMissingCheckForm
     {
         /// <summary>
         /// Required designer variable.

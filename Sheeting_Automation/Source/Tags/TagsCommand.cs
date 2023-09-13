@@ -81,7 +81,7 @@ namespace Sheeting_Automation.Source.Tags
             // intialize the tag data 
             TagData.Initialize();
 
-            var form = new TagCheckForm();
+            var form = new TagMissingCheckForm();
 
             form.ShowDialog();
 

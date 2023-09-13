@@ -95,12 +95,12 @@
       <DependentUpon>ScheduleUpdateForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Source\Schedules\ScheduleUtils.cs" />
-    <Compile Include="Source\Tags\TagChecker\TagChecker.cs" />
-    <Compile Include="Source\Tags\TagChecker\TagCheckForm.cs">
+    <Compile Include="Source\Tags\TagMissingChecker\TagMissingChecker.cs" />
+    <Compile Include="Source\Tags\TagMissingChecker\TagMissingCheckForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Source\Tags\TagChecker\TagCheckForm.Designer.cs">
-      <DependentUpon>TagCheckForm.cs</DependentUpon>
+    <Compile Include="Source\Tags\TagMissingChecker\TagMissingCheckForm.Designer.cs">
+      <DependentUpon>TagMissingCheckForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Source\Tags\TagCreator\TagCreationForm.cs">
       <SubType>Form</SubType>
@@ -124,8 +124,8 @@
     <EmbeddedResource Include="Source\Schedules\ScheduleUpdateForm.resx">
       <DependentUpon>ScheduleUpdateForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Source\Tags\TagChecker\TagCheckForm.resx">
-      <DependentUpon>TagCheckForm.cs</DependentUpon>
+    <EmbeddedResource Include="Source\Tags\TagMissingChecker\TagMissingCheckForm.resx">
+      <DependentUpon>TagMissingCheckForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Source\Tags\TagCreator\TagCreationForm.resx">
       <DependentUpon>TagCreationForm.cs</DependentUpon>

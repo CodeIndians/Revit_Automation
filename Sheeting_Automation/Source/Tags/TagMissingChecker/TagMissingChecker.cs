@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace Sheeting_Automation.Source.Tags
 {
-    public static class TagChecker
+    public static class TagMissingChecker
     {
 
         private static List<ElementId> CollectedElementIdList;

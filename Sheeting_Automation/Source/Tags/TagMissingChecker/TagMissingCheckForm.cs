@@ -10,9 +10,9 @@ using System.Windows.Forms;
 
 namespace Sheeting_Automation.Source.Tags
 {
-    public partial class TagCheckForm : Form
+    public partial class TagMissingCheckForm : Form
     {
-        public TagCheckForm()
+        public TagMissingCheckForm()
         {
             InitializeComponent();
 
@@ -138,7 +138,7 @@ namespace Sheeting_Automation.Source.Tags
                 else if (dataGridView1.Columns[e.ColumnIndex].HeaderText == "Check")
                 {
                     var formData = CollectFormData(e.RowIndex);
-                    TagChecker.CheckTags(formData);
+                    TagMissingChecker.CheckTags(formData);
                 }
             }
         }
@@ -154,7 +154,7 @@ namespace Sheeting_Automation.Source.Tags
         {
             //TODO: Inmplement check all functionality 
             var formData = CollectFormData();
-            TagChecker.CheckTags(formData);
+            TagMissingChecker.CheckTags(formData);
 
             //this.Close();
         }
