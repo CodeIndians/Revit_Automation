@@ -65,13 +65,18 @@ namespace Sheeting_Automation
                     "Sheets.png"); //TODO: use tags.png
 
                 AddRevitCommand(tagsRB,
-                    "Check Tags",
-                    "Check Tags",
-                    "Sheeting_Automation.Source.Tags.CheckTagsCommand",
-                    "Check Tags",
+                    "Check Missing Tags",
+                    "Check Missing \n Tags",
+                    "Sheeting_Automation.Source.Tags.CheckTagsCountCommand",
+                    "Check Missing Tags",
                     "Sheets.png"); //TODO: use tags.png
 
-
+                AddRevitCommand(tagsRB,
+                   "Check Tags Overlap",
+                   "Check Tags \n Overlap",
+                   "Sheeting_Automation.Source.Tags.CheckTagsOverlapCommand",
+                   "Check Tags Overlap",
+                   "Sheets.png"); //TODO: use tags.png
 
                 return Result.Succeeded;
             }
