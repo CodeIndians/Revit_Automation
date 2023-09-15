@@ -4,6 +4,7 @@ using Revit_Automation.Source.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -92,19 +93,48 @@ namespace Revit_Automation.Source.ModelCreators
 
                 Dictionary<XYZ, XYZ> selectedList = ceeHeadersAdjust.iCeeHeaderCount == 2 ? doubleHeaderCoordinates : singleHeaderCoordinates;
 
-                foreach (KeyValuePair<XYZ, XYZ> kvp in selectedList)
+                Dictionary<XYZ, string> sortedPoints = IdentifyContAndNonContHeaderPoints(selectedList);
+
+                foreach (KeyValuePair<XYZ, string> kvp in sortedPoints)
                 {
-                    XYZ CeeHeaderStartPt = kvp.Key;
-                    XYZ CeeHeaderEndPt  = kvp.Value;
+                    XYZ CeeHeaderPt = kvp.Key;
+                    string CeeHeaderRelation  = kvp.Value;
 
                     // Cee Headerpoint is near the top floor, we have to adjust it to the base level
                     Level baseLevel = null, topLevel = null;
-                    AdjustLevelOfthePoint(ref CeeHeaderStartPt, out baseLevel, out topLevel);
-                    AdjustLevelOfthePoint(ref CeeHeaderEndPt, out baseLevel, out topLevel);
+                    AdjustLevelOfthePoint(ref CeeHeaderPt, out baseLevel, out topLevel);
 
-                    PostCreationUtils.PlaceStudForCeeHeader(m_Document, CeeHeaderStartPt, CeeHeaderEndPt, ceeHeadersAdjust.postType, ceeHeadersAdjust.postGuage, ceeHeadersAdjust.postCount, topLevel, baseLevel);
+                    PostCreationUtils.PlaceStudForCeeHeader(m_Document, CeeHeaderPt, CeeHeaderRelation, ceeHeadersAdjust.postType, ceeHeadersAdjust.postGuage, ceeHeadersAdjust.postCount, topLevel, baseLevel);
                 }
             }
+        }
+
+        private Dictionary<XYZ, string> IdentifyContAndNonContHeaderPoints(Dictionary<XYZ, XYZ> selectedList)
+        {
+            Dictionary<XYZ, string> retDict = new Dictionary<XYZ, string>();
+
+            foreach (KeyValuePair<XYZ, XYZ> kvp in selectedList)
+            {
+                bool bContinuousAtStart = false;
+                bool bContinuousAtEnd = false;
+
+                XYZ statPt = kvp.Key;
+                XYZ endPt = kvp.Value;
+
+                // check that the coordinates os start point of this header match with endpoint of any other header - if match continous else not
+                var filteredItems = selectedList.Where(i => MathUtils.ApproximatelyEqual(i.Value.X, statPt.X) && MathUtils.ApproximatelyEqual(i.Value.Y, statPt.Y));
+                bContinuousAtStart = filteredItems.Count() > 0 ? true : false;
+
+                // check that the coordinates os end point of this header match with start point of any other header - if match continous else not
+                var filteredItems2 = selectedList.Where(i => MathUtils.ApproximatelyEqual(i.Key.X, endPt.X) && MathUtils.ApproximatelyEqual(i.Key.Y, endPt.Y));
+                bContinuousAtStart = filteredItems.Count() > 0 ? true : false;
+
+                retDict.Add(statPt, bContinuousAtStart ? "StartCont" : "StartNonCont");
+                retDict.Add(endPt, bContinuousAtEnd ? "EndCont" : "EndNonCont");
+
+            }
+
+            return retDict;
         }
 
         private void AdjustLevelOfthePoint(ref XYZ ceeHeaderStartPt, out Level baseLevel, out Level topLevel)
