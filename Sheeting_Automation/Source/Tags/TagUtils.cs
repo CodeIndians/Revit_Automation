@@ -249,6 +249,45 @@ namespace Sheeting_Automation.Source.Tags
         {
             return Math.Abs(a - b) < tolerance;
         }
+
+        public static List<IndependentTag> GetAllTagsInView()
+        {
+            List<IndependentTag> independentTags = new List<IndependentTag>();
+
+            // Create a filtered element collector to find all tags in the active view
+            FilteredElementCollector tagCollector = new FilteredElementCollector(SheetUtils.m_Document, SheetUtils.m_Document.ActiveView.Id);
+            tagCollector.OfClass(typeof(IndependentTag));
+
+            foreach (IndependentTag tag in tagCollector)
+            {
+                independentTags.Add(tag);
+            }
+
+            return independentTags;
+        }
+
+        public static bool AreTagsIntersecting(IndependentTag tag1, IndependentTag tag2)
+        {
+            BoundingBoxXYZ bbox1 = tag1.get_BoundingBox(SheetUtils.m_Document.ActiveView);
+            BoundingBoxXYZ bbox2 = tag2.get_BoundingBox(SheetUtils.m_Document.ActiveView);
+
+
+            // Check if bbox1 is to the left of bbox2 along the X-axis
+            if (bbox1.Max.X < bbox2.Min.X || bbox1.Min.X > bbox2.Max.X)
+            {
+                return false;
+            }
+
+            // Check if bbox1 is below bbox2 along the Y-axis
+            if (bbox1.Max.Y < bbox2.Min.Y || bbox1.Min.Y > bbox2.Max.Y)
+            {
+                return false;
+            }
+
+            // If none of the above conditions are met, the bounding boxes intersect
+            return true;
+
+        }
     }
 
 

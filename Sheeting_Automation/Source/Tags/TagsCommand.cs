@@ -1,6 +1,7 @@
 ﻿using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
+using Sheeting_Automation.Source.Tags.TagOverlapChecker;
 using Sheeting_Automation.Utils;
 using System.Collections.Generic;
 
@@ -109,20 +110,21 @@ namespace Sheeting_Automation.Source.Tags
             SheetUtils.m_Document = doc;
 
             // assign the selection
-            //SheetUtils.m_Selection = uidoc.Selection;
-
-            // Clear the current selection
-            //SheetUtils.m_Selection.SetElementIds(new List<ElementId>());
+            SheetUtils.m_Selection = uidoc.Selection;
 
             // assign the UI Document
-            //SheetUtils.m_UIDocument = uidoc;
+            SheetUtils.m_UIDocument = uidoc;
 
-            // check if the current view is view plan 
+            // check if the current view is view plan
             if (!TagUtils.IsCurrentViewPlan())
             {
                 TaskDialog.Show("Error", "Current view is not a view plan");
                 return Result.Failed;
             }
+
+            TagOverlapManager manager = new TagOverlapManager();
+
+            manager.HighlightTags();
 
             return Result.Succeeded;
         }
