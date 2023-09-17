@@ -16,10 +16,16 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
                     if (TagUtils.AreTagsIntersecting(m_IndependentTags[i], m_IndependentTags[j]))
                     {
                         if (!elementIds.Contains(m_IndependentTags[i].Id))
+                        {
                             elementIds.Add(m_IndependentTags[i].Id);
+                            elementIds.AddRange(m_IndependentTags[i].GetTaggedLocalElementIds());
+                        }
 
                         if (!elementIds.Contains(m_IndependentTags[j].Id))
+                        {
                             elementIds.Add(m_IndependentTags[j].Id);
+                            elementIds.AddRange(m_IndependentTags[j].GetTaggedLocalElementIds());
+                        }
                     }
                 }
             }

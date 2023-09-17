@@ -72,15 +72,13 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
 
             if(m_ElementIds.Count > 0)
             {
-                TaskDialog.Show("Info", $"{m_ElementIds.Count} tags are overlapping");
+                TaskDialog.Show("Info", $"{m_ElementIds.Count / 2} tags are overlapping");
             }
             else
             {
                 TaskDialog.Show("Info", "No tags are overlapping");
             }
         }
-
-
 
     }
 }
