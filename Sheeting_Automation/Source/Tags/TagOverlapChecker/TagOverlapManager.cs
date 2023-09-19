@@ -28,6 +28,10 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
             ProcessOverlapCheckers();
         }
 
+        /// <summary>
+        /// add the overlap checkers
+        /// any new overlap checking functionality should go here
+        /// </summary>
         private void InitializeOverlapCheckers()
         {
             // clear if anything is already present 
@@ -36,8 +40,15 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
             // tag to tag overlap checker
             m_TagOverlapCheckers.Add(new Tag2TagOverlap());
 
+            //tag to wall overlap checker
+            m_TagOverlapCheckers.Add(new Tag2WallOverlap());
+
         }
 
+        /// <summary>
+        /// Collects all the over lapping elements from all the 
+        /// overlapping checkers that are added via overlap manager
+        /// </summary>
         private void ProcessOverlapCheckers()
         {
             foreach(var checker in  m_TagOverlapCheckers)
@@ -46,6 +57,10 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
             }
         }
 
+        /// <summary>
+        /// Highlights the collected element ids from the 
+        /// overlap checkers
+        /// </summary>
         public void HighlightTags()
         {
             // Create a list to hold Reference objects
@@ -72,7 +87,7 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
 
             if(m_ElementIds.Count > 0)
             {
-                TaskDialog.Show("Info", $"{m_ElementIds.Count / 2} tags are overlapping");
+                TaskDialog.Show("Info", $"{m_ElementIds.Count / 2} overlap(s) detected.");
             }
             else
             {

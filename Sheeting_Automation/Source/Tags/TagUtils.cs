@@ -250,6 +250,10 @@ namespace Sheeting_Automation.Source.Tags
             return Math.Abs(a - b) < tolerance;
         }
 
+        /// <summary>
+        /// List out all the independent tags in the current view
+        /// </summary>
+        /// <returns>List of independent tags</returns>
         public static List<IndependentTag> GetAllTagsInView()
         {
             List<IndependentTag> independentTags = new List<IndependentTag>();
@@ -266,12 +270,26 @@ namespace Sheeting_Automation.Source.Tags
             return independentTags;
         }
 
+        /// <summary>
+        /// Check if the given two tags are intersecting
+        /// </summary>
+        /// <param name="tag1"></param>
+        /// <param name="tag2"></param>
+        /// <returns>true if intersecting else false</returns>
         public static bool AreTagsIntersecting(IndependentTag tag1, IndependentTag tag2)
         {
-            BoundingBoxXYZ bbox1 = tag1.get_BoundingBox(SheetUtils.m_Document.ActiveView);
-            BoundingBoxXYZ bbox2 = tag2.get_BoundingBox(SheetUtils.m_Document.ActiveView);
+            return AreBoudingBoxesIntersecting(tag1.get_BoundingBox(SheetUtils.m_Document.ActiveView)
+                                                , tag2.get_BoundingBox(SheetUtils.m_Document.ActiveView));
+        }
 
-
+        /// <summary>
+        /// Check if the given two bounding boxes are intersecting 
+        /// </summary>
+        /// <param name="bbox1"></param>
+        /// <param name="bbox2"></param>
+        /// <returns>true if intersecting else false</returns>
+        public static bool AreBoudingBoxesIntersecting(BoundingBoxXYZ bbox1, BoundingBoxXYZ bbox2)
+        {
             // Check if bbox1 is to the left of bbox2 along the X-axis
             if (bbox1.Max.X < bbox2.Min.X || bbox1.Min.X > bbox2.Max.X)
             {
@@ -286,7 +304,6 @@ namespace Sheeting_Automation.Source.Tags
 
             // If none of the above conditions are met, the bounding boxes intersect
             return true;
-
         }
     }
 
