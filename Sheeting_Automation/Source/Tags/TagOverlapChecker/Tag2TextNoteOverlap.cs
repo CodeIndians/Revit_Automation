@@ -8,11 +8,10 @@ using System.Threading.Tasks;
 
 namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
 {
-    public class Tag2WallOverlap:TagOverlapBase
+    public class Tag2TextNoteOverlap : TagOverlapBase
     {
-
         /// <summary>
-        /// Get all the wall element ids in the current view
+        /// Get all the text note element ids in the current view
         /// </summary>
         /// <returns></returns>
         protected override List<ElementId> GetElementIds()
@@ -22,21 +21,15 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
             // Create a filtered element collector
             FilteredElementCollector collector = new FilteredElementCollector(SheetUtils.m_Document, SheetUtils.m_Document.ActiveView.Id);
 
-            // Filter for elements of category Wall
-            collector.OfCategory(BuiltInCategory.OST_Walls);
-
+            // Filter for elements of category text notes
+            collector.OfCategory(BuiltInCategory.OST_TextNotes);
 
             foreach (Element element in collector)
             {
-                if (element is Wall wall)
-                {
-                    elementIds.Add(wall.Id);
-                }
+                elementIds.Add(element.Id);
             }
 
             return elementIds;
         }
-
-       
     }
 }

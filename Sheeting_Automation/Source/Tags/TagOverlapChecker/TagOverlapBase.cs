@@ -42,15 +42,15 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
                     if (TagUtils.AreBoudingBoxesIntersecting(GetBoundingBoxOfElement(elementIds[i]),
                                                                 m_IndependentTags[j].get_BoundingBox(SheetUtils.m_Document.ActiveView)))
                     {
-                        if (!overlapElementIds.Contains(m_IndependentTags[i].Id))
+                        if (!overlapElementIds.Contains(m_IndependentTags[j].Id))
                         {
-                            overlapElementIds.Add(m_IndependentTags[i].Id);
-                            overlapElementIds.AddRange(m_IndependentTags[i].GetTaggedLocalElementIds());
+                            overlapElementIds.Add(m_IndependentTags[j].Id);
+                            overlapElementIds.AddRange(m_IndependentTags[j].GetTaggedLocalElementIds());
                         }
 
-                        if (!overlapElementIds.Contains(elementIds[j]))
+                        if (!overlapElementIds.Contains(elementIds[i]))
                         {
-                            overlapElementIds.Add(elementIds[j]);
+                            overlapElementIds.Add(elementIds[i]);
                         }
                     }
                 }
@@ -76,7 +76,7 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
         /// </summary>
         /// <param name="elementId"></param>
         /// <returns></returns>
-        protected BoundingBoxXYZ GetBoundingBoxOfElement(ElementId elementId)
+        protected virtual BoundingBoxXYZ GetBoundingBoxOfElement(ElementId elementId)
         {
             // Retrieve the element using its ElementId
             return SheetUtils.m_Document.GetElement(elementId)?.get_BoundingBox(SheetUtils.m_Document.ActiveView);

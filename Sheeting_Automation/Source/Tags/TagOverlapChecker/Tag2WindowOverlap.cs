@@ -8,35 +8,29 @@ using System.Threading.Tasks;
 
 namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
 {
-    public class Tag2WallOverlap:TagOverlapBase
+    public class Tag2WindowOverlap : TagOverlapBase
     {
-
         /// <summary>
-        /// Get all the wall element ids in the current view
+        /// Get all the windows element ids in the current view
         /// </summary>
         /// <returns></returns>
         protected override List<ElementId> GetElementIds()
         {
             List<ElementId> elementIds = new List<ElementId>();
 
-            // Create a filtered element collector
+            // Create a filtered element collector 
             FilteredElementCollector collector = new FilteredElementCollector(SheetUtils.m_Document, SheetUtils.m_Document.ActiveView.Id);
 
-            // Filter for elements of category Wall
-            collector.OfCategory(BuiltInCategory.OST_Walls);
+            // Filter for elements of category windows
+            collector.OfCategory(BuiltInCategory.OST_Windows);
 
 
             foreach (Element element in collector)
             {
-                if (element is Wall wall)
-                {
-                    elementIds.Add(wall.Id);
-                }
+                elementIds.Add(element.Id);
             }
 
             return elementIds;
         }
-
-       
     }
 }

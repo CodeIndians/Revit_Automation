@@ -8,35 +8,30 @@ using System.Threading.Tasks;
 
 namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
 {
-    public class Tag2WallOverlap:TagOverlapBase
+    public class Tag2DoorOverlap : TagOverlapBase
     {
-
         /// <summary>
-        /// Get all the wall element ids in the current view
+        /// Get all the door element ids in the current view
         /// </summary>
         /// <returns></returns>
         protected override List<ElementId> GetElementIds()
         {
             List<ElementId> elementIds = new List<ElementId>();
 
-            // Create a filtered element collector
+            // Create a filtered element collector 
             FilteredElementCollector collector = new FilteredElementCollector(SheetUtils.m_Document, SheetUtils.m_Document.ActiveView.Id);
 
-            // Filter for elements of category Wall
-            collector.OfCategory(BuiltInCategory.OST_Walls);
-
+            // Filter for elements of category doors
+            collector.OfCategory(BuiltInCategory.OST_Doors);
 
             foreach (Element element in collector)
             {
-                if (element is Wall wall)
-                {
-                    elementIds.Add(wall.Id);
-                }
+                //TODO: Skip roll up doors for tag overlap
+
+                elementIds.Add(element.Id);
             }
 
             return elementIds;
         }
-
-       
     }
 }

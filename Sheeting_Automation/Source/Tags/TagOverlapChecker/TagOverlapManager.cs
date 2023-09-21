@@ -43,6 +43,23 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
             //tag to wall overlap checker
             m_TagOverlapCheckers.Add(new Tag2WallOverlap());
 
+            //tag to structural column overlap checker
+            m_TagOverlapCheckers.Add(new Tag2StructColOverlap());
+
+            //tag to window overlap checker
+            m_TagOverlapCheckers.Add(new Tag2WindowOverlap());
+
+            //tag to generic model overlap checker
+            m_TagOverlapCheckers.Add(new Tag2GenModelOverlap());
+
+            //tag to door overlap checker
+            m_TagOverlapCheckers.Add(new Tag2DoorOverlap());
+
+            //tag to text note overlap checker
+            m_TagOverlapCheckers.Add(new Tag2TextNoteOverlap());
+
+            //tag to dimension overlap checker
+            m_TagOverlapCheckers.Add(new Tag2DimensionOverlap());
         }
 
         /// <summary>

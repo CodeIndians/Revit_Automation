@@ -110,8 +110,14 @@
     </Compile>
     <Compile Include="Source\Tags\TagCreator\TagCreator.cs" />
     <Compile Include="Source\Tags\TagData.cs" />
+    <Compile Include="Source\Tags\TagOverlapChecker\Tag2DimensionOverlap.cs" />
+    <Compile Include="Source\Tags\TagOverlapChecker\Tag2DoorOverlap.cs" />
+    <Compile Include="Source\Tags\TagOverlapChecker\Tag2GenModelOverlap.cs" />
+    <Compile Include="Source\Tags\TagOverlapChecker\Tag2StructColOverlap.cs" />
     <Compile Include="Source\Tags\TagOverlapChecker\Tag2TagOverlap.cs" />
+    <Compile Include="Source\Tags\TagOverlapChecker\Tag2TextNoteOverlap.cs" />
     <Compile Include="Source\Tags\TagOverlapChecker\Tag2WallOverlap.cs" />
+    <Compile Include="Source\Tags\TagOverlapChecker\Tag2WindowOverlap.cs" />
     <Compile Include="Source\Tags\TagOverlapChecker\TagOverlapBase.cs" />
     <Compile Include="Source\Tags\TagOverlapChecker\TagOverlapManager.cs" />
     <Compile Include="Source\Tags\TagUtils.cs" />
