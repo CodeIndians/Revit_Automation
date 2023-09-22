@@ -15,7 +15,7 @@ namespace Sheeting_Automation.Source.Tags
         /// Returns the dictonaries of all the categories in the entire document
         /// </summary>
         /// <returns>Dictonary containing all the categories in the document</returns>
-        public static Dictionary<string,ElementId> GetTaggableCategories()
+        public static Dictionary<string, ElementId> GetTaggableCategories()
         {
 
             ViewPlan viewPlan = SheetUtils.m_Document.ActiveView as ViewPlan;
@@ -28,7 +28,7 @@ namespace Sheeting_Automation.Source.Tags
             }
 
             //initialize the dictionary
-            Dictionary<string,ElementId> dictCategories = new Dictionary<string,ElementId>();
+            Dictionary<string, ElementId> dictCategories = new Dictionary<string, ElementId>();
 
             // get all the elements in the current document 
             FilteredElementCollector collector = new FilteredElementCollector(SheetUtils.m_Document);
@@ -67,7 +67,7 @@ namespace Sheeting_Automation.Source.Tags
         public static Dictionary<string, ElementId> GetElementCategoriesInView()
         {
             // Initialize a set to store unique categories
-            Dictionary<string,ElementId> dictCategories = new Dictionary<string, ElementId>();
+            Dictionary<string, ElementId> dictCategories = new Dictionary<string, ElementId>();
 
             // Iterate through the elements in the view and collect their categories
             FilteredElementCollector collector = new FilteredElementCollector(SheetUtils.m_Document, SheetUtils.m_Document.ActiveView.Id);
@@ -93,7 +93,7 @@ namespace Sheeting_Automation.Source.Tags
         /// </summary>
         /// <param name="categoryId"></param>
         /// <returns></returns>
-        public static Dictionary<string,List<ElementId>> GetElementFamilyNames(ElementId categoryId)
+        public static Dictionary<string, List<ElementId>> GetElementFamilyNames(ElementId categoryId)
         {
             // Initialize an empty list to store Element IDs
             Dictionary<string, List<ElementId>> elementDict = new Dictionary<string, List<ElementId>>();
@@ -137,7 +137,7 @@ namespace Sheeting_Automation.Source.Tags
                     }
                 }
 
-               
+
             }
 
             return elementDict;
@@ -290,6 +290,9 @@ namespace Sheeting_Automation.Source.Tags
         /// <returns>true if intersecting else false</returns>
         public static bool AreBoudingBoxesIntersecting(BoundingBoxXYZ bbox1, BoundingBoxXYZ bbox2)
         {
+            if (bbox1 == null || bbox2 == null)
+                return false;
+
             // Check if bbox1 is to the left of bbox2 along the X-axis
             if (bbox1.Max.X < bbox2.Min.X || bbox1.Min.X > bbox2.Max.X)
             {

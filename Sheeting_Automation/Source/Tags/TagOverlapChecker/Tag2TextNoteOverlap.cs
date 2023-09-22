@@ -1,4 +1,5 @@
 ﻿using Autodesk.Revit.DB;
+using Autodesk.Revit.UI;
 using Sheeting_Automation.Utils;
 using System;
 using System.Collections.Generic;
@@ -30,6 +31,50 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
             }
 
             return elementIds;
+        }
+
+        protected override BoundingBoxXYZ GetBoundingBoxOfElement(ElementId elementId)
+        {
+            TextNote textNote = SheetUtils.m_Document.GetElement(elementId) as TextNote;
+
+            TextNote tempNote = null;
+
+            BoundingBoxXYZ textNoteBoundingBox = new BoundingBoxXYZ();
+
+            if (textNote != null)
+            {
+                
+                using (Transaction transaction = new Transaction(SheetUtils.m_Document, "Get TextNote Bounding Box"))
+                {
+                    transaction.Start();
+
+
+                    var textNoteType = textNote.TextNoteType;
+
+                    TextNoteOptions options = new TextNoteOptions();
+
+                    tempNote = TextNote.Create(SheetUtils.m_Document, SheetUtils.m_Document.ActiveView.Id, textNote.Coord, textNote.Text,textNoteType.Id);
+
+                    transaction.Commit();
+                }
+
+                textNoteBoundingBox = tempNote.get_BoundingBox(SheetUtils.m_Document.ActiveView);
+
+                using (Transaction transaction = new Transaction(SheetUtils.m_Document, "Dispose the note"))
+                {
+                    transaction.Start();
+
+                    SheetUtils.m_Document.Delete(tempNote.Id);
+
+                    transaction.Commit();
+                }
+
+                return textNoteBoundingBox;
+            }
+
+            // Retrieve the element using its ElementId
+            return SheetUtils.m_Document.GetElement(elementId)?.get_BoundingBox(SheetUtils.m_Document.ActiveView);
+
         }
     }
 }
