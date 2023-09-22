@@ -157,6 +157,7 @@ namespace Revit_Automation
         private void PlaceCeeHeaders(CeeHeaderSettings ceeHeaderSettings, List<InputLine> InputlineList, Level level)
         {
             int iSpan = 1;
+            
             // Points where Cee-Headers are to be placed
             Dictionary<XYZ, double> ceeHeaderPts = new Dictionary<XYZ, double>();
 
@@ -177,57 +178,58 @@ namespace Revit_Automation
             while (IdentifyCeeHederPoints(ref startPoint, InputlineList, out lstceeHeaderPoints))
             {                
                 ceeHeaderPts = ProcessCeeHeaderPoints(lstceeHeaderPoints, spanLineType);
-                
 
-                for (int i = 0; i < ceeHeaderPts.Count - 1; i++)
+                if (ceeHeaderPts.Count > 0)
                 {
-                    KeyValuePair<XYZ,  double> kvp1= ceeHeaderPts.ElementAt(i++);
-                    KeyValuePair<XYZ, double> kvp2 = ceeHeaderPts.ElementAt(i);
-                    
-                    XYZ ceeHeaderStartPoint = kvp1.Key;
-                    XYZ ceeHeaderEndPoint = kvp2.Key;
-
-                    form.PostMessage($" \nPlacing Cee-Headers at location {ceeHeaderStartPoint.X} , {ceeHeaderStartPoint.Y}, {ceeHeaderEndPoint.X} , {ceeHeaderEndPoint.Y}");
-
-                    double dWebWitdth = Math.Max(kvp1.Value, kvp2.Value);
-
-                    bool bHeaderAtHallway = GenericUtils.LineIntersectsHallway(doc, ceeHeaderStartPoint, ceeHeaderEndPoint);
-
-                    double dElevation = Math.Abs(ceeHeaderStartPoint.Z - level.Elevation);
-                    ceeHeaderStartPoint += new XYZ(0, 0, dElevation - m_SlabThickness);
-                    ceeHeaderEndPoint += new XYZ(0, 0, dElevation - m_SlabThickness);
-
-                    // if the points are apart only by 1, 1 1/2 feet do not place ceeHeaders
-                    if ((spanLineType == LineType.vertical && Math.Abs(ceeHeaderStartPoint.Y - ceeHeaderEndPoint.Y) < 1.5) || (spanLineType == LineType.Horizontal
-                            && Math.Abs(ceeHeaderStartPoint.X - ceeHeaderEndPoint.X) < 1.5))
-                        continue;
-
-                    // if lines greater than 20 feet do not place headers
-                    if ((spanLineType == LineType.vertical && Math.Abs(ceeHeaderStartPoint.Y - ceeHeaderEndPoint.Y) > 20.0) || (spanLineType == LineType.Horizontal
-                            && Math.Abs(ceeHeaderStartPoint.X - ceeHeaderEndPoint.X) > 20.0))
-                        continue;
-
-                    FamilySymbol ceeHeaderFamily = SymbolCollector.GetCeeHeadersFamily(bHeaderAtHallway ? ceeHeaderSettings.HallwayCeeHeaderName : ceeHeaderSettings.ceeHeaderName
-                        , "Cee Header");
-
-                    Line bounds = Line.CreateBound(ceeHeaderStartPoint, ceeHeaderEndPoint);
-                    FamilyInstance ceeHeaderInstance = doc.Create.NewFamilyInstance(bounds, ceeHeaderFamily, level, StructuralType.Beam);
-
-                    // set the Post CL Offset parameter
-                    if (dWebWitdth != 0.0)
-                        ceeHeaderInstance.LookupParameter("Post CL Face Offset").Set(dWebWitdth);
-
-                    if (bHeaderAtHallway == true && ceeHeaderSettings.HallwayCeeHeaderCount == "Double" || bHeaderAtHallway == false && ceeHeaderSettings.ceeHeaderCount == "Double")
+                    for (int i = 0; i < ceeHeaderPts.Count - 1; i++)
                     {
-                        Line bounds2 = Line.CreateBound(ceeHeaderEndPoint, ceeHeaderStartPoint);
-                        FamilyInstance ceeHeaderInstance2 = doc.Create.NewFamilyInstance(bounds2, ceeHeaderFamily, level, StructuralType.Beam);
+                        KeyValuePair<XYZ, double> kvp1 = ceeHeaderPts.ElementAt(i++);
+                        KeyValuePair<XYZ, double> kvp2 = ceeHeaderPts.ElementAt(i);
+
+                        XYZ ceeHeaderStartPoint = kvp1.Key;
+                        XYZ ceeHeaderEndPoint = kvp2.Key;
+
+                        form.PostMessage($" \nPlacing Cee-Headers at location {ceeHeaderStartPoint.X} , {ceeHeaderStartPoint.Y}, {ceeHeaderEndPoint.X} , {ceeHeaderEndPoint.Y}");
+
+                        double dWebWitdth = Math.Max(kvp1.Value, kvp2.Value);
+
+                        bool bHeaderAtHallway = GenericUtils.LineIntersectsHallway(doc, ceeHeaderStartPoint, ceeHeaderEndPoint);
+
+                        double dElevation = Math.Abs(ceeHeaderStartPoint.Z - level.Elevation);
+                        ceeHeaderStartPoint += new XYZ(0, 0, dElevation - m_SlabThickness);
+                        ceeHeaderEndPoint += new XYZ(0, 0, dElevation - m_SlabThickness);
+
+                        // if the points are apart only by 1, 1 1/2 feet do not place ceeHeaders
+                        if ((spanLineType == LineType.vertical && Math.Abs(ceeHeaderStartPoint.Y - ceeHeaderEndPoint.Y) < 1.5) || (spanLineType == LineType.Horizontal
+                                && Math.Abs(ceeHeaderStartPoint.X - ceeHeaderEndPoint.X) < 1.5))
+                            continue;
+
+                        // if lines greater than 20 feet do not place headers
+                        if ((spanLineType == LineType.vertical && Math.Abs(ceeHeaderStartPoint.Y - ceeHeaderEndPoint.Y) > 20.0) || (spanLineType == LineType.Horizontal
+                                && Math.Abs(ceeHeaderStartPoint.X - ceeHeaderEndPoint.X) > 20.0))
+                            continue;
+
+                        FamilySymbol ceeHeaderFamily = SymbolCollector.GetCeeHeadersFamily(bHeaderAtHallway ? ceeHeaderSettings.HallwayCeeHeaderName : ceeHeaderSettings.ceeHeaderName
+                            , "Cee Header");
+
+                        Line bounds = Line.CreateBound(ceeHeaderStartPoint, ceeHeaderEndPoint);
+                        FamilyInstance ceeHeaderInstance = doc.Create.NewFamilyInstance(bounds, ceeHeaderFamily, level, StructuralType.Beam);
 
                         // set the Post CL Offset parameter
                         if (dWebWitdth != 0.0)
-                            ceeHeaderInstance2.LookupParameter("Post CL Face Offset").Set(dWebWitdth);
+                            ceeHeaderInstance.LookupParameter("Post CL Face Offset").Set(dWebWitdth);
+
+                        if (bHeaderAtHallway == true && ceeHeaderSettings.HallwayCeeHeaderCount == "Double" || bHeaderAtHallway == false && ceeHeaderSettings.ceeHeaderCount == "Double")
+                        {
+                            Line bounds2 = Line.CreateBound(ceeHeaderEndPoint, ceeHeaderStartPoint);
+                            FamilyInstance ceeHeaderInstance2 = doc.Create.NewFamilyInstance(bounds2, ceeHeaderFamily, level, StructuralType.Beam);
+
+                            // set the Post CL Offset parameter
+                            if (dWebWitdth != 0.0)
+                                ceeHeaderInstance2.LookupParameter("Post CL Face Offset").Set(dWebWitdth);
+                        }
                     }
                 }
-                
                 // Move to the next span
                 startPoint = startPoint + additionVector;
                 ceeHeaderPts.Clear();

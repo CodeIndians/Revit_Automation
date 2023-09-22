@@ -407,6 +407,7 @@ namespace Revit_Automation
             {
                 CeeHeaderAdjustmentsForm ceeHeaderAdjustmentsForm = new CeeHeaderAdjustmentsForm(doc)
                 { StartPosition = FormStartPosition.CenterScreen};
+                InitializeUtilClasses(uiapp);
                 ceeHeaderAdjustmentsForm.PopulateData();
                 ceeHeaderAdjustmentsForm.ShowDialog();
             }
@@ -414,6 +415,46 @@ namespace Revit_Automation
             ceeHeaderModeSelector.Close();
 
             return Result.Succeeded;
+        }
+
+        private void InitializeUtilClasses(UIApplication uiapp)
+        {
+            UIDocument uidoc = uiapp.ActiveUIDocument;
+            _ = uiapp.Application;
+            Document doc = uidoc.Document;
+
+            // Clear out all the static vectors
+            ClearStatics();
+
+            try
+            {
+                // 1. Identify the roof slopes
+                RoofUtility.computeRoofSlopes(doc);
+
+                // Collect Necessary Symbols
+                SymbolCollector.CollectColumnSymbols(doc);
+                SymbolCollector.CollectWallSymbols(doc);
+
+                // Identify the floors
+                FloorHelper.GatherFloors(doc);
+
+            }
+            catch (Exception)
+            {
+                _ = TaskDialog.Show("Automation Error", "Failed while processing the roofs");
+            }
+        }
+
+
+        internal static void ClearStatics()
+        {
+            RoofUtility.colRoofs?.Clear();
+            GridCollector.mVerticalMainLines?.Clear();
+            GridCollector.mHorizontalMainLines?.Clear();
+            GridCollector.mHorizontalMainLines?.Clear();
+            GridCollector.mVerticalMainLines?.Clear();
+            InputLineUtility.colInputLines?.Clear();
+            FloorHelper.colFloors?.Clear();
         }
     }
 }

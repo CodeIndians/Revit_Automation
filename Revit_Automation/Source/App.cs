@@ -39,6 +39,19 @@ namespace Revit_Automation
                 string tabName = "Modelling Automation";
                 a.CreateRibbonTab(tabName);
 
+
+                string tabName2 = "Structural Design";
+                a.CreateRibbonTab(tabName2);
+
+                RibbonPanel settingsRB1 = a.CreateRibbonPanel(tabName2, "Analysis");
+
+                AddRevitCommand(settingsRB1,
+                "ProjectSettingsCMD",
+                "Launch \n SBTiltup",
+                "Revit_Automation.ProjectSettings",
+                "Project Settings",
+                "tiltup.png");
+
                 // Create Ribbon Panels
                 RibbonPanel settingsRB = a.CreateRibbonPanel(tabName, "Settings");
                 RibbonPanel FullModellingRB = a.CreateRibbonPanel(tabName, "General Modelling");

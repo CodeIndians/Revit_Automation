@@ -228,7 +228,7 @@ namespace Revit_Automation.Source.Utils
             XYZ point1 = new XYZ(pt1.X, pt1.Y, 0);
             XYZ point2 = new XYZ(pt1.X, pt1.Y, 1);
             Line axis = Line.CreateBound(point1, point2);
-            ``
+            
             // This logic is to rotate the column such that it is perpendicular to Input line
 
             double dAngle = 0;
@@ -362,95 +362,149 @@ namespace Revit_Automation.Source.Utils
             }
         }
 
-        internal static void PlaceStudForCeeHeader(Document doc, XYZ ceeHeaderStartPt, string ceeHeaderType, string postType, string postGuage, int postCount, Level topLevel, Level baseLevel)
+        internal static void PlaceStudForCeeHeader(Document doc, XYZ ceeHeaderStartPt, string ceeHeaderType, string postType, string postGuage, int postCount, Level topLevel, Level baseLevel, LineType ceeHeaderOrientation)
         {
             try
             {
+                // Get the Flange Width
+                double dFlangeWidth = GenericUtils.FlangeWidth(postType);
 
+                // if ceeheader point type is startCont or EndCont then the post count is 1. because for continuous cee headers, if we put double stud at each end we will get 4 posts in place of 2
+                if (ceeHeaderType == "StartCont" || ceeHeaderType == "EndCont")
+                    postCount = 1;
 
-
-                // Get Top and Bottom Attachment Elements
-                Element topAttachElement = null, bottomAttachElement = null;
-                topAttachElement = GenericUtils.GetNearestFloorOrRoof(topLevel, ceeHeaderStartPt, doc);
-                bottomAttachElement = GenericUtils.GetNearestFloorOrRoof(baseLevel, ceeHeaderStartPt, doc);
-                
-                if (topAttachElement == null)
+                List<ElementId> createdPosts = new List<ElementId>();
+                for (int i = 0; i < postCount; i++)
                 {
-                    topAttachElement = GetRoofAtPoint(doc, ceeHeaderStartPt);
+                    // Get Top and Bottom Attachment Elements
+                    Element topAttachElement = null, bottomAttachElement = null;
+                    topAttachElement = GenericUtils.GetNearestFloorOrRoof(topLevel, ceeHeaderStartPt, doc);
+                    bottomAttachElement = GenericUtils.GetNearestFloorOrRoof(baseLevel, ceeHeaderStartPt, doc);
+
+                    if (topAttachElement == null)
+                    {
+                        topAttachElement = GetRoofAtPoint(doc, ceeHeaderStartPt);
+                    }
+
+                    // Get the  family Symbol for the Stud
+                    string strFamilySymbol = postType + string.Format(" x {0}ga", postGuage);
+                    FamilySymbol columnType = SymbolCollector.GetSymbol(strFamilySymbol, "Post", SymbolCollector.FamilySymbolType.posts);
+
+                    if (!columnType.IsActive)
+                        columnType.Activate();
+
+                    // Create the column instance at the point
+                    FamilyInstance column = doc.Create.NewFamilyInstance(ceeHeaderStartPt, columnType, baseLevel, StructuralType.Column);
+                    createdPosts.Add(column.Id);
+                    // Add Top and Bottom attachments
+                    if (topAttachElement != null)
+                    {
+                        ColumnAttachment.AddColumnAttachment(doc, column, topAttachElement, 1, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
+                    }
+
+                    if (bottomAttachElement != null)
+                    {
+                        ColumnAttachment.AddColumnAttachment(doc, column, bottomAttachElement, 0, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
+                    }
+
+                    // Adjust the position and orientation based on the type of the cee Header
+                    // if cee header type is continuos post count is always 1;
+                    // if cee header type is nonCont the post count is as defined in the settings
+                    // Start Cont : Web:- -Y, Movement :- 1/2FW in +Y direction
+                    // Start non cont : Web:- +Y, Movement :- 1/2FW in +Y direction
+                    // end Cnt = Web:- +Y, Movement :- 1/2FW in -Y direction
+                    // endNonCnt = Web:- _Y, Movement :- 1/2FW in -Y direction
+                    // Similar conditions for horizontal Cee Headers
+                    if (ceeHeaderType == "StartCont")
+                    {
+                        if (ceeHeaderOrientation == LineType.vertical)
+                        {
+                            UpdateOrientationOfCeeHeaderColumn(new XYZ(0, -1, 0), column.Id, doc, ceeHeaderStartPt);
+                            AdjustPostLocationofCeeHeaderColumn(new XYZ(0, dFlangeWidth / 2.0, 0.0), column.Id, doc);
+                        }
+                        else
+                        {
+                            UpdateOrientationOfCeeHeaderColumn(new XYZ(-1, 0, 0), column.Id, doc, ceeHeaderStartPt);
+                            AdjustPostLocationofCeeHeaderColumn(new XYZ(dFlangeWidth / 2.0, 0, 0.0), column.Id, doc);
+                        }
+                    }
+                    else if (ceeHeaderType == "StartNonCont")
+                    {
+                        if (i == 0)
+                        {
+                            if (ceeHeaderOrientation == LineType.vertical)
+                            {
+                                UpdateOrientationOfCeeHeaderColumn(new XYZ(0, 1, 0), column.Id, doc, ceeHeaderStartPt);
+                                AdjustPostLocationofCeeHeaderColumn(new XYZ(0, dFlangeWidth / 2.0, 0.0), column.Id, doc);
+                            }
+                            else
+                            {
+                                UpdateOrientationOfCeeHeaderColumn(new XYZ(1, 0, 0), column.Id, doc, ceeHeaderStartPt);
+                                AdjustPostLocationofCeeHeaderColumn(new XYZ(dFlangeWidth / 2.0, 0, 0.0), column.Id, doc);
+                            }
+                        }
+                        if (i == 1)
+                        {
+                            if (ceeHeaderOrientation == LineType.vertical)
+                            {
+                                UpdateOrientationOfCeeHeaderColumn(new XYZ(0, -1, 0), column.Id, doc, ceeHeaderStartPt);
+                                AdjustPostLocationofCeeHeaderColumn(new XYZ(0, dFlangeWidth * 1.5, 0.0), column.Id, doc);
+                            }
+                            else
+                            {
+                                UpdateOrientationOfCeeHeaderColumn(new XYZ(-1, 0, 0), column.Id, doc, ceeHeaderStartPt);
+                                AdjustPostLocationofCeeHeaderColumn(new XYZ(dFlangeWidth * 1.5, 0, 0.0), column.Id, doc);
+                            }
+                        }
+                    }
+                    else if (ceeHeaderType == "EndCont")
+                    {
+                        if (ceeHeaderOrientation == LineType.vertical)
+                        {
+                            UpdateOrientationOfCeeHeaderColumn(new XYZ(0, 1, 0), column.Id, doc, ceeHeaderStartPt);
+                            AdjustPostLocationofCeeHeaderColumn(new XYZ(0, -dFlangeWidth / 2.0, 0.0), column.Id, doc);
+                        }
+                        else
+                        {
+                            UpdateOrientationOfCeeHeaderColumn(new XYZ(1, 0, 0), column.Id, doc, ceeHeaderStartPt);
+                            AdjustPostLocationofCeeHeaderColumn(new XYZ(-dFlangeWidth / 2.0, 0, 0.0), column.Id, doc);
+                        }
+                    }
+                    else if (ceeHeaderType == "EndNonCont")
+                    {
+                        if (i == 0)
+                        {
+                            if (ceeHeaderOrientation == LineType.vertical)
+                            {
+                                UpdateOrientationOfCeeHeaderColumn(new XYZ(0, -1, 0), column.Id, doc, ceeHeaderStartPt);
+                                AdjustPostLocationofCeeHeaderColumn(new XYZ(0, -dFlangeWidth / 2.0, 0.0), column.Id, doc);
+                            }
+                            else
+                            {
+                                UpdateOrientationOfCeeHeaderColumn(new XYZ(-1, 0, 0), column.Id, doc, ceeHeaderStartPt);
+                                AdjustPostLocationofCeeHeaderColumn(new XYZ(-dFlangeWidth / 2.0, 0, 0.0), column.Id, doc);
+                            }
+                        }
+                        if (i == 1)
+                        {
+                            if (ceeHeaderOrientation == LineType.vertical)
+                            {
+                                UpdateOrientationOfCeeHeaderColumn(new XYZ(0, 1, 0), column.Id, doc, ceeHeaderStartPt);
+                                AdjustPostLocationofCeeHeaderColumn(new XYZ(0, -dFlangeWidth * 1.5, 0.0), column.Id, doc);
+                            }
+                            else
+                            {
+                                UpdateOrientationOfCeeHeaderColumn(new XYZ(1, 0, 0), column.Id, doc, ceeHeaderStartPt);
+                                AdjustPostLocationofCeeHeaderColumn(new XYZ(-dFlangeWidth * 1.5, 0, 0.0), column.Id, doc);
+                            }
+                        }
+
+                    }
+
+                    // Remove any existing studs
+                    RemoveIntersectingStuds(createdPosts, doc);
+
                 }
-
-                // Get the  family Symbol for the Stud
-                string strFamilySymbol = postType + string.Format(" x {0}ga", postGuage);
-                FamilySymbol columnType = SymbolCollector.GetSymbol(strFamilySymbol, "Post", SymbolCollector.FamilySymbolType.posts);
-
-                if (!columnType.IsActive)
-                    columnType.Activate();
-
-                // Create the column instance at the point
-                FamilyInstance column = doc.Create.NewFamilyInstance( ceeHeaderStartPt, columnType, baseLevel, StructuralType.Column);
-
-                // Add Top and Bottom attachments
-                if (topAttachElement != null)
-                {
-                    ColumnAttachment.AddColumnAttachment(doc, column, topAttachElement, 1, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
-                }
-
-                if (bottomAttachElement != null)
-                {
-                    ColumnAttachment.AddColumnAttachment(doc, column, bottomAttachElement, 0, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
-                }
-
-                // Adjust the position and orientation based on the type of the cee Header
-                if (ceeHeaderType == "StartCont")
-                {
-                    column.orien
-                }
-                else if (ceeHeaderType == "StartNonCont") 
-                { 
-                }
-                else if (ceeHeaderType == "EndCont") 
-                { 
-                }
-                else if (ceeHeaderType == "EndNonCont") 
-                { 
-                }
-
-                // Remove any existing studs
-                RemoveIntersectingStuds(column);
-
-
-
-                //for (int i = 0; i < 2; i++)
-                //{
-
-
-                //    //ElementId columnID = column.Id;
-                //    //XYZ ColumnOrientation = column.FacingOrientation;
-
-                //    //// Flange width
-                //    //double dFlangeWidth = GenericUtils.FlangeWidth(inputLine.strStudType);
-
-                //    //// update the orientation - based on start or end and the roof slope
-                //    //if (bEndingColumns)
-                //    //{
-                //    //    UpdateOrientation(doc, columnID, ColumnOrientation, studPoint, bAtStart ? pt2 : pt1, true);
-
-                //    //    // Adjust the stud location
-                //    //    XYZ Adjustedpt1 = AdjustLinePoint(studPoint, bAtStart ? pt2 : pt1, lineType, dFlangeWidth / 2);
-                //    //    MoveColumn(doc, columnID, Adjustedpt1);
-                //    //    Logger.logMessage("ProcessStudInputLine - Move Column at end");
-                //    //}
-
-                //    //else
-                //    //{
-                //    //    UpdateOrientation(doc, columnID, ColumnOrientation, studPoint, pt2);
-
-                //    //    // Adjust the stud location
-                //    //    XYZ Adjustedpt1 = AdjustStudAccordingToPanel(studPoint, lineType, dFlangeWidth / 2, bFlip, column.FacingOrientation, dPanelThickness);
-                //    //    MoveColumn(doc, columnID, Adjustedpt1);
-                //    //    Logger.logMessage("ProcessStudInputLine - Move Column at end");
-                //    //}
-                //}
             }
             catch (Exception)
             {
@@ -458,9 +512,62 @@ namespace Revit_Automation.Source.Utils
 
         }
 
-        private static void RemoveIntersectingStuds(FamilyInstance column)
+        private static void AdjustPostLocationofCeeHeaderColumn(XYZ offsetVector, ElementId columnID, Document doc)
         {
-            throw new NotImplementedException();
+            FamilyInstance column = doc.GetElement(columnID) as FamilyInstance;
+
+            // Get the column's Location property
+            Location location = column.Location;
+
+            // Check if the column's location is a LocationPoint
+            if (location is LocationPoint locationPoint)
+            {
+                // Set the new location for the column
+                locationPoint.Point += offsetVector;
+            }
+        }
+
+        private static void UpdateOrientationOfCeeHeaderColumn(XYZ desiredOrientation, ElementId columnID, Document doc, XYZ ceeHeaderStartPt)
+        {
+            // Compute the orientation after rotation. 
+            FamilyInstance column = doc.GetElement(columnID) as FamilyInstance;
+            XYZ newOrientation = column.FacingOrientation;
+
+            // Axis of rotation
+            XYZ point1 = new XYZ(ceeHeaderStartPt.X, ceeHeaderStartPt.Y, 0);
+            XYZ point2 = new XYZ(ceeHeaderStartPt.X, ceeHeaderStartPt.Y, 1);
+            Line axis = Line.CreateBound(point1, point2);
+
+            double angleInRadians = newOrientation.AngleTo(desiredOrientation);
+
+            ElementTransformUtils.RotateElement(doc, columnID, axis, angleInRadians); 
+
+        }
+
+        private static void RemoveIntersectingStuds(List<ElementId> columnIDs, Document doc)
+        {
+            foreach (var columnID in columnIDs)
+            {
+                FamilyInstance column = doc.GetElement(columnID) as FamilyInstance;
+                XYZ newOrientation = column.FacingOrientation;
+
+                BoundingBoxXYZ boundingBoxXYZ = column.get_BoundingBox(doc.ActiveView);
+
+                XYZ min = new XYZ(boundingBoxXYZ.Min.X + 0.05, boundingBoxXYZ.Min.Y + 0.05, boundingBoxXYZ.Min.Z);
+                XYZ max = new XYZ(boundingBoxXYZ.Max.X - 0.05, boundingBoxXYZ.Max.Y - 0.05, boundingBoxXYZ.Min.Z);
+
+                Outline outline = new Outline(min,max);
+
+                BoundingBoxIntersectsFilter filter = new BoundingBoxIntersectsFilter(outline);
+
+                ICollection<ElementId> columns = new FilteredElementCollector(doc).WherePasses(filter).OfCategory(BuiltInCategory.OST_StructuralColumns).ToElementIds();
+
+                foreach (ElementId elemID in columns)
+                {
+                    if (!columnIDs.Contains(elemID))
+                        doc.Delete(elemID);
+                }
+            }
         }
     }
 }

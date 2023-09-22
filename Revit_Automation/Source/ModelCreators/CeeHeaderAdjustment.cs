@@ -31,6 +31,9 @@ namespace Revit_Automation.Source.ModelCreators
                 doubleHeaderCoordinates.Clear();
                 singleHeaderCoordinates.Clear();
 
+                List<Element> doubleCeeHeaders = new List<Element>();
+                List<Element>  singleCeeHeaders = new List<Element>();
+
                 FilteredElementCollector framingElements
                   = new FilteredElementCollector(m_Document, m_Document.ActiveView.Id)
                     .WhereElementIsNotElementType()
@@ -56,6 +59,7 @@ namespace Revit_Automation.Source.ModelCreators
 
                 while (ceeHeaderElements.Count > 0)
                 {
+                    // Change the Post Face CL offset Parameter according to selected 
                     int iMatchIndex = -1;
 
                     bool bMatchFound = false;
@@ -74,6 +78,8 @@ namespace Revit_Automation.Source.ModelCreators
                         {
                             bMatchFound = true;
                             doubleHeaderCoordinates.Add(startPt, endPt);
+                            doubleCeeHeaders.Add(ceeHeaderElements[0]);
+                            doubleCeeHeaders.Add(ceeHeaderElements[j]);
                             iMatchIndex = j;
                             break;
                         }
@@ -81,7 +87,8 @@ namespace Revit_Automation.Source.ModelCreators
 
                     if (!bMatchFound)
                     {
-                        singleHeaderCoordinates.Add(startPt, endPt); 
+                        singleHeaderCoordinates.Add(startPt, endPt);
+                        singleCeeHeaders.Add(ceeHeaderElements[0]);
                     }
                     
                     // First delete the second element and then first, else the list indices will vary and delete unintended elements. 
@@ -93,6 +100,7 @@ namespace Revit_Automation.Source.ModelCreators
 
                 Dictionary<XYZ, XYZ> selectedList = ceeHeadersAdjust.iCeeHeaderCount == 2 ? doubleHeaderCoordinates : singleHeaderCoordinates;
 
+                LineType ceeHeaderOrientation = MathUtils.ApproximatelyEqual(selectedList.ElementAt(0).Key.X, selectedList.ElementAt(0).Value.X) ? LineType.vertical : LineType.Horizontal;
                 Dictionary<XYZ, string> sortedPoints = IdentifyContAndNonContHeaderPoints(selectedList);
 
                 foreach (KeyValuePair<XYZ, string> kvp in sortedPoints)
@@ -104,7 +112,15 @@ namespace Revit_Automation.Source.ModelCreators
                     Level baseLevel = null, topLevel = null;
                     AdjustLevelOfthePoint(ref CeeHeaderPt, out baseLevel, out topLevel);
 
-                    PostCreationUtils.PlaceStudForCeeHeader(m_Document, CeeHeaderPt, CeeHeaderRelation, ceeHeadersAdjust.postType, ceeHeadersAdjust.postGuage, ceeHeadersAdjust.postCount, topLevel, baseLevel);
+                    PostCreationUtils.PlaceStudForCeeHeader(m_Document, CeeHeaderPt, CeeHeaderRelation, ceeHeadersAdjust.postType, ceeHeadersAdjust.postGuage, ceeHeadersAdjust.postCount, topLevel, baseLevel, ceeHeaderOrientation);
+                }
+
+                List<Element> adjustedHeaders = ceeHeadersAdjust.iCeeHeaderCount == 2 ? doubleCeeHeaders : singleCeeHeaders;
+
+                foreach (Element ceeHeader in adjustedHeaders)
+                {
+                    double dHalfWebWidth = GenericUtils.WebWidth(ceeHeadersAdjust.postType) / 2.0;
+                    ceeHeader.LookupParameter("Post CL Face Offset").Set(dHalfWebWidth);
                 }
             }
         }
@@ -113,21 +129,29 @@ namespace Revit_Automation.Source.ModelCreators
         {
             Dictionary<XYZ, string> retDict = new Dictionary<XYZ, string>();
 
-            foreach (KeyValuePair<XYZ, XYZ> kvp in selectedList)
+            for ( int i = 0; i < selectedList.Count; i ++)
             {
+                KeyValuePair<XYZ, XYZ> kvp = selectedList.ElementAt(i);
                 bool bContinuousAtStart = false;
                 bool bContinuousAtEnd = false;
 
                 XYZ statPt = kvp.Key;
                 XYZ endPt = kvp.Value;
 
-                // check that the coordinates os start point of this header match with endpoint of any other header - if match continous else not
-                var filteredItems = selectedList.Where(i => MathUtils.ApproximatelyEqual(i.Value.X, statPt.X) && MathUtils.ApproximatelyEqual(i.Value.Y, statPt.Y));
-                bContinuousAtStart = filteredItems.Count() > 0 ? true : false;
+                for (int j = 0; j < selectedList.Count; j++ ) 
+                {
+                    KeyValuePair<XYZ, XYZ> kvp2 =  selectedList.ElementAt (j);
+                    XYZ matchStart = kvp2.Key;
+                    XYZ matchEnd = kvp2.Value;
 
-                // check that the coordinates os end point of this header match with start point of any other header - if match continous else not
-                var filteredItems2 = selectedList.Where(i => MathUtils.ApproximatelyEqual(i.Key.X, endPt.X) && MathUtils.ApproximatelyEqual(i.Key.Y, endPt.Y));
-                bContinuousAtStart = filteredItems.Count() > 0 ? true : false;
+                    if (MathUtils.ApproximatelyEqual(statPt.X, matchEnd.X) && MathUtils.ApproximatelyEqual(statPt.Y, matchEnd.Y))
+                        bContinuousAtStart = true;
+
+                    if (MathUtils.ApproximatelyEqual(endPt.X, matchStart.X) && MathUtils.ApproximatelyEqual(matchStart.Y, endPt.Y))
+                        bContinuousAtEnd = true;
+                     
+                }
+
 
                 retDict.Add(statPt, bContinuousAtStart ? "StartCont" : "StartNonCont");
                 retDict.Add(endPt, bContinuousAtEnd ? "EndCont" : "EndNonCont");
