@@ -60,6 +60,9 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
 
             //tag to dimension overlap checker
             m_TagOverlapCheckers.Add(new Tag2DimensionOverlap());
+
+            //tag to detail item overlap checker
+            m_TagOverlapCheckers.Add(new Tag2DetailOverlap());
         }
 
         /// <summary>

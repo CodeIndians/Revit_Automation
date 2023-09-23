@@ -308,6 +308,80 @@ namespace Sheeting_Automation.Source.Tags
             // If none of the above conditions are met, the bounding boxes intersect
             return true;
         }
+
+        public static BoundingBoxXYZ GetBoundingBox(GeometryObject geomObject) 
+        {
+            BoundingBoxXYZ boundingBoxXYZ = null;
+            
+            Line line = geomObject as Line;
+            Arc arc = geomObject as Arc;
+            Solid solid = geomObject as Solid;
+
+            if (line != null)
+            {
+                XYZ minPoint = new XYZ(Math.Min(line.GetEndPoint(0).X, line.GetEndPoint(1).X) - 0.1f, 
+                                       Math.Min(line.GetEndPoint(0).Y, line.GetEndPoint(1).Y) - 0.1f,
+                                       line.GetEndPoint(0).Z);
+                XYZ maxPoint = new XYZ(Math.Max(line.GetEndPoint(0).X, line.GetEndPoint(1).X) + 0.1f,
+                                       Math.Max(line.GetEndPoint(0).Y, line.GetEndPoint(1).Y) + 0.1f,
+                                       line.GetEndPoint(0).Z);
+
+                boundingBoxXYZ = new BoundingBoxXYZ();
+                boundingBoxXYZ.Min = minPoint;
+                boundingBoxXYZ.Max = maxPoint;
+            }
+
+            if(arc != null)
+            {
+                XYZ midpoint = arc.Center; // Midpoint of the Arc
+                double radius = arc.Radius;
+
+                XYZ minPoint = new XYZ(midpoint.X - radius, midpoint.Y - radius, midpoint.Z - radius);
+                XYZ maxPoint = new XYZ(midpoint.X + radius, midpoint.Y + radius, midpoint.Z + radius);
+
+                boundingBoxXYZ = new BoundingBoxXYZ();
+                boundingBoxXYZ.Min = minPoint;
+                boundingBoxXYZ.Max = maxPoint;
+
+            }
+
+            if (solid != null)
+            {
+                // return null if the surface area is almost zero
+                if (!IsAlmostEqual(solid.SurfaceArea, 0.0, 0.0001))
+                {
+                    List<XYZ> edgeVertices = new List<XYZ>();
+
+                    // Iterate through the edges of the solid and collect their vertices
+                    foreach (Edge edge in solid.Edges)
+                    {
+                        IList<XYZ> edgePoints = edge.Tessellate();
+                        foreach (XYZ point in edgePoints)
+                        {
+                            edgeVertices.Add(point);
+                        }
+                    }
+
+                    // Calculate the minimum and maximum coordinates from the edge vertices
+                    double minX = edgeVertices.Min(p => p.X);
+                    double minY = edgeVertices.Min(p => p.Y);
+                    double minZ = edgeVertices.Min(p => p.Z);
+
+                    double maxX = edgeVertices.Max(p => p.X);
+                    double maxY = edgeVertices.Max(p => p.Y);
+                    double maxZ = edgeVertices.Max(p => p.Z);
+
+                    boundingBoxXYZ = new BoundingBoxXYZ
+                    {
+                        Min = new XYZ(minX, minY, minZ),
+                        Max = new XYZ(maxX, maxY, maxZ)
+                    };
+
+                }
+            }
+
+            return boundingBoxXYZ;
+        }
     }
 
 
