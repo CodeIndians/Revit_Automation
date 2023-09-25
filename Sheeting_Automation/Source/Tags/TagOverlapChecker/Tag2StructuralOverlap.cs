@@ -8,26 +8,40 @@ using System.Threading.Tasks;
 
 namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
 {
-    public class TagOverlapBase
+    public class Tag2StructuralOverlap : TagOverlapBase
     {
-        //list of all the independent tags in the current view
-        protected List<IndependentTag> m_IndependentTags;
-
         /// <summary>
-        /// Base class constrcutor
-        /// Collects all the independent tags in the view
+        /// Get all the detail items ids in the current view
         /// </summary>
-        public TagOverlapBase() 
+        /// <returns></returns>
+        protected override List<ElementId> GetElementIds()
         {
-            // collect independent tags in the current view
-            m_IndependentTags = TagUtils.GetAllTagsInView();
+            List<ElementId> elementIds = new List<ElementId>();
+
+            // Create a filtered element collector
+            FilteredElementCollector collector = new FilteredElementCollector(SheetUtils.m_Document, SheetUtils.m_Document.ActiveView.Id);
+
+            // Filter for elements of category Wall
+            collector.OfCategory(BuiltInCategory.OST_StructuralFraming);
+
+
+            foreach (Element element in collector)
+            {
+                if (TagUtils.GetFamilyNameOfElement(element).Contains("Deck")
+                    || TagUtils.GetFamilyNameOfElement(element).Contains("deck"))
+                    continue;
+                
+                    elementIds.Add(element.Id);
+            }
+
+            return elementIds;
         }
 
         /// <summary>
-        /// Returns the generic bounding boxes of the elements
+        /// Returns the structural conditon bounding box of the elements
         /// </summary>
         /// <returns></returns>
-        public virtual List<ElementId> CheckOverlap()
+        public override List<ElementId> CheckOverlap()
         {
             List<ElementId> overlapElementIds = new List<ElementId>();
 
@@ -39,6 +53,13 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
             {
                 for (int j = 0; j < m_IndependentTags.Count; j++)
                 {
+                    Element overlapElement = SheetUtils.m_Document.GetElement(elementIds[i]);
+
+                    Element tagElement = m_IndependentTags[j].GetTaggedLocalElements().FirstOrDefault();
+
+                    if (TagUtils.GetFamilyNameOfElement(overlapElement) != TagUtils.GetFamilyNameOfElement(tagElement))
+                        continue;
+
                     if (TagUtils.AreBoudingBoxesIntersecting(GetBoundingBoxOfElement(elementIds[i]),
                                                                 m_IndependentTags[j].get_BoundingBox(SheetUtils.m_Document.ActiveView)))
                     {
@@ -58,29 +79,5 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
 
             return overlapElementIds;
         }
-
-        /// <summary>
-        /// Get all the wall element ids in the current view
-        /// </summary>
-        /// <returns></returns>
-        protected virtual List<ElementId> GetElementIds()
-        {
-            List<ElementId> elementIds = new List<ElementId>();
-
-            // return empty list by default
-            return elementIds;
-        }
-
-        /// <summary>
-        /// Retrieve the bounding box of the element represented by its id on the active view 
-        /// </summary>
-        /// <param name="elementId"></param>
-        /// <returns></returns>
-        protected virtual BoundingBoxXYZ GetBoundingBoxOfElement(ElementId elementId)
-        {
-            // Retrieve the element using its ElementId
-            return SheetUtils.m_Document.GetElement(elementId)?.get_BoundingBox(SheetUtils.m_Document.ActiveView);
-        }
-
     }
 }

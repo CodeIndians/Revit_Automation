@@ -63,6 +63,12 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
 
             //tag to detail item overlap checker
             m_TagOverlapCheckers.Add(new Tag2DetailOverlap());
+
+            //tag to section view overlap checker
+            m_TagOverlapCheckers.Add(new Tag2ViewOverlap());
+
+            //tag to structural framing overlap checker
+            m_TagOverlapCheckers.Add(new Tag2StructuralOverlap());
         }
 
         /// <summary>

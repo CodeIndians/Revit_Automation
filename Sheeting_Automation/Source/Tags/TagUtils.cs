@@ -382,6 +382,24 @@ namespace Sheeting_Automation.Source.Tags
 
             return boundingBoxXYZ;
         }
+
+        public static string GetFamilyNameOfElement(Element element)
+        {
+            // Check if the element has a valid Family object
+            if (element is FamilyInstance familyInstance)
+            {
+                Family family = familyInstance.Symbol.Family;
+
+                if (family != null)
+                {
+                    return family.Name;
+                }
+            }
+
+            // Return null or an appropriate default value if the element doesn't have a family
+            return null;
+        }
+
     }
 
 
