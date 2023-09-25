@@ -43,7 +43,7 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
 
             if (textNote != null)
             {
-                
+                // transaction to create a text note with out leader from the same text note
                 using (Transaction transaction = new Transaction(SheetUtils.m_Document, "Get TextNote Bounding Box"))
                 {
                     transaction.Start();
@@ -58,8 +58,10 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
                     transaction.Commit();
                 }
 
+                // capture the bounding box of the text note
                 textNoteBoundingBox = tempNote.get_BoundingBox(SheetUtils.m_Document.ActiveView);
 
+                // transaction to delete the created text note
                 using (Transaction transaction = new Transaction(SheetUtils.m_Document, "Dispose the note"))
                 {
                     transaction.Start();
@@ -72,7 +74,7 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
                 return textNoteBoundingBox;
             }
 
-            // Retrieve the element using its ElementId
+            // return default bounding box
             return SheetUtils.m_Document.GetElement(elementId)?.get_BoundingBox(SheetUtils.m_Document.ActiveView);
 
         }
