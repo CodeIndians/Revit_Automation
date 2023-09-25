@@ -26,7 +26,14 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
 
             foreach (Element element in collector)
             {
-                //TODO: Skip roll up doors for tag overlap
+                // Skip roll up doors 
+                if (element.Name.Contains("Roll-up") ||
+                    element.Name.Contains("Roll-Up") ||
+                    element.Name.Contains("roll-up") ||
+                    element.Name.Contains("roll-Up"))
+                {
+                    continue;
+                }
 
                 elementIds.Add(element.Id);
             }

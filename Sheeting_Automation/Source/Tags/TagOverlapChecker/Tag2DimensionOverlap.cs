@@ -60,6 +60,14 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
 
                     boundingBoxes.Add(boundingBox);
                 }
+
+                if(segments.Size == 0)
+                {
+                    // dimension has no segment, check the dimension directly
+                    BoundingBoxXYZ boundingBox = GetBoundingBoxOfDimension(dim, elementId);
+
+                    boundingBoxes.Add(boundingBox);
+                }
             }
 
             return boundingBoxes;
@@ -69,44 +77,20 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
         {
             XYZ textPoint = segment.TextPosition;
 
-            Dimension dim = dimensionList[elementId];
+            int textLength = segment.ValueString.Length;
 
-            var completeBoundingBox = dimensionList[elementId]?.get_BoundingBox(SheetUtils.m_Document.ActiveView);
+            return GetBoundingBox(textPoint, textLength, elementId);
 
-            // Get the dimensions of the bounding box
-            double width = Math.Abs(completeBoundingBox.Max.X - completeBoundingBox.Min.X);
-            double height = Math.Abs(completeBoundingBox.Max.Y - completeBoundingBox.Min.Y);
+        }
 
-            BoundingBoxXYZ newBoundingBox = new BoundingBoxXYZ();
 
-            XYZ newMinPoint;
-            XYZ newMaxPoint;
+        private BoundingBoxXYZ GetBoundingBoxOfDimension(Dimension dimension, ElementId elementId)
+        {
+            XYZ textPoint = dimension.TextPosition;
 
-            // horizontal bounding box condition
-            if (width > height)
-            {
-                // TODO: Based on the no of characters in the text 
-                // get the hardcoded text box approximate bounding box
-                //newMinPoint = new XYZ(textPoint.X - 1.5, completeBoundingBox.Min.Y, textPoint.Z);
-                //newMaxPoint = new XYZ(textPoint.X + 1.5, completeBoundingBox.Max.Y, textPoint.Z);
-                newMinPoint = new XYZ(textPoint.X - 1.5, textPoint.Y, textPoint.Z);
-                newMaxPoint = new XYZ(textPoint.X + 1.5, textPoint.Y + 1.3, textPoint.Z);
-            }
-            else // vertical bounding box condition 
-            {
-                // TODO: Based on the no of characters in the text 
-                // get the hardcoded text box approximate bounding box
-                //newMinPoint = new XYZ(completeBoundingBox.Min.X, textPoint.Y - 1.5, textPoint.Z);
-                //newMaxPoint = new XYZ(completeBoundingBox.Max.X, textPoint.Y + 1.5, textPoint.Z);
-                newMinPoint = new XYZ(textPoint.X - 1.4, textPoint.Y - 1.5, textPoint.Z);
-                newMaxPoint = new XYZ(textPoint.X , textPoint.Y + 1.5, textPoint.Z);
-            }
+            int textLength = dimension.ValueString.Length;
 
-            // create the bounding box with new min and max points 
-            newBoundingBox.Min = newMinPoint;
-            newBoundingBox.Max = newMaxPoint;
-
-            return newBoundingBox;
+            return GetBoundingBox(textPoint,textLength,elementId);
 
         }
 
@@ -143,6 +127,64 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
             }
 
             return overlapElementIds;
+        }
+
+        private BoundingBoxXYZ GetBoundingBox(XYZ textPoint, int textLength, ElementId elementId)
+        {
+            double offset = 1.0f; ; // this offset is by default
+            double fixedHeightOffset = 1.35f;
+
+            if (textLength <= 5)
+                offset = 1.0;
+            else if (textLength == 6)
+                offset = 1.2;
+            else if (textLength == 7)
+                offset = 1.2;
+            else if (textLength == 8)
+                offset = 1.2f;
+            else if (textLength == 9)
+                offset = 1.4f;
+            else if (textLength == 10)
+                offset = 1.6f;
+            else if (textLength == 11)
+                offset = 1.8f;
+            else if (textLength == 12)
+                offset = 2.0f;
+            else if (textLength == 13)
+                offset = 2.2;
+            else if (textLength >= 14)
+                offset = 2.5;
+
+            Dimension dim = dimensionList[elementId];
+
+            var completeBoundingBox = dimensionList[elementId]?.get_BoundingBox(SheetUtils.m_Document.ActiveView);
+
+            // Get the dimensions of the bounding box
+            double width = Math.Abs(completeBoundingBox.Max.X - completeBoundingBox.Min.X);
+            double height = Math.Abs(completeBoundingBox.Max.Y - completeBoundingBox.Min.Y);
+
+            BoundingBoxXYZ newBoundingBox = new BoundingBoxXYZ();
+
+            XYZ newMinPoint;
+            XYZ newMaxPoint;
+
+            // horizontal bounding box condition
+            if (width > height)
+            {
+                newMinPoint = new XYZ(textPoint.X - offset, textPoint.Y, textPoint.Z);
+                newMaxPoint = new XYZ(textPoint.X + offset, textPoint.Y + fixedHeightOffset, textPoint.Z);
+            }
+            else // vertical bounding box condition 
+            {
+                newMinPoint = new XYZ(textPoint.X - fixedHeightOffset, textPoint.Y - offset, textPoint.Z);
+                newMaxPoint = new XYZ(textPoint.X, textPoint.Y + offset, textPoint.Z);
+            }
+
+            // create the bounding box with new min and max points 
+            newBoundingBox.Min = newMinPoint;
+            newBoundingBox.Max = newMaxPoint;
+
+            return newBoundingBox;
         }
 
     }
