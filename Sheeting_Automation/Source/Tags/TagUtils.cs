@@ -383,6 +383,38 @@ namespace Sheeting_Automation.Source.Tags
             return boundingBoxXYZ;
         }
 
+        public static List<BoundingBoxXYZ> GetBoundingBoxes(Leader leader)
+        {
+            List<BoundingBoxXYZ> boundingBoxesList = new List<BoundingBoxXYZ>();
+
+            XYZ minPoint = new XYZ(Math.Min(leader.Anchor.X, leader.Elbow.X) - 0.1f,
+                                       Math.Min(leader.Anchor.Y, leader.Elbow.Y) - 0.1f,
+                                       leader.Anchor.Z);
+            XYZ maxPoint = new XYZ(Math.Max(leader.Anchor.X, leader.Elbow.X) + 0.1f,
+                                   Math.Max(leader.Anchor.Y, leader.Elbow.Y) + 0.1f,
+                                   leader.Anchor.Z);
+
+            var boundingBoxXYZ = new BoundingBoxXYZ();
+            boundingBoxXYZ.Min = minPoint;
+            boundingBoxXYZ.Max = maxPoint;
+            boundingBoxesList.Add(boundingBoxXYZ);
+
+            minPoint = new XYZ(Math.Min(leader.End.X, leader.Elbow.X) - 0.1f,
+                                       Math.Min(leader.End.Y, leader.Elbow.Y) - 0.1f,
+                                       leader.End.Z);
+            maxPoint = new XYZ(Math.Max(leader.End.X, leader.Elbow.X) + 0.1f,
+                                   Math.Max(leader.End.Y, leader.Elbow.Y) + 0.1f,
+                                   leader.End.Z);
+
+            boundingBoxXYZ = new BoundingBoxXYZ();
+            boundingBoxXYZ.Min = minPoint;
+            boundingBoxXYZ.Max = maxPoint;
+            boundingBoxesList.Add(boundingBoxXYZ);
+
+
+            return boundingBoxesList;
+        }
+
         public static string GetFamilyNameOfElement(Element element)
         {
             // Check if the element has a valid Family object

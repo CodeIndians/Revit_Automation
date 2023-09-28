@@ -148,6 +148,16 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
 
                 textNoteBoundingBoxList.Add(textNoteBoundingBox);
 
+                if(textNote.LeaderCount > 0)
+                {
+                    var leadersList = textNote.GetLeaders();
+
+                    foreach (var leader in leadersList)
+                    {
+                        textNoteBoundingBoxList.AddRange(TagUtils.GetBoundingBoxes(leader));
+                    }
+                }
+
                 return textNoteBoundingBoxList;
 
             }
