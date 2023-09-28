@@ -271,6 +271,23 @@ namespace Sheeting_Automation.Source.Tags
         }
 
         /// <summary>
+        /// List out all the independent tags in the current view
+        /// </summary>
+        /// <returns>List of independent tags</returns>
+        public static List<IndependentTag> GetTagsWithLeaders(List<IndependentTag> tags)
+        {
+            List<IndependentTag> independentTags = new List<IndependentTag>();
+
+            foreach(IndependentTag tag in tags)
+            {
+                if(tag.HasLeader)
+                    independentTags.Add(tag);
+            }
+
+            return independentTags;
+        }
+
+        /// <summary>
         /// Check if the given two tags are intersecting
         /// </summary>
         /// <param name="tag1"></param>

@@ -34,6 +34,8 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
         /// </summary>
         private void InitializeOverlapCheckers()
         {
+            TagOverlapBase.InitializeTags();
+
             // clear if anything is already present 
             m_TagOverlapCheckers.Clear();
 
@@ -119,6 +121,11 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
             {
                 TaskDialog.Show("Info", "No tags are overlapping");
             }
+        }
+
+        public void CleanupTempTags()
+        {
+            TagOverlapBase.DeleteNoLeaderTags();
         }
 
     }

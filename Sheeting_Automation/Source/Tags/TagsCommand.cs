@@ -126,6 +126,8 @@ namespace Sheeting_Automation.Source.Tags
 
             manager.HighlightTags();
 
+            manager.CleanupTempTags();
+
             return Result.Succeeded;
         }
     }

@@ -11,7 +11,9 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
     public class TagOverlapBase
     {
         //list of all the independent tags in the current view
-        protected List<IndependentTag> m_IndependentTags;
+        public static List<IndependentTag> m_IndependentTags;
+        public static List<IndependentTag> m_TagsWithLeaders;
+        public static List<IndependentTag> m_TagsWithOutLeaders;
 
         /// <summary>
         /// Base class constrcutor
@@ -19,8 +21,21 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
         /// </summary>
         public TagOverlapBase() 
         {
+            
+        }
+
+        public static void InitializeTags()
+        {
             // collect independent tags in the current view
             m_IndependentTags = TagUtils.GetAllTagsInView();
+
+            // collect tags with leaders 
+            m_TagsWithLeaders = TagUtils.GetTagsWithLeaders(m_IndependentTags);
+
+            m_IndependentTags.RemoveAll(tag => m_TagsWithLeaders.Contains(tag));
+
+            m_TagsWithOutLeaders = new List<IndependentTag>();
+            PlaceTagsWithOutLeaders();
         }
 
         /// <summary>
@@ -46,6 +61,10 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
                         {
                             overlapElementIds.Add(m_IndependentTags[j].Id);
                             overlapElementIds.AddRange(m_IndependentTags[j].GetTaggedLocalElementIds());
+
+                            var indexDiff = m_IndependentTags.Count - m_TagsWithLeaders.Count;
+                            if (i >= indexDiff)
+                                elementIds.Add(m_TagsWithLeaders[i - indexDiff].Id);
                         }
 
                         if (!overlapElementIds.Contains(elementIds[i]))
@@ -80,6 +99,44 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
         {
             // Retrieve the element using its ElementId
             return SheetUtils.m_Document.GetElement(elementId)?.get_BoundingBox(SheetUtils.m_Document.ActiveView);
+        }
+
+        private static void PlaceTagsWithOutLeaders()
+        {
+
+            using (Transaction transaction = new Transaction(SheetUtils.m_Document))
+            {
+                transaction.Start("Create no leader tags from leader tags");
+
+                foreach (IndependentTag tag in m_TagsWithLeaders)
+                {
+
+                    IndependentTag noLeaderTag = IndependentTag.Create(SheetUtils.m_Document, SheetUtils.m_Document.ActiveView.Id, tag.GetTaggedReferences().FirstOrDefault(), false, TagMode.TM_ADDBY_CATEGORY, tag.TagOrientation, tag.TagHeadPosition);
+
+                    noLeaderTag.ChangeTypeId(tag.GetTypeId());
+
+                    m_TagsWithOutLeaders.Add(noLeaderTag);
+
+                    m_IndependentTags.Add(noLeaderTag);
+                }
+
+                transaction.Commit();
+            }
+        }
+
+        public static void DeleteNoLeaderTags()
+        {
+            using (Transaction transaction = new Transaction(SheetUtils.m_Document))
+            {
+                transaction.Start("Deleting No leader tags");
+
+                foreach (IndependentTag tag in m_TagsWithOutLeaders)
+                {
+                   SheetUtils.m_Document.Delete(tag.Id);
+                }
+
+                transaction.Commit();
+            }
         }
 
     }
