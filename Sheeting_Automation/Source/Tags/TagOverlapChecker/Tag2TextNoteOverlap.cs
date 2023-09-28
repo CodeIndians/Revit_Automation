@@ -33,50 +33,162 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
             return elementIds;
         }
 
-        protected override BoundingBoxXYZ GetBoundingBoxOfElement(ElementId elementId)
+        protected List<BoundingBoxXYZ> GetBoundingBoxesOfTextNote(ElementId elementId)
         {
             TextNote textNote = SheetUtils.m_Document.GetElement(elementId) as TextNote;
 
-            TextNote tempNote = null;
-
-            BoundingBoxXYZ textNoteBoundingBox = new BoundingBoxXYZ();
+            List<BoundingBoxXYZ> textNoteBoundingBoxList = new List<BoundingBoxXYZ>();
 
             if (textNote != null)
             {
-                // transaction to create a text note with out leader from the same text note
-                using (Transaction transaction = new Transaction(SheetUtils.m_Document, "Get TextNote Bounding Box"))
+                // alignment = right, center, left
+                var horAlignment = textNote.HorizontalAlignment;
+
+                // top alignment point
+                var textCordinate = textNote.Coord;
+
+                // can be up or left point vector 
+                var upDirection = textNote.UpDirection;
+
+                // scale of the current view, used in the width and height calculation
+                var scale = SheetUtils.m_Document.ActiveView.Scale;
+
+                // height and width of the text note
+                // TODO: Add offset if required
+                var width = textNote.Width * scale;
+                var height = textNote.Height * scale;
+
+                // initialize max and min points
+                XYZ minPoint = null;
+                XYZ maxPoint = null;
+
+                // up direction is to the north 
+                if(upDirection.IsAlmostEqualTo(new XYZ(0,1,0)))
                 {
-                    transaction.Start();
+                    if(horAlignment == HorizontalTextAlignment.Left)
+                    {
+                        minPoint = new XYZ(textCordinate.X, textCordinate.Y - height, textCordinate.Z);
+                        maxPoint = new XYZ(textCordinate.X + width, textCordinate.Y, textCordinate.Z);
+                    }
+                    else if (horAlignment == HorizontalTextAlignment.Right)
+                    {
+                        minPoint = new XYZ(textCordinate.X - width, textCordinate.Y - height, textCordinate.Z);
+                        maxPoint = textCordinate;
+                    }
+                    else if(horAlignment == HorizontalTextAlignment.Center)
+                    {
+                        minPoint = new XYZ(textCordinate.X - (width/2), textCordinate.Y - height, textCordinate.Z);
+                        maxPoint = new XYZ(textCordinate.X + (width/2), textCordinate.Y, textCordinate.Z);
+                    }
+                }
+                else if (upDirection.IsAlmostEqualTo(new XYZ(-1,0,0)))  // up direction is to the west 
+                {
+                    if (horAlignment == HorizontalTextAlignment.Left)
+                    {
+                        minPoint = textCordinate;
+                        maxPoint = new XYZ(textCordinate.X + height, textCordinate.Y + width, textCordinate.Z);
 
+                    }
+                    else if (horAlignment == HorizontalTextAlignment.Right)
+                    {
+                        minPoint = new XYZ(textCordinate.X, textCordinate.Y - width, textCordinate.Z);
+                        maxPoint = new XYZ(textCordinate.X + height, textCordinate.Y, textCordinate.Z);
 
-                    var textNoteType = textNote.TextNoteType;
+                    }
+                    else if (horAlignment == HorizontalTextAlignment.Center)
+                    {
+                        minPoint = new XYZ(textCordinate.X , textCordinate.Y - (width/2), textCordinate.Z);
+                        maxPoint = new XYZ(textCordinate.X + height, textCordinate.Y + (width/2), textCordinate.Z);
+                    }
+                }
+                else if (upDirection.IsAlmostEqualTo(new XYZ(1, 0, 0)))  // up direction is to the east 
+                {
+                    if (horAlignment == HorizontalTextAlignment.Left)
+                    {
+                        minPoint = new XYZ(textCordinate.X - height, textCordinate.Y - width, textCordinate.Z);
+                        maxPoint = textCordinate;
 
-                    TextNoteOptions options = new TextNoteOptions();
+                    }
+                    else if (horAlignment == HorizontalTextAlignment.Right)
+                    {
+                        minPoint = new XYZ(textCordinate.X - height, textCordinate.Y, textCordinate.Z);
+                        maxPoint = new XYZ(textCordinate.X, textCordinate.Y + width, textCordinate.Z);
 
-                    tempNote = TextNote.Create(SheetUtils.m_Document, SheetUtils.m_Document.ActiveView.Id, textNote.Coord, textNote.Text,textNoteType.Id);
+                    }
+                    else if (horAlignment == HorizontalTextAlignment.Center)
+                    {
+                        minPoint = new XYZ(textCordinate.X - height, textCordinate.Y - (width/2), textCordinate.Z);
+                        maxPoint = new XYZ(textCordinate.X, textCordinate.Y + (width/2), textCordinate.Z);
+                    }
+                }
+                else if (upDirection.IsAlmostEqualTo(new XYZ(0, -1, 0)))  // up direction is to the south 
+                {
+                    if (horAlignment == HorizontalTextAlignment.Left)
+                    {
+                        minPoint = new XYZ(textCordinate.X - width, textCordinate.Y , textCordinate.Z);
+                        maxPoint = new XYZ(textCordinate.X , textCordinate.Y + height, textCordinate.Z);
 
-                    transaction.Commit();
+                    }
+                    else if (horAlignment == HorizontalTextAlignment.Right)
+                    {
+                        minPoint = textCordinate;
+                        maxPoint = new XYZ(textCordinate.X + width, textCordinate.Y + height, textCordinate.Z);
+
+                    }
+                    else if (horAlignment == HorizontalTextAlignment.Center)
+                    {
+                        minPoint = new XYZ(textCordinate.X - (width/2), textCordinate.Y, textCordinate.Z);
+                        maxPoint = new XYZ(textCordinate.X + (width/2), textCordinate.Y + height, textCordinate.Z);
+                    }
                 }
 
-                // capture the bounding box of the text note
-                textNoteBoundingBox = tempNote.get_BoundingBox(SheetUtils.m_Document.ActiveView);
+                BoundingBoxXYZ textNoteBoundingBox = new BoundingBoxXYZ();
+                textNoteBoundingBox.Min = minPoint;
+                textNoteBoundingBox.Max = maxPoint;
 
-                // transaction to delete the created text note
-                using (Transaction transaction = new Transaction(SheetUtils.m_Document, "Dispose the note"))
-                {
-                    transaction.Start();
+                textNoteBoundingBoxList.Add(textNoteBoundingBox);
 
-                    SheetUtils.m_Document.Delete(tempNote.Id);
+                return textNoteBoundingBoxList;
 
-                    transaction.Commit();
-                }
-
-                return textNoteBoundingBox;
             }
 
-            // return default bounding box
-            return SheetUtils.m_Document.GetElement(elementId)?.get_BoundingBox(SheetUtils.m_Document.ActiveView);
+            // return default bounding box if it is not a text note 
+            return new List<BoundingBoxXYZ> { SheetUtils.m_Document.GetElement(elementId)?.get_BoundingBox(SheetUtils.m_Document.ActiveView) };
+        }
 
+        public override List<ElementId> CheckOverlap()
+        {
+            var overlapElementIds = new List<ElementId>();
+
+            // get the wall element ids
+            var elementIds = GetElementIds();
+
+
+            for (int i = 0; i < elementIds.Count; i++)
+            {
+                for (int j = 0; j < m_IndependentTags.Count; j++)
+                {
+                    foreach (BoundingBoxXYZ boundingBoxXYZ in GetBoundingBoxesOfTextNote(elementIds[i]))
+                    {
+                        if (TagUtils.AreBoudingBoxesIntersecting(boundingBoxXYZ,
+                                                       m_IndependentTags[j].get_BoundingBox(SheetUtils.m_Document.ActiveView)))
+                        {
+                            if (!overlapElementIds.Contains(m_IndependentTags[j].Id))
+                            {
+                                overlapElementIds.Add(m_IndependentTags[j].Id);
+                                overlapElementIds.AddRange(m_IndependentTags[j].GetTaggedLocalElementIds());
+                            }
+
+                            if (!overlapElementIds.Contains(elementIds[i]))
+                            {
+                                overlapElementIds.Add(elementIds[i]);
+                            }
+                        }
+                    }
+                }
+            }
+
+            return overlapElementIds;
         }
     }
 }

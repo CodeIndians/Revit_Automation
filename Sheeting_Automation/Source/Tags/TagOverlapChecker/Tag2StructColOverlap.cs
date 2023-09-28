@@ -32,5 +32,50 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
 
             return elementIds;
         }
+
+        protected override BoundingBoxXYZ GetBoundingBoxOfElement(ElementId elementId)
+        {
+            // get the detail element from the id
+            Element detailElement = SheetUtils.m_Document.GetElement(elementId);
+
+            // set the options 
+            var options = new Options();
+            options.ComputeReferences = true;
+            options.View = SheetUtils.m_Document.ActiveView;
+
+            // collect the geometry instances to a list
+            List<GeometryInstance> geomInstancesList = detailElement.get_Geometry(options)
+                                                           .Where(o => o is GeometryInstance)
+                                                           .Cast<GeometryInstance>()
+                                                           .ToList();
+
+
+
+
+            // Retrieve the element using its ElementId
+            return GetBoundingBoxOfSolid(geomInstancesList);
+        }
+
+        protected BoundingBoxXYZ GetBoundingBoxOfSolid(List<GeometryInstance> geometryInstance)
+        {
+            BoundingBoxXYZ bBox = null;
+
+            // iterate all the geometry instances 
+            foreach (GeometryInstance geomInstance in geometryInstance)
+            {
+                // iterate all the shapes 
+                foreach (GeometryObject geomObj in geomInstance.GetInstanceGeometry())
+                {
+                    var tempBox = TagUtils.GetBoundingBox(geomObj);
+                    if (tempBox != null)
+                    {
+                        bBox = tempBox;
+                        break;
+                    }
+                }
+            }
+
+            return bBox;
+        }
     }
 }

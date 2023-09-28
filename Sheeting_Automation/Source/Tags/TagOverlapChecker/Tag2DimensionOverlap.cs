@@ -159,6 +159,9 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
 
             var completeBoundingBox = dimensionList[elementId]?.get_BoundingBox(SheetUtils.m_Document.ActiveView);
 
+            if (completeBoundingBox == null)
+                return null;
+
             // Get the dimensions of the bounding box
             double width = Math.Abs(completeBoundingBox.Max.X - completeBoundingBox.Min.X);
             double height = Math.Abs(completeBoundingBox.Max.Y - completeBoundingBox.Min.Y);

@@ -113,7 +113,7 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
 
             if(m_ElementIds.Count > 0)
             {
-                TaskDialog.Show("Info", $"{m_ElementIds.Count / 2} overlap(s) detected.");
+                TaskDialog.Show("Info", $"{SheetUtils.m_Selection.GetElementIds().Count / 2 } overlap(s) detected.");
             }
             else
             {
