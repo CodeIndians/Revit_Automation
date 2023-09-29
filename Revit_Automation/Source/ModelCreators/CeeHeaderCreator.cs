@@ -16,8 +16,8 @@ using static Autodesk.Revit.DB.SpecTypeId;
 
 namespace Revit_Automation
 {
-    // Assumptions : if Span is vertical - And we have vertical CMU walls in the span, consider Cee Header points
-    // If span is vertical - 
+    // Assumptions : if Span is vertical - And we have vertical CMU walls in the span, consider Cee Header points of the horizontal walls as a vertical wall is always bounded by pair of horizontal walls
+    // Vice  -versa if the span is horizontal
     internal class CeeHeaderCreator
     {
         private Document doc;
@@ -48,7 +48,7 @@ namespace Revit_Automation
                 sortedInputLineCollection = SortInputLinesByElevation(colInputLines);
 
                 // Get the Span
-                m_DeckSpan = double.Parse(GlobalSettings.s_strDeckSpan);
+                m_DeckSpan = GlobalSettings.framingSettings.dCeeHeaderDeckSpan;
 
                 // Compute of the slope is horizontal or vertical
                 ComputeSlopeDirection(colInputLines);
@@ -204,9 +204,10 @@ namespace Revit_Automation
                                 && Math.Abs(ceeHeaderStartPoint.X - ceeHeaderEndPoint.X) < 1.5))
                             continue;
 
-                        // if lines greater than 20 feet do not place headers
-                        if ((spanLineType == LineType.vertical && Math.Abs(ceeHeaderStartPoint.Y - ceeHeaderEndPoint.Y) > 20.0) || (spanLineType == LineType.Horizontal
-                                && Math.Abs(ceeHeaderStartPoint.X - ceeHeaderEndPoint.X) > 20.0))
+                        double ceeHeaderMaxLength = GlobalSettings.framingSettings.dCeeHeaderMaxLength == 0 ? 20.0 : GlobalSettings.framingSettings.dCeeHeaderMaxLength;
+                        
+                        // if lines greater than max cee header length do not place headers
+                        if ((spanLineType == LineType.vertical && Math.Abs(ceeHeaderStartPoint.Y - ceeHeaderEndPoint.Y) > ceeHeaderMaxLength) || (spanLineType == LineType.Horizontal && Math.Abs(ceeHeaderStartPoint.X - ceeHeaderEndPoint.X) > ceeHeaderMaxLength))
                             continue;
 
                         FamilySymbol ceeHeaderFamily = SymbolCollector.GetCeeHeadersFamily(bHeaderAtHallway ? ceeHeaderSettings.HallwayCeeHeaderName : ceeHeaderSettings.ceeHeaderName

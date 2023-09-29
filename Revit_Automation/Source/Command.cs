@@ -61,7 +61,12 @@ namespace Revit_Automation
         BottomTracks = 3,
         Beams,
         CeeHeaders, 
-        TopTracks
+        TopTracks,
+        Purlins, 
+        DragStrut,
+        EaveStrut,
+        CompositeDeck,
+        RoofDeck
     }
 
 
@@ -337,6 +342,147 @@ namespace Revit_Automation
             return Result.Succeeded;
         }
     }
+
+    [Transaction(TransactionMode.Manual)]
+    public class PurlinsCreator : IExternalCommand
+    {
+        public Result Execute(
+          ExternalCommandData commandData,
+          ref string message,
+          ElementSet elements)
+        {
+            UIApplication uiapp = commandData.Application;
+
+            PrepareCommandClass.PrepareCommand(commandData);
+
+            Form1 form = new Form1
+            {
+                StartPosition = FormStartPosition.CenterScreen
+            };
+            //form.TopMost= true;
+            _ = form.ShowDialog();
+
+            if (form.CanCreateModel)
+            {
+                ModelCreator.CreateModel(uiapp, form, false, CommandCode.Purlins);
+            }
+
+            return Result.Succeeded;
+        }
+    }
+
+    [Transaction(TransactionMode.Manual)]
+    public class DragStrutCreator : IExternalCommand
+    {
+        public Result Execute(
+          ExternalCommandData commandData,
+          ref string message,
+          ElementSet elements)
+        {
+            UIApplication uiapp = commandData.Application;
+
+            PrepareCommandClass.PrepareCommand(commandData);
+
+            Form1 form = new Form1
+            {
+                StartPosition = FormStartPosition.CenterScreen
+            };
+            //form.TopMost= true;
+            _ = form.ShowDialog();
+
+            if (form.CanCreateModel)
+            {
+                ModelCreator.CreateModel(uiapp, form, false, CommandCode.DragStrut);
+            }
+
+            return Result.Succeeded;
+        }
+    }
+
+    [Transaction(TransactionMode.Manual)]
+    public class EaveStrutCreator : IExternalCommand
+    {
+        public Result Execute(
+          ExternalCommandData commandData,
+          ref string message,
+          ElementSet elements)
+        {
+            UIApplication uiapp = commandData.Application;
+
+            PrepareCommandClass.PrepareCommand(commandData);
+
+            Form1 form = new Form1
+            {
+                StartPosition = FormStartPosition.CenterScreen
+            };
+            //form.TopMost= true;
+            _ = form.ShowDialog();
+
+            if (form.CanCreateModel)
+            {
+                ModelCreator.CreateModel(uiapp, form, false, CommandCode.EaveStrut);
+            }
+
+            return Result.Succeeded;
+        }
+    }
+
+    [Transaction(TransactionMode.Manual)]
+    public class CompositeDeckCreator : IExternalCommand
+    {
+        public Result Execute(
+          ExternalCommandData commandData,
+          ref string message,
+          ElementSet elements)
+        {
+            UIApplication uiapp = commandData.Application;
+
+            PrepareCommandClass.PrepareCommand(commandData);
+
+            Form1 form = new Form1
+            {
+                StartPosition = FormStartPosition.CenterScreen
+            };
+            //form.TopMost= true;
+            _ = form.ShowDialog();
+
+            if (form.CanCreateModel)
+            {
+                ModelCreator.CreateModel(uiapp, form, false, CommandCode.CompositeDeck);
+            }
+
+            return Result.Succeeded;
+        }
+    }
+
+    [Transaction(TransactionMode.Manual)]
+    public class RoofDeckCreator : IExternalCommand
+    {
+        public Result Execute(
+          ExternalCommandData commandData,
+          ref string message,
+          ElementSet elements)
+        {
+            UIApplication uiapp = commandData.Application;
+
+            PrepareCommandClass.PrepareCommand(commandData);
+
+            Form1 form = new Form1
+            {
+                StartPosition = FormStartPosition.CenterScreen
+            };
+            //form.TopMost= true;
+            _ = form.ShowDialog();
+
+            if (form.CanCreateModel)
+            {
+                ModelCreator.CreateModel(uiapp, form, false, CommandCode.RoofDeck);
+            }
+
+            return Result.Succeeded;
+        }
+    }
+
     [Transaction(TransactionMode.Manual)]
     public class CeeHeaders : IExternalCommand
     {
@@ -444,7 +590,6 @@ namespace Revit_Automation
                 _ = TaskDialog.Show("Automation Error", "Failed while processing the roofs");
             }
         }
-
 
         internal static void ClearStatics()
         {

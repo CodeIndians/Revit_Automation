@@ -89,7 +89,7 @@ namespace Revit_Automation
             return familySymbol;
         }
 
-        public static FamilySymbol GetBottomTrackSymbol(string strSymbolName, string strFamilyName)
+        public static FamilySymbol GetBottomOrTopTrackSymbol(string strSymbolName, string strFamilyName)
         {
             FamilySymbol familySymbol = null;
             FilteredElementCollector structFramingCollection = new FilteredElementCollector(m_Document);

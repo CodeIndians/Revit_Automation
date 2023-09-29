@@ -97,7 +97,8 @@
     </Compile>
     <Compile Include="Source\App.cs" />
     <Compile Include="Source\ModelCreators\CeeHeaderAdjustment.cs" />
-    <Compile Include="Source\ModelCreators\TopTrackCreator.cs" />
+    <Compile Include="Source\ModelCreators\TopTrack\TopTrackCreator.cs" />
+    <Compile Include="Source\ModelCreators\TopTrack\TopTrackRelations.cs" />
     <Compile Include="Source\Utils\CeeHeaderBoundaries.cs" />
     <Compile Include="Source\CollisionResolvers\PostCollisionResolver.cs" />
     <Compile Include="Source\Command.cs" />

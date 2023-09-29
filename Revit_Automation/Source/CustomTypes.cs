@@ -129,7 +129,7 @@ namespace Revit_Automation.CustomTypes
         Fire = 7,
         ExWithoutInsulation = 6,
         Insulation = 5,
-        Ex =4,
+        Ex = 4,
         LB = 3,
         LBS = 2,
         NLBS = 1,
@@ -173,6 +173,30 @@ namespace Revit_Automation.CustomTypes
         StartToEnd,
         EndToStart,
         NoDirection
+    }
+
+    public struct FramingSettings
+    {
+        public double dCeeHeaderDeckSpan;
+        public double dCeeHeaderMaxLength;
+        public double dDragStuctMaxLength;
+        public string strDragStructType;
+        public bool bDragStructContinuousAtHallway;
+        public double dEaveStructMaxLength;
+        public string strEaveStructType;
+        public string strEaveStructLocation;
+        public string strFloorDeckType;
+        public double dFloorDeckOverlap;
+        public double dFloorDeckMaxSpan;
+        public double dFloorDeckMaxLength;
+        public string strRoofDeckType;
+        public double dRoofDeckOverlap;
+        public double dRoofDeckMaxSpan;
+        public double dRoofDeckMaxLength;
+        public bool bNLBSpliceAtRoof;
+        public bool bTopTrackAtRakeSide;
+        public bool bTopTrackSpliceAtWeb;
+        public bool bToptrackRounfOff;
     }
 
 }

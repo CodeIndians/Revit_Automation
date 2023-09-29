@@ -26,17 +26,7 @@ namespace Revit_Automation.Source
         public static string s_strPartitionStudType;
         public static string s_strHallwayPanelThickness;
         public static string s_iPanelStrategy;
-        public static string s_strDeckSpan;
-        public static string s_strDragStructMaxLength;
-        public static string s_strDragStructType;
-        public static string s_strDragSturctContinuous;
-        public static string s_EaveStructMaxLength;
-        public static string s_EavStructType;
-        public static string s_EaveStructLocation;
-        public static int s_bSpliceNLBRoof ;
-        public static int s_bTTRoundOff;
-        public static int s_bTTAtRake;
-        public static int s_bTTSpliceAtWeb;
+        public static FramingSettings framingSettings;
         public static bool PopulateGlobalSettings()
         {
             ClearSettings();
@@ -72,34 +62,34 @@ namespace Revit_Automation.Source
                 s_bPanelAtHallway = int.Parse(settings[12]);
 
                 // Partition stud type
-                s_strPartitionStudType = settings[13];
+                s_strPartitionStudType = settings[13].ToString();
 
                 // Hallway Panel Thickness
-                s_strHallwayPanelThickness = settings[14];
+                s_strHallwayPanelThickness = settings[14].ToString();
 
                 // Panel Placement Strategy
-                s_iPanelStrategy = settings[15];
+                s_iPanelStrategy = settings[15].ToString();
 
                 // Deck span
-                s_strDeckSpan = settings[16];
+                framingSettings.dCeeHeaderDeckSpan = string.IsNullOrEmpty(settings[16]) ? 0 : double.Parse(settings[16]) ;
 
                 // Drag Struct Max Length
-                s_strDragStructMaxLength = settings[17];
+                framingSettings.dDragStuctMaxLength  = string.IsNullOrEmpty(settings[17]) ? 0 : double.Parse(settings[17]);
 
                 // Drag StructType
-                s_strDragStructType = settings[18];
+                framingSettings.strDragStructType = settings[18].ToString();
 
                 // Drag Struct Continuous at hallway
-                s_strDragSturctContinuous = settings[19];
+                framingSettings.bDragStructContinuousAtHallway = settings[19] == "0" ? true : false;
 
                 // Eave stuct Max length
-                s_EaveStructMaxLength = settings[20];
-                
+                framingSettings.dEaveStructMaxLength  = string.IsNullOrEmpty(settings[20]) ? 0 : double.Parse(settings[20]);
+
                 // Eave Struct type
-                s_EavStructType = settings[21];
+                framingSettings.strEaveStructType = settings[21].ToString();
                 
                 // Eave Struct Location
-                s_EaveStructLocation = settings[22];
+                framingSettings.strEaveStructLocation = settings[22].ToString();
 
                 string strPanelSettings = settings[0];
                 {
@@ -147,10 +137,26 @@ namespace Revit_Automation.Source
                     }
                 }
 
-                s_bSpliceNLBRoof = int.Parse(settings[24]);
-                s_bTTRoundOff = int.Parse(settings[25]);
-                s_bTTAtRake = int.Parse(settings[26]);
-                s_bTTSpliceAtWeb = int.Parse(settings[27]);
+                // Top track related settings
+                framingSettings.bNLBSpliceAtRoof = settings[24] == "0" ? true : false;
+                framingSettings.bToptrackRounfOff = settings[25] == "0" ? true : false;
+                framingSettings.bTopTrackAtRakeSide = settings[26] == "0" ? true : false;
+                framingSettings.bTopTrackSpliceAtWeb = settings[27] == "0" ? true : false;
+
+                // Cee Header max length
+                framingSettings.dCeeHeaderMaxLength = string.IsNullOrEmpty(settings[28]) ? 0 : double.Parse(settings[28]);
+                
+                // Floor or composite deck settings
+                framingSettings.strFloorDeckType = settings[29].ToString();
+                framingSettings.dFloorDeckOverlap = string.IsNullOrEmpty(settings[30]) ? 0 : double.Parse(settings[30]);
+                framingSettings.dFloorDeckMaxSpan = string.IsNullOrEmpty(settings[31]) ? 0 : double.Parse(settings[31]);
+                framingSettings.dFloorDeckMaxLength = string.IsNullOrEmpty(settings[32]) ? 0 : double.Parse(settings[32]);
+
+                // Roof deck settings
+                framingSettings.strRoofDeckType = settings[33].ToString();
+                framingSettings.dRoofDeckOverlap = string.IsNullOrEmpty(settings[34]) ? 0 : double.Parse(settings[34]);
+                framingSettings.dRoofDeckMaxSpan = string.IsNullOrEmpty(settings[35]) ? 0 : double.Parse(settings[35]);
+                framingSettings.dRoofDeckMaxLength = string.IsNullOrEmpty(settings[36]) ? 0 : double.Parse(settings[36]);
 
             }
 

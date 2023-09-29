@@ -297,7 +297,35 @@ namespace Revit_Automation
                 
                 // Top track splice at web
                 comboBox12.SelectedIndex = int.Parse(settings[27]);
-                
+
+
+                // Cee Header Max length
+                textBox14.Text = settings[28].ToString();
+
+                // Floor Deck Type
+                textBox15.Text = settings[29].ToString();
+
+                // Floor Deck overlap
+                textBox16.Text = settings[30].ToString();
+
+                // Floor Deck max span
+                textBox17.Text = settings[31].ToString();
+
+                // Floor Deck Max length
+                textBox18.Text = settings[32].ToString();
+
+                // Roof Deck Type
+                textBox22.Text = settings[33].ToString();
+
+                // Roof Deck overlap
+                textBox21.Text = settings[34].ToString();
+
+                // Roof Deck max span
+                textBox20.Text = settings[35].ToString();
+
+                // Roof Deck Max length
+                textBox19.Text = settings[36].ToString();
+
                 dataGridView1.Invalidate();
                 dataGridView1.Update();
             }
@@ -549,7 +577,34 @@ namespace Revit_Automation
             
             strProjectSettings += comboBox12.SelectedIndex.ToString();
             strProjectSettings += "|";
-            
+
+            strProjectSettings += textBox14.Text.ToString();
+            strProjectSettings += "|";
+
+            strProjectSettings += textBox15.Text.ToString();
+            strProjectSettings += "|";
+
+            strProjectSettings += textBox16.Text.ToString();
+            strProjectSettings += "|";
+
+            strProjectSettings += textBox17.Text.ToString();
+            strProjectSettings += "|";
+
+            strProjectSettings += textBox18.Text.ToString();
+            strProjectSettings += "|";
+
+            strProjectSettings += textBox22.Text.ToString();
+            strProjectSettings += "|";
+
+            strProjectSettings += textBox21.Text.ToString();
+            strProjectSettings += "|";
+
+            strProjectSettings += textBox20.Text.ToString();
+            strProjectSettings += "|";
+
+            strProjectSettings += textBox19.Text.ToString();
+            strProjectSettings += "|";
+
             InputLineUtility.SetProjectSettings(strProjectSettings);
             GlobalSettings.UpdateSettings();
 
@@ -585,6 +640,21 @@ namespace Revit_Automation
         }
 
         private void textBox14_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label32_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void groupBox5_Enter(object sender, EventArgs e)
+        {
+
+        }
+
+        private void groupBox6_Enter(object sender, EventArgs e)
         {
 
         }

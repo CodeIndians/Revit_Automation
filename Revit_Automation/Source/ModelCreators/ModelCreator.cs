@@ -164,6 +164,7 @@ namespace Revit_Automation
             else if (commandCode == CommandCode.TopTracks)
             {
                 TopTrackCreator topTracksCreator = new TopTrackCreator(doc, form);
+                topTracksCreator.bSelectedModelling = (selection != null && selection.GetElementIds().Count > 0);
                 topTracksCreator.CreateModel( InputLineUtility.colInputLines, levels);
             }
 

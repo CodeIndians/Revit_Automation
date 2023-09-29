@@ -167,7 +167,7 @@ namespace Revit_Automation.Source.ModelCreators
             else
                 bottomTrackSymbolName = string.Format("{0} x {1}ga x {2}", inputLine.strBottomTrackSize, inputLine.strBottomTrackGuage, inputLine.strBottomTrackPunch);
 
-            FamilySymbol sym = SymbolCollector.GetBottomTrackSymbol(bottomTrackSymbolName, bottomTrackFamilyName);
+            FamilySymbol sym = SymbolCollector.GetBottomOrTopTrackSymbol(bottomTrackSymbolName, bottomTrackFamilyName);
 
             return sym; 
                   

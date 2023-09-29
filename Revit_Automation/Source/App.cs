@@ -129,6 +129,46 @@ namespace Revit_Automation
                     "Revit_Automation.TopTracksCreator",
                     "Place Top Tracks",
                     "BottomTrack.png");
+
+                // Purlins
+                AddRevitCommand(FullModellingRB,
+                    "PurlinsCMD",
+                    "   Purlins    ",
+                    "Revit_Automation.PurlinsCreator",
+                    "Place Purlins",
+                    "Purlin.png");
+
+                // Drag Strut
+                AddRevitCommand(FullModellingRB,
+                    "DragStrutCMD",
+                    "  Drag Strut  ",
+                    "Revit_Automation.DragStrutCreator",
+                    "Place DragStruts",
+                    "Strut.png");
+
+                // Eave Strut
+                AddRevitCommand(FullModellingRB,
+                    "EaveStrutCMD",
+                    "  Eave Strut  ",
+                    "Revit_Automation.EaveStrutCreator",
+                    "Place EaveStruts",
+                    "Strut.png");
+
+                // Composite Deck
+                AddRevitCommand(FullModellingRB,
+                    "CompositeDeckCMD",
+                    "  Composite  \n    Deck    ",
+                    "Revit_Automation.CompositeDeckCreator",
+                    "Place Composite Deck",
+                    "Deck.png");
+
+                // Roof Deck
+                AddRevitCommand(FullModellingRB,
+                    "RoofDeckCMD",
+                    "   Roof Deck  ",
+                    "Revit_Automation.RoofDeckCreator",
+                    "Place Roof Deck",
+                    "Deck.png");
                 // 
                 //AddRevitCommand(HallWayRB,
                 //   "HallWayCreateHatch",
