@@ -63,8 +63,8 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
                             overlapElementIds.AddRange(m_IndependentTags[j].GetTaggedLocalElementIds());
 
                             var indexDiff = m_IndependentTags.Count - m_TagsWithLeaders.Count;
-                            if (i >= indexDiff)
-                                elementIds.Add(m_TagsWithLeaders[i - indexDiff].Id);
+                            if (j >= indexDiff)
+                                elementIds.Add(m_TagsWithLeaders[j - indexDiff].Id);
                         }
 
                         if (!overlapElementIds.Contains(elementIds[i]))
