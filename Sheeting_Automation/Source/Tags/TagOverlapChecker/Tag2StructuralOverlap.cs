@@ -60,22 +60,25 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
                     if (TagUtils.GetFamilyNameOfElement(overlapElement) != TagUtils.GetFamilyNameOfElement(tagElement))
                         continue;
 
-                    if (TagUtils.AreBoudingBoxesIntersecting(GetBoundingBoxOfElement(elementIds[i]),
-                                                                m_IndependentTags[j].get_BoundingBox(SheetUtils.m_Document.ActiveView)))
+                    foreach (BoundingBoxXYZ boundingBoxXYZ in GetBoundingBoxesOfElement(elementIds[i]))
                     {
-                        if (!overlapElementIds.Contains(m_IndependentTags[j].Id))
+                        if (TagUtils.AreBoudingBoxesIntersecting(boundingBoxXYZ,
+                                                                m_IndependentTags[j].get_BoundingBox(SheetUtils.m_Document.ActiveView)))
                         {
-                            overlapElementIds.Add(m_IndependentTags[j].Id);
-                            overlapElementIds.AddRange(m_IndependentTags[j].GetTaggedLocalElementIds());
+                            if (!overlapElementIds.Contains(m_IndependentTags[j].Id))
+                            {
+                                overlapElementIds.Add(m_IndependentTags[j].Id);
+                                overlapElementIds.AddRange(m_IndependentTags[j].GetTaggedLocalElementIds());
 
-                            var indexDiff = m_IndependentTags.Count - m_TagsWithLeaders.Count;
-                            if (j >= indexDiff)
-                                elementIds.Add(m_TagsWithLeaders[j - indexDiff].Id);
-                        }
+                                var indexDiff = m_IndependentTags.Count - m_TagsWithLeaders.Count;
+                                if (j >= indexDiff)
+                                    elementIds.Add(m_TagsWithLeaders[j - indexDiff].Id);
+                            }
 
-                        if (!overlapElementIds.Contains(elementIds[i]))
-                        {
-                            overlapElementIds.Add(elementIds[i]);
+                            if (!overlapElementIds.Contains(elementIds[i]))
+                            {
+                                overlapElementIds.Add(elementIds[i]);
+                            }
                         }
                     }
                 }
@@ -84,7 +87,7 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
             return overlapElementIds;
         }
 
-        protected override BoundingBoxXYZ GetBoundingBoxOfElement(ElementId elementId)
+        public override List<BoundingBoxXYZ> GetBoundingBoxesOfElement(ElementId elementId)
         {
             // get the detail element from the id
             Element detailElement = SheetUtils.m_Document.GetElement(elementId);
@@ -103,7 +106,7 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
 
 
             // Retrieve the element using its ElementId
-            return GetBoundingBoxOfSolid(geomInstancesList);
+            return new List<BoundingBoxXYZ> { GetBoundingBoxOfSolid(geomInstancesList) };
         }
 
         protected BoundingBoxXYZ GetBoundingBoxOfSolid(List<GeometryInstance> geometryInstance)
@@ -124,7 +127,6 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
                     }
                 }
             }
-
 
             return bBox;
         }

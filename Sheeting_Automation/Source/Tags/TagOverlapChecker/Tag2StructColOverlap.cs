@@ -33,7 +33,7 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
             return elementIds;
         }
 
-        protected override BoundingBoxXYZ GetBoundingBoxOfElement(ElementId elementId)
+        public override List<BoundingBoxXYZ> GetBoundingBoxesOfElement(ElementId elementId)
         {
             // get the detail element from the id
             Element detailElement = SheetUtils.m_Document.GetElement(elementId);
@@ -53,7 +53,7 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
 
 
             // Retrieve the element using its ElementId
-            return GetBoundingBoxOfSolid(geomInstancesList);
+            return new List<BoundingBoxXYZ> { GetBoundingBoxOfSolid(geomInstancesList) };
         }
 
         protected BoundingBoxXYZ GetBoundingBoxOfSolid(List<GeometryInstance> geometryInstance)

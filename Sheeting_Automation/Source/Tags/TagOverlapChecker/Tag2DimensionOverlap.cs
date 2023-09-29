@@ -44,7 +44,7 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
         /// </summary>
         /// <param name="elementId"></param>
         /// <returns></returns>
-        protected List<BoundingBoxXYZ> GetBoundingBoxOfDimensionSegments(ElementId elementId)
+        public override List<BoundingBoxXYZ> GetBoundingBoxesOfElement(ElementId elementId)
         {
             Dimension dim = dimensionList[elementId];
 
@@ -93,46 +93,6 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
             return GetBoundingBox(textPoint,textLength,elementId);
 
         }
-
-        public override List<ElementId> CheckOverlap()
-        {
-            var overlapElementIds = new List<ElementId>();
-
-            // get the wall element ids
-            var elementIds = GetElementIds();
-
-
-            for (int i = 0; i < elementIds.Count; i++)
-            {
-                for (int j = 0; j < m_IndependentTags.Count; j++)
-                {
-                    foreach (BoundingBoxXYZ boundingBoxXYZ in GetBoundingBoxOfDimensionSegments(elementIds[i]))
-                    {
-                        if (TagUtils.AreBoudingBoxesIntersecting(boundingBoxXYZ,
-                                                       m_IndependentTags[j].get_BoundingBox(SheetUtils.m_Document.ActiveView)))
-                        {
-                            if (!overlapElementIds.Contains(m_IndependentTags[j].Id))
-                            {
-                                overlapElementIds.Add(m_IndependentTags[j].Id);
-                                overlapElementIds.AddRange(m_IndependentTags[j].GetTaggedLocalElementIds());
-
-                                var indexDiff = m_IndependentTags.Count - m_TagsWithLeaders.Count;
-                                if (j >= indexDiff)
-                                    elementIds.Add(m_TagsWithLeaders[j - indexDiff].Id);
-                            }
-
-                            if (!overlapElementIds.Contains(elementIds[i]))
-                            {
-                                overlapElementIds.Add(elementIds[i]);
-                            }
-                        }
-                    }
-                }
-            }
-
-            return overlapElementIds;
-        }
-
         private BoundingBoxXYZ GetBoundingBox(XYZ textPoint, int textLength, ElementId elementId)
         {
             double offset = 1.0f; ; // this offset is by default

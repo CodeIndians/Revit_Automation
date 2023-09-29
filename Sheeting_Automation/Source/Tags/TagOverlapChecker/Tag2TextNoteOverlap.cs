@@ -33,7 +33,7 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
             return elementIds;
         }
 
-        protected List<BoundingBoxXYZ> GetBoundingBoxesOfTextNote(ElementId elementId)
+        public override List<BoundingBoxXYZ> GetBoundingBoxesOfElement(ElementId elementId)
         {
             TextNote textNote = SheetUtils.m_Document.GetElement(elementId) as TextNote;
 
@@ -166,43 +166,5 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
             return new List<BoundingBoxXYZ> { SheetUtils.m_Document.GetElement(elementId)?.get_BoundingBox(SheetUtils.m_Document.ActiveView) };
         }
 
-        public override List<ElementId> CheckOverlap()
-        {
-            var overlapElementIds = new List<ElementId>();
-
-            // get the wall element ids
-            var elementIds = GetElementIds();
-
-
-            for (int i = 0; i < elementIds.Count; i++)
-            {
-                for (int j = 0; j < m_IndependentTags.Count; j++)
-                {
-                    foreach (BoundingBoxXYZ boundingBoxXYZ in GetBoundingBoxesOfTextNote(elementIds[i]))
-                    {
-                        if (TagUtils.AreBoudingBoxesIntersecting(boundingBoxXYZ,
-                                                       m_IndependentTags[j].get_BoundingBox(SheetUtils.m_Document.ActiveView)))
-                        {
-                            if (!overlapElementIds.Contains(m_IndependentTags[j].Id))
-                            {
-                                overlapElementIds.Add(m_IndependentTags[j].Id);
-                                overlapElementIds.AddRange(m_IndependentTags[j].GetTaggedLocalElementIds());
-
-                                var indexDiff = m_IndependentTags.Count - m_TagsWithLeaders.Count;
-                                if (j >= indexDiff)
-                                    elementIds.Add(m_TagsWithLeaders[j - indexDiff].Id);
-                            }
-
-                            if (!overlapElementIds.Contains(elementIds[i]))
-                            {
-                                overlapElementIds.Add(elementIds[i]);
-                            }
-                        }
-                    }
-                }
-            }
-
-            return overlapElementIds;
-        }
     }
 }
