@@ -78,6 +78,13 @@ namespace Sheeting_Automation
                    "Check Tags Overlap",
                    "Sheets.png"); //TODO: use tags.png
 
+                AddRevitCommand(tagsRB,
+                   "Clear Overrides",
+                   "Clear Overrides",
+                   "Sheeting_Automation.Source.Tags.ClearTagOverrides",
+                   "Clear Overrides",
+                   "Sheets.png"); //TODO: use tags.png
+
                 return Result.Succeeded;
             }
             else

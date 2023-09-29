@@ -130,5 +130,40 @@ namespace Sheeting_Automation.Source.Tags
 
             return Result.Succeeded;
         }
+
     }
+
+    [Transaction(TransactionMode.Manual)]
+    public class ClearTagOverrides : IExternalCommand
+    {
+        public Result Execute(
+          ExternalCommandData commandData,
+          ref string message,
+          ElementSet elements)
+        {
+
+            UIApplication uiapp = commandData.Application;
+
+            // Walls will be needed for the Properties Dialog
+            UIDocument uidoc = uiapp.ActiveUIDocument;
+            Document doc = uidoc.Document;
+
+            // assign the document
+            SheetUtils.m_Document = doc;
+
+            // check if the current view is view plan
+            if (!TagUtils.IsCurrentViewPlan())
+            {
+                TaskDialog.Show("Error", "Current view is not a view plan");
+                return Result.Failed;
+            }
+
+            TagGraphicOverrider.DeleteOverrides(TagOverlapManager.m_ElementIds);
+
+            TaskDialog.Show("Info", "Overrides are reset successfully");
+
+            return Result.Succeeded;
+        }
+    }
+
 }
