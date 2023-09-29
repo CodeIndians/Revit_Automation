@@ -1,18 +1,20 @@
 ﻿
 
 using Autodesk.Revit.DB;
-using System;
+using Autodesk.Revit.UI;
+using Autodesk.Revit.UI.Selection;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Sheeting_Automation.Utils
 {
     public class SheetUtils
     {
         public static Document m_Document;
+
+        public static Selection m_Selection;
+
+        public static UIDocument m_UIDocument;
         public static List<string> GetFloorPlans()
         {
             List<string> strFloorPlansList = new List<string>();

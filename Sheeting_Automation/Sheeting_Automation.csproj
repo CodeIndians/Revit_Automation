@@ -95,6 +95,36 @@
       <DependentUpon>ScheduleUpdateForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Source\Schedules\ScheduleUtils.cs" />
+    <Compile Include="Source\Tags\TagMissingChecker\TagMissingChecker.cs" />
+    <Compile Include="Source\Tags\TagMissingChecker\TagMissingCheckForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Source\Tags\TagMissingChecker\TagMissingCheckForm.Designer.cs">
+      <DependentUpon>TagMissingCheckForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Source\Tags\TagCreator\TagCreationForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Source\Tags\TagCreator\TagCreationForm.Designer.cs">
+      <DependentUpon>TagCreationForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Source\Tags\TagCreator\TagCreator.cs" />
+    <Compile Include="Source\Tags\TagData.cs" />
+    <Compile Include="Source\Tags\TagOverlapChecker\Tag2DetailOverlap.cs" />
+    <Compile Include="Source\Tags\TagOverlapChecker\Tag2DimensionOverlap.cs" />
+    <Compile Include="Source\Tags\TagOverlapChecker\Tag2DoorOverlap.cs" />
+    <Compile Include="Source\Tags\TagOverlapChecker\Tag2GenModelOverlap.cs" />
+    <Compile Include="Source\Tags\TagOverlapChecker\Tag2StructColOverlap.cs" />
+    <Compile Include="Source\Tags\TagOverlapChecker\Tag2StructuralOverlap.cs" />
+    <Compile Include="Source\Tags\TagOverlapChecker\Tag2TagOverlap.cs" />
+    <Compile Include="Source\Tags\TagOverlapChecker\Tag2TextNoteOverlap.cs" />
+    <Compile Include="Source\Tags\TagOverlapChecker\Tag2ViewOverlap.cs" />
+    <Compile Include="Source\Tags\TagOverlapChecker\Tag2WallOverlap.cs" />
+    <Compile Include="Source\Tags\TagOverlapChecker\Tag2WindowOverlap.cs" />
+    <Compile Include="Source\Tags\TagOverlapChecker\TagOverlapBase.cs" />
+    <Compile Include="Source\Tags\TagOverlapChecker\TagOverlapManager.cs" />
+    <Compile Include="Source\Tags\TagUtils.cs" />
+    <Compile Include="Source\Tags\TagsCommand.cs" />
     <Compile Include="Utilities\SheetUtils.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -106,6 +136,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Source\Schedules\ScheduleUpdateForm.resx">
       <DependentUpon>ScheduleUpdateForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Source\Tags\TagMissingChecker\TagMissingCheckForm.resx">
+      <DependentUpon>TagMissingCheckForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Source\Tags\TagCreator\TagCreationForm.resx">
+      <DependentUpon>TagCreationForm.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
