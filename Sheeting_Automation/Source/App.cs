@@ -34,6 +34,7 @@ namespace Sheeting_Automation
                 //Create ribbon panels
                 RibbonPanel dimensionsRB = a.CreateRibbonPanel(tabName, "Dimensions");
                 RibbonPanel schedulesRB = a.CreateRibbonPanel(tabName, "Schedules");
+                RibbonPanel tagsRB = a.CreateRibbonPanel(tabName, "Tags");
 
                 AddRevitCommand(dimensionsRB,
                     "PlaceDimensionsCMD",
@@ -55,6 +56,27 @@ namespace Sheeting_Automation
                     "Sheeting_Automation.UpdateScheduleCommand",
                     "Update Schedule",
                     "Sheets.png");
+                
+                AddRevitCommand(tagsRB,
+                    "Create Tags",
+                    "Create Tags",
+                    "Sheeting_Automation.Source.Tags.CreateTagsCommand",
+                    "Create Tags",
+                    "Sheets.png"); //TODO: use tags.png
+
+                AddRevitCommand(tagsRB,
+                    "Check Missing Tags",
+                    "Check Missing \n Tags",
+                    "Sheeting_Automation.Source.Tags.CheckTagsCountCommand",
+                    "Check Missing Tags",
+                    "Sheets.png"); //TODO: use tags.png
+
+                AddRevitCommand(tagsRB,
+                   "Check Tags Overlap",
+                   "Check Tags \n Overlap",
+                   "Sheeting_Automation.Source.Tags.CheckTagsOverlapCommand",
+                   "Check Tags Overlap",
+                   "Sheets.png"); //TODO: use tags.png
 
                 return Result.Succeeded;
             }
