@@ -46,11 +46,15 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
         /// <returns></returns>
         public override List<BoundingBoxXYZ> GetBoundingBoxesOfElement(ElementId elementId)
         {
-            Dimension dim = dimensionList[elementId];
-
             List<BoundingBoxXYZ> boundingBoxes = new List<BoundingBoxXYZ>();
 
-            if(dim != null)
+            Dimension dim;
+
+            // return if the element is not of the desired type
+            if (!dimensionList.TryGetValue(elementId, out dim))
+                return boundingBoxes;
+
+            if (dim != null)
             {
                 DimensionSegmentArray segments = dim.Segments;
 

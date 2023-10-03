@@ -55,13 +55,16 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
             options.View = SheetUtils.m_Document.ActiveView;
 
             // collect the geometry instances to a list
-            List<GeometryInstance> geomInstancesList = detailElement.get_Geometry(options)
+            List<GeometryInstance> geomInstancesList = detailElement.get_Geometry(options)?
                                                            .Where(o => o is GeometryInstance)
                                                            .Cast<GeometryInstance>()
                                                            .ToList();
 
             // initialize the bounding boxes list
             List<BoundingBoxXYZ> boundingBoxes = new List<BoundingBoxXYZ>();
+
+            if(geomInstancesList == null)
+                return boundingBoxes;
 
             // iterate all the geometry instances 
             foreach ( GeometryInstance geomInstance in  geomInstancesList ) 
