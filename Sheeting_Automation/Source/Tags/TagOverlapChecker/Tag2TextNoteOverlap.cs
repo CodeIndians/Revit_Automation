@@ -1,4 +1,5 @@
 ﻿using Autodesk.Revit.DB;
+using Autodesk.Revit.DB.Analysis;
 using Autodesk.Revit.UI;
 using Sheeting_Automation.Utils;
 using System;
@@ -35,135 +36,151 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
 
         public override List<BoundingBoxXYZ> GetBoundingBoxesOfElement(ElementId elementId)
         {
-            TextNote textNote = SheetUtils.m_Document.GetElement(elementId) as TextNote;
-
-            List<BoundingBoxXYZ> textNoteBoundingBoxList = new List<BoundingBoxXYZ>();
-
-            if (textNote != null)
+            if (TagDataCache.cachedBoundingBoxDict.ContainsKey(elementId))
+                return TagDataCache.cachedBoundingBoxDict[elementId];
+            else
             {
-                // alignment = right, center, left
-                var horAlignment = textNote.HorizontalAlignment;
 
-                // top alignment point
-                var textCordinate = textNote.Coord;
+                TextNote textNote = SheetUtils.m_Document.GetElement(elementId) as TextNote;
 
-                // can be up or left point vector 
-                var upDirection = textNote.UpDirection;
+                List<BoundingBoxXYZ> textNoteBoundingBoxList = new List<BoundingBoxXYZ>();
 
-                // scale of the current view, used in the width and height calculation
-                var scale = SheetUtils.m_Document.ActiveView.Scale;
-
-                // height and width of the text note
-                // TODO: Add offset if required
-                var width = textNote.Width * scale;
-                var height = textNote.Height * scale;
-
-                // initialize max and min points
-                XYZ minPoint = null;
-                XYZ maxPoint = null;
-
-                // up direction is to the north 
-                if(upDirection.IsAlmostEqualTo(new XYZ(0,1,0)))
+                if (textNote != null)
                 {
-                    if(horAlignment == HorizontalTextAlignment.Left)
+                    // alignment = right, center, left
+                    var horAlignment = textNote.HorizontalAlignment;
+
+                    // top alignment point
+                    var textCordinate = textNote.Coord;
+
+                    // can be up or left point vector 
+                    var upDirection = textNote.UpDirection;
+
+                    // scale of the current view, used in the width and height calculation
+                    var scale = SheetUtils.m_Document.ActiveView.Scale;
+
+                    // height and width of the text note
+                    // TODO: Add offset if required
+                    var width = textNote.Width * scale;
+                    var height = textNote.Height * scale;
+
+                    // initialize max and min points
+                    XYZ minPoint = null;
+                    XYZ maxPoint = null;
+
+                    // up direction is to the north 
+                    if (upDirection.IsAlmostEqualTo(new XYZ(0, 1, 0)))
                     {
-                        minPoint = new XYZ(textCordinate.X, textCordinate.Y - height, textCordinate.Z);
-                        maxPoint = new XYZ(textCordinate.X + width, textCordinate.Y, textCordinate.Z);
+                        if (horAlignment == HorizontalTextAlignment.Left)
+                        {
+                            minPoint = new XYZ(textCordinate.X, textCordinate.Y - height, textCordinate.Z);
+                            maxPoint = new XYZ(textCordinate.X + width, textCordinate.Y, textCordinate.Z);
+                        }
+                        else if (horAlignment == HorizontalTextAlignment.Right)
+                        {
+                            minPoint = new XYZ(textCordinate.X - width, textCordinate.Y - height, textCordinate.Z);
+                            maxPoint = textCordinate;
+                        }
+                        else if (horAlignment == HorizontalTextAlignment.Center)
+                        {
+                            minPoint = new XYZ(textCordinate.X - (width / 2), textCordinate.Y - height, textCordinate.Z);
+                            maxPoint = new XYZ(textCordinate.X + (width / 2), textCordinate.Y, textCordinate.Z);
+                        }
                     }
-                    else if (horAlignment == HorizontalTextAlignment.Right)
+                    else if (upDirection.IsAlmostEqualTo(new XYZ(-1, 0, 0)))  // up direction is to the west 
                     {
-                        minPoint = new XYZ(textCordinate.X - width, textCordinate.Y - height, textCordinate.Z);
-                        maxPoint = textCordinate;
+                        if (horAlignment == HorizontalTextAlignment.Left)
+                        {
+                            minPoint = textCordinate;
+                            maxPoint = new XYZ(textCordinate.X + height, textCordinate.Y + width, textCordinate.Z);
+
+                        }
+                        else if (horAlignment == HorizontalTextAlignment.Right)
+                        {
+                            minPoint = new XYZ(textCordinate.X, textCordinate.Y - width, textCordinate.Z);
+                            maxPoint = new XYZ(textCordinate.X + height, textCordinate.Y, textCordinate.Z);
+
+                        }
+                        else if (horAlignment == HorizontalTextAlignment.Center)
+                        {
+                            minPoint = new XYZ(textCordinate.X, textCordinate.Y - (width / 2), textCordinate.Z);
+                            maxPoint = new XYZ(textCordinate.X + height, textCordinate.Y + (width / 2), textCordinate.Z);
+                        }
                     }
-                    else if(horAlignment == HorizontalTextAlignment.Center)
+                    else if (upDirection.IsAlmostEqualTo(new XYZ(1, 0, 0)))  // up direction is to the east 
                     {
-                        minPoint = new XYZ(textCordinate.X - (width/2), textCordinate.Y - height, textCordinate.Z);
-                        maxPoint = new XYZ(textCordinate.X + (width/2), textCordinate.Y, textCordinate.Z);
+                        if (horAlignment == HorizontalTextAlignment.Left)
+                        {
+                            minPoint = new XYZ(textCordinate.X - height, textCordinate.Y - width, textCordinate.Z);
+                            maxPoint = textCordinate;
+
+                        }
+                        else if (horAlignment == HorizontalTextAlignment.Right)
+                        {
+                            minPoint = new XYZ(textCordinate.X - height, textCordinate.Y, textCordinate.Z);
+                            maxPoint = new XYZ(textCordinate.X, textCordinate.Y + width, textCordinate.Z);
+
+                        }
+                        else if (horAlignment == HorizontalTextAlignment.Center)
+                        {
+                            minPoint = new XYZ(textCordinate.X - height, textCordinate.Y - (width / 2), textCordinate.Z);
+                            maxPoint = new XYZ(textCordinate.X, textCordinate.Y + (width / 2), textCordinate.Z);
+                        }
                     }
+                    else if (upDirection.IsAlmostEqualTo(new XYZ(0, -1, 0)))  // up direction is to the south 
+                    {
+                        if (horAlignment == HorizontalTextAlignment.Left)
+                        {
+                            minPoint = new XYZ(textCordinate.X - width, textCordinate.Y, textCordinate.Z);
+                            maxPoint = new XYZ(textCordinate.X, textCordinate.Y + height, textCordinate.Z);
+
+                        }
+                        else if (horAlignment == HorizontalTextAlignment.Right)
+                        {
+                            minPoint = textCordinate;
+                            maxPoint = new XYZ(textCordinate.X + width, textCordinate.Y + height, textCordinate.Z);
+
+                        }
+                        else if (horAlignment == HorizontalTextAlignment.Center)
+                        {
+                            minPoint = new XYZ(textCordinate.X - (width / 2), textCordinate.Y, textCordinate.Z);
+                            maxPoint = new XYZ(textCordinate.X + (width / 2), textCordinate.Y + height, textCordinate.Z);
+                        }
+                    }
+
+                    BoundingBoxXYZ textNoteBoundingBox = new BoundingBoxXYZ();
+
+                    if (minPoint != null && maxPoint != null)
+                    {
+                        textNoteBoundingBox.Min = minPoint;
+                        textNoteBoundingBox.Max = maxPoint;
+
+                        textNoteBoundingBoxList.Add(textNoteBoundingBox);
+                    }
+
+                    if (textNote.LeaderCount > 0)
+                    {
+                        var leadersList = textNote.GetLeaders();
+
+                        foreach (var leader in leadersList)
+                        {
+                            textNoteBoundingBoxList.AddRange(TagUtils.GetBoundingBoxes(leader));
+                        }
+                    }
+
+                    TagDataCache.cachedBoundingBoxDict[elementId] = textNoteBoundingBoxList;
+
+                    return textNoteBoundingBoxList;
+
                 }
-                else if (upDirection.IsAlmostEqualTo(new XYZ(-1,0,0)))  // up direction is to the west 
-                {
-                    if (horAlignment == HorizontalTextAlignment.Left)
-                    {
-                        minPoint = textCordinate;
-                        maxPoint = new XYZ(textCordinate.X + height, textCordinate.Y + width, textCordinate.Z);
 
-                    }
-                    else if (horAlignment == HorizontalTextAlignment.Right)
-                    {
-                        minPoint = new XYZ(textCordinate.X, textCordinate.Y - width, textCordinate.Z);
-                        maxPoint = new XYZ(textCordinate.X + height, textCordinate.Y, textCordinate.Z);
+                var defaultBoundingBoxesList = new List<BoundingBoxXYZ> { SheetUtils.m_Document.GetElement(elementId)?.get_BoundingBox(SheetUtils.m_Document.ActiveView) };
 
-                    }
-                    else if (horAlignment == HorizontalTextAlignment.Center)
-                    {
-                        minPoint = new XYZ(textCordinate.X , textCordinate.Y - (width/2), textCordinate.Z);
-                        maxPoint = new XYZ(textCordinate.X + height, textCordinate.Y + (width/2), textCordinate.Z);
-                    }
-                }
-                else if (upDirection.IsAlmostEqualTo(new XYZ(1, 0, 0)))  // up direction is to the east 
-                {
-                    if (horAlignment == HorizontalTextAlignment.Left)
-                    {
-                        minPoint = new XYZ(textCordinate.X - height, textCordinate.Y - width, textCordinate.Z);
-                        maxPoint = textCordinate;
+                TagDataCache.cachedBoundingBoxDict[elementId] = defaultBoundingBoxesList;
 
-                    }
-                    else if (horAlignment == HorizontalTextAlignment.Right)
-                    {
-                        minPoint = new XYZ(textCordinate.X - height, textCordinate.Y, textCordinate.Z);
-                        maxPoint = new XYZ(textCordinate.X, textCordinate.Y + width, textCordinate.Z);
-
-                    }
-                    else if (horAlignment == HorizontalTextAlignment.Center)
-                    {
-                        minPoint = new XYZ(textCordinate.X - height, textCordinate.Y - (width/2), textCordinate.Z);
-                        maxPoint = new XYZ(textCordinate.X, textCordinate.Y + (width/2), textCordinate.Z);
-                    }
-                }
-                else if (upDirection.IsAlmostEqualTo(new XYZ(0, -1, 0)))  // up direction is to the south 
-                {
-                    if (horAlignment == HorizontalTextAlignment.Left)
-                    {
-                        minPoint = new XYZ(textCordinate.X - width, textCordinate.Y , textCordinate.Z);
-                        maxPoint = new XYZ(textCordinate.X , textCordinate.Y + height, textCordinate.Z);
-
-                    }
-                    else if (horAlignment == HorizontalTextAlignment.Right)
-                    {
-                        minPoint = textCordinate;
-                        maxPoint = new XYZ(textCordinate.X + width, textCordinate.Y + height, textCordinate.Z);
-
-                    }
-                    else if (horAlignment == HorizontalTextAlignment.Center)
-                    {
-                        minPoint = new XYZ(textCordinate.X - (width/2), textCordinate.Y, textCordinate.Z);
-                        maxPoint = new XYZ(textCordinate.X + (width/2), textCordinate.Y + height, textCordinate.Z);
-                    }
-                }
-
-                BoundingBoxXYZ textNoteBoundingBox = new BoundingBoxXYZ();
-                textNoteBoundingBox.Min = minPoint;
-                textNoteBoundingBox.Max = maxPoint;
-
-                textNoteBoundingBoxList.Add(textNoteBoundingBox);
-
-                if(textNote.LeaderCount > 0)
-                {
-                    var leadersList = textNote.GetLeaders();
-
-                    foreach (var leader in leadersList)
-                    {
-                        textNoteBoundingBoxList.AddRange(TagUtils.GetBoundingBoxes(leader));
-                    }
-                }
-
-                return textNoteBoundingBoxList;
-
+                // return default bounding box if it is not a text note 
+                return defaultBoundingBoxesList;
             }
-
-            // return default bounding box if it is not a text note 
-            return new List<BoundingBoxXYZ> { SheetUtils.m_Document.GetElement(elementId)?.get_BoundingBox(SheetUtils.m_Document.ActiveView) };
         }
 
     }

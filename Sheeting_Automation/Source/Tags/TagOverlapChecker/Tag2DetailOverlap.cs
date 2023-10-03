@@ -46,39 +46,45 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
         /// <returns></returns>
         public override  List<BoundingBoxXYZ> GetBoundingBoxesOfElement(ElementId elementId)
         {
-            // get the detail element from the id
-            Element detailElement = SheetUtils.m_Document.GetElement(elementId);
-
-            // set the options 
-            var options = new Options();
-            options.ComputeReferences = true;
-            options.View = SheetUtils.m_Document.ActiveView;
-
-            // collect the geometry instances to a list
-            List<GeometryInstance> geomInstancesList = detailElement.get_Geometry(options)?
-                                                           .Where(o => o is GeometryInstance)
-                                                           .Cast<GeometryInstance>()
-                                                           .ToList();
-
-            // initialize the bounding boxes list
-            List<BoundingBoxXYZ> boundingBoxes = new List<BoundingBoxXYZ>();
-
-            if(geomInstancesList == null)
-                return boundingBoxes;
-
-            // iterate all the geometry instances 
-            foreach ( GeometryInstance geomInstance in  geomInstancesList ) 
+            if (TagDataCache.cachedBoundingBoxDict.ContainsKey(elementId))
+                return TagDataCache.cachedBoundingBoxDict[elementId];
+            else
             {
-                // iterate all the shapes 
-                foreach(GeometryObject geomObj in geomInstance.GetInstanceGeometry())
-                {
-                    // add the bouding box of the geometry object
-                    boundingBoxes.Add( TagUtils.GetBoundingBox(geomObj));
-                }
-            }
+                // get the detail element from the id
+                Element detailElement = SheetUtils.m_Document.GetElement(elementId);
 
-            // return the final bounding boxes list
-            return boundingBoxes;
+                // set the options 
+                var options = new Options();
+                options.ComputeReferences = true;
+                options.View = SheetUtils.m_Document.ActiveView;
+
+                // collect the geometry instances to a list
+                List<GeometryInstance> geomInstancesList = detailElement.get_Geometry(options)?
+                                                               .Where(o => o is GeometryInstance)
+                                                               .Cast<GeometryInstance>()
+                                                               .ToList();
+
+                // initialize the bounding boxes list
+                List<BoundingBoxXYZ> boundingBoxes = new List<BoundingBoxXYZ>();
+
+                if (geomInstancesList == null)
+                    return boundingBoxes;
+
+                // iterate all the geometry instances 
+                foreach (GeometryInstance geomInstance in geomInstancesList)
+                {
+                    // iterate all the shapes 
+                    foreach (GeometryObject geomObj in geomInstance.GetInstanceGeometry())
+                    {
+                        // add the bouding box of the geometry object
+                        boundingBoxes.Add(TagUtils.GetBoundingBox(geomObj));
+                    }
+                }
+
+                TagDataCache.cachedBoundingBoxDict[elementId] = boundingBoxes;
+                // return the final bounding boxes list
+                return boundingBoxes;
+            }
         }
 
     }

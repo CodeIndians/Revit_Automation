@@ -85,6 +85,13 @@ namespace Sheeting_Automation
                    "Clear Overrides",
                    "Sheets.png"); //TODO: use tags.png
 
+                AddRevitCommand(tagsRB,
+                   "Clear Data \n Cache",
+                   "Clear Data \n Cache",
+                   "Sheeting_Automation.Source.Tags.ClearDataCache",
+                   "Clear Data \n Cache",
+                   "Sheets.png"); //TODO: use tags.png
+
                 return Result.Succeeded;
             }
             else

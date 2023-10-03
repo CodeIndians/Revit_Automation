@@ -35,30 +35,41 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
 
         public override List<BoundingBoxXYZ> GetBoundingBoxesOfElement(ElementId elementId)
         {
-            // get the detail element from the id
-            Element detailElement = SheetUtils.m_Document.GetElement(elementId);
+            if (TagDataCache.cachedBoundingBoxDict.ContainsKey(elementId))
+                return TagDataCache.cachedBoundingBoxDict[elementId];
+            else
+            {
+                // get the detail element from the id
+                Element detailElement = SheetUtils.m_Document.GetElement(elementId);
 
-            // set the options 
-            var options = new Options();
-            options.ComputeReferences = true;
-            options.View = SheetUtils.m_Document.ActiveView;
+                // set the options 
+                var options = new Options();
+                options.ComputeReferences = true;
+                options.View = SheetUtils.m_Document.ActiveView;
 
-            // collect the geometry instances to a list
-            List<GeometryInstance> geomInstancesList = detailElement.get_Geometry(options)
-                                                           .Where(o => o is GeometryInstance)
-                                                           .Cast<GeometryInstance>()
-                                                           .ToList();
-
-
+                // collect the geometry instances to a list
+                List<GeometryInstance> geomInstancesList = detailElement.get_Geometry(options)?
+                                                               .Where(o => o is GeometryInstance)
+                                                               .Cast<GeometryInstance>()
+                                                               .ToList();
 
 
-            // Retrieve the element using its ElementId
-            return new List<BoundingBoxXYZ> { GetBoundingBoxOfSolid(geomInstancesList) };
+
+                var boundingBoxesList = new List<BoundingBoxXYZ> { GetBoundingBoxOfSolid(geomInstancesList) };
+
+                TagDataCache.cachedBoundingBoxDict[elementId] = boundingBoxesList;
+
+                // Retrieve the element using its ElementId
+                return boundingBoxesList;
+            }
         }
 
         protected BoundingBoxXYZ GetBoundingBoxOfSolid(List<GeometryInstance> geometryInstance)
         {
             BoundingBoxXYZ bBox = null;
+
+            if(geometryInstance == null)
+                return bBox;
 
             // iterate all the geometry instances 
             foreach (GeometryInstance geomInstance in geometryInstance)

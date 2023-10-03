@@ -166,4 +166,21 @@ namespace Sheeting_Automation.Source.Tags
         }
     }
 
+    [Transaction(TransactionMode.Manual)]
+    public class ClearDataCache : IExternalCommand
+    {
+        public Result Execute(
+          ExternalCommandData commandData,
+          ref string message,
+          ElementSet elements)
+        {
+
+            TagDataCache.Initialize();
+
+            TaskDialog.Show("Info", "Tag Data cache is cleared successfully");
+
+            return Result.Succeeded;
+        }
+    }
+
 }

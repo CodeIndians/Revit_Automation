@@ -103,8 +103,16 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
         /// <returns></returns>
         public virtual List<BoundingBoxXYZ> GetBoundingBoxesOfElement(ElementId elementId)
         {
-            // Retrieve the element using its ElementId
-            return new List<BoundingBoxXYZ> { SheetUtils.m_Document.GetElement(elementId)?.get_BoundingBox(SheetUtils.m_Document.ActiveView) };
+            
+            if (TagDataCache.cachedBoundingBoxDict.ContainsKey(elementId))
+                return TagDataCache.cachedBoundingBoxDict[elementId];
+            else
+            {
+                var boundingBoxXYZList = new List<BoundingBoxXYZ> { SheetUtils.m_Document.GetElement(elementId)?.get_BoundingBox(SheetUtils.m_Document.ActiveView) };
+                TagDataCache.cachedBoundingBoxDict[elementId] = boundingBoxXYZList;
+                return boundingBoxXYZList;
+            }
+            
         }
 
         /// <summary>

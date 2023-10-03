@@ -121,6 +121,7 @@
     <Compile Include="Source\Tags\TagOverlapChecker\Tag2ViewOverlap.cs" />
     <Compile Include="Source\Tags\TagOverlapChecker\Tag2WallOverlap.cs" />
     <Compile Include="Source\Tags\TagOverlapChecker\Tag2WindowOverlap.cs" />
+    <Compile Include="Source\Tags\TagOverlapChecker\TagDataCache.cs" />
     <Compile Include="Source\Tags\TagOverlapChecker\TagGraphicOverrider.cs" />
     <Compile Include="Source\Tags\TagOverlapChecker\TagOverlapBase.cs" />
     <Compile Include="Source\Tags\TagOverlapChecker\TagOverlapManager.cs" />

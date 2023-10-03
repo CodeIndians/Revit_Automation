@@ -46,35 +46,45 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
         /// <returns></returns>
         public override List<BoundingBoxXYZ> GetBoundingBoxesOfElement(ElementId elementId)
         {
-            List<BoundingBoxXYZ> boundingBoxes = new List<BoundingBoxXYZ>();
-
-            Dimension dim;
-
-            // return if the element is not of the desired type
-            if (!dimensionList.TryGetValue(elementId, out dim))
-                return boundingBoxes;
-
-            if (dim != null)
+            if (TagDataCache.cachedBoundingBoxDict.ContainsKey(elementId))
+                return TagDataCache.cachedBoundingBoxDict[elementId];
+            else
             {
-                DimensionSegmentArray segments = dim.Segments;
+                List<BoundingBoxXYZ> boundingBoxes = new List<BoundingBoxXYZ>();
 
-                foreach (DimensionSegment segment in segments)
+                Dimension dim;
+
+                // return if the element is not of the desired type
+                if (!dimensionList.TryGetValue(elementId, out dim))
                 {
-                    BoundingBoxXYZ boundingBox = GetBoundingBoxOfSegment(segment, elementId) ;
-
-                    boundingBoxes.Add(boundingBox);
+                    TagDataCache.cachedBoundingBoxDict[elementId] = boundingBoxes;
+                    return boundingBoxes;
                 }
 
-                if(segments.Size == 0)
+                if (dim != null)
                 {
-                    // dimension has no segment, check the dimension directly
-                    BoundingBoxXYZ boundingBox = GetBoundingBoxOfDimension(dim, elementId);
+                    DimensionSegmentArray segments = dim.Segments;
 
-                    boundingBoxes.Add(boundingBox);
+                    foreach (DimensionSegment segment in segments)
+                    {
+                        BoundingBoxXYZ boundingBox = GetBoundingBoxOfSegment(segment, elementId);
+
+                        boundingBoxes.Add(boundingBox);
+                    }
+
+                    if (segments.Size == 0)
+                    {
+                        // dimension has no segment, check the dimension directly
+                        BoundingBoxXYZ boundingBox = GetBoundingBoxOfDimension(dim, elementId);
+
+                        boundingBoxes.Add(boundingBox);
+                    }
                 }
+
+                TagDataCache.cachedBoundingBoxDict[elementId] = boundingBoxes;
+
+                return boundingBoxes;
             }
-
-            return boundingBoxes;
         }
 
         private BoundingBoxXYZ GetBoundingBoxOfSegment(DimensionSegment segment, ElementId elementId)
