@@ -14,6 +14,8 @@ namespace Sheeting_Automation.Source.Tags
     public partial class TagCreationForm : Form
     {
         private int m_ActiveCellCol = -1;
+
+        private BackgroundWorker worker = new BackgroundWorker();
         public TagCreationForm()
         {
             InitializeComponent();
@@ -22,6 +24,32 @@ namespace Sheeting_Automation.Source.Tags
             SetForm();
 
             InitializeDataGridView();
+
+            // configure the background worker
+            worker.DoWork += Worker_DoWork;
+            worker.RunWorkerCompleted += Worker_RunWorkerCompleted;
+
+            //start the background operation ( collecting bounding boxes)
+            worker.RunWorkerAsync();
+        }
+
+        /// <summary>
+        ///  Do the back ground work
+        ///  Collect the bounding boxes
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void Worker_DoWork(object sender, DoWorkEventArgs e)
+        {
+            createButton.Enabled = false;
+            BoundingBoxCollector.Initialize();
+        }
+
+        private void Worker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            createButton.Enabled = true;
+            var count = BoundingBoxCollector.BoundingBoxesDict.Count;
+            Console.WriteLine(count);
         }
 
         /// <summary>

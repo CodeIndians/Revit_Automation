@@ -15,6 +15,10 @@ namespace Sheeting_Automation.Utils
         public static Selection m_Selection;
 
         public static UIDocument m_UIDocument;
+
+        public static ElementId m_ActiveViewId;
+
+        public static View m_ActiveView;
         public static List<string> GetFloorPlans()
         {
             List<string> strFloorPlansList = new List<string>();

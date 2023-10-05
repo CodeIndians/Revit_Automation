@@ -95,6 +95,7 @@
       <DependentUpon>ScheduleUpdateForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Source\Schedules\ScheduleUtils.cs" />
+    <Compile Include="Source\Tags\TagCreator\BoundingBoxCollector.cs" />
     <Compile Include="Source\Tags\TagMissingChecker\TagMissingChecker.cs" />
     <Compile Include="Source\Tags\TagMissingChecker\TagMissingCheckForm.cs">
       <SubType>Form</SubType>

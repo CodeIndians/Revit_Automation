@@ -19,7 +19,7 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
             List<ElementId> elementIds = new List<ElementId>();
 
             // Create a filtered element collector 
-            FilteredElementCollector collector = new FilteredElementCollector(SheetUtils.m_Document, SheetUtils.m_Document.ActiveView.Id);
+            FilteredElementCollector collector = new FilteredElementCollector(SheetUtils.m_Document, SheetUtils.m_ActiveViewId);
 
             // Filter for elements of category structural columns
             collector.OfCategory(BuiltInCategory.OST_StructuralColumns);
@@ -45,7 +45,7 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
                 // set the options 
                 var options = new Options();
                 options.ComputeReferences = true;
-                options.View = SheetUtils.m_Document.ActiveView;
+                options.View = SheetUtils.m_ActiveView;
 
                 // collect the geometry instances to a list
                 List<GeometryInstance> geomInstancesList = detailElement.get_Geometry(options)?

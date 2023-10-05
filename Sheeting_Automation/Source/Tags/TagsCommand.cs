@@ -25,6 +25,10 @@ namespace Sheeting_Automation.Source.Tags
             // assign the document
             SheetUtils.m_Document = doc;
 
+            SheetUtils.m_ActiveView = doc.ActiveView;
+
+            SheetUtils.m_ActiveViewId = doc.ActiveView.Id;
+
             // check if the current view is view plan 
             if (!TagUtils.IsCurrentViewPlan())
             {
@@ -114,6 +118,10 @@ namespace Sheeting_Automation.Source.Tags
 
             // assign the UI Document
             SheetUtils.m_UIDocument = uidoc;
+
+            // assign active document
+            SheetUtils.m_ActiveView = doc.ActiveView;
+            SheetUtils.m_ActiveViewId = doc.ActiveView.Id;
 
             // check if the current view is view plan
             if (!TagUtils.IsCurrentViewPlan())

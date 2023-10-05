@@ -142,7 +142,9 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
             }
         }
 
-        // delete tags with no leaders
+        /// <summary>
+        /// Delete the temporarily created no leader tags 
+        /// </summary>
         public static void DeleteNoLeaderTags()
         {
             using (Transaction transaction = new Transaction(SheetUtils.m_Document))
@@ -158,5 +160,20 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
             }
         }
 
+        public Dictionary <ElementId,List<BoundingBoxXYZ>> GetAllBoundingBoxes()
+        {
+            Dictionary<ElementId, List<BoundingBoxXYZ>> boundingBoxesDict = new Dictionary<ElementId, List<BoundingBoxXYZ>>();
+
+            var elementIds = GetElementIds();
+
+            foreach (var elementId in elementIds)
+            {
+                var boundingBoxes = GetBoundingBoxesOfElement(elementId);
+
+                boundingBoxesDict.Add(elementId, boundingBoxes);
+            }
+
+            return boundingBoxesDict;
+        }
     }
 }

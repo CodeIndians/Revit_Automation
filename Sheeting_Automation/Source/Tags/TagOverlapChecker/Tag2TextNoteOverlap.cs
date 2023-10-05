@@ -21,7 +21,7 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
             List<ElementId> elementIds = new List<ElementId>();
 
             // Create a filtered element collector
-            FilteredElementCollector collector = new FilteredElementCollector(SheetUtils.m_Document, SheetUtils.m_Document.ActiveView.Id);
+            FilteredElementCollector collector = new FilteredElementCollector(SheetUtils.m_Document, SheetUtils.m_ActiveViewId);
 
             // Filter for elements of category text notes
             collector.OfCategory(BuiltInCategory.OST_TextNotes);
@@ -57,7 +57,7 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
                     var upDirection = textNote.UpDirection;
 
                     // scale of the current view, used in the width and height calculation
-                    var scale = SheetUtils.m_Document.ActiveView.Scale;
+                    var scale = SheetUtils.m_ActiveView.Scale;
 
                     // height and width of the text note
                     // TODO: Add offset if required
