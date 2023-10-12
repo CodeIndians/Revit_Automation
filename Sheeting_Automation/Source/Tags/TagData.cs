@@ -41,5 +41,23 @@ namespace Sheeting_Automation.Source.Tags
             public string CategoryColumn;
             public List<string> ElementColumn;
         }
+
+        public struct Tag
+        {
+            public IndependentTag mTag;
+            public Element mElement;
+            public XYZ centerVectorDifference;
+            public BoundingBoxXYZ currentBoundingBox;
+            public BoundingBoxXYZ newBoundingBox;
+
+            public Tag(IndependentTag tag, Element element)
+            {
+                mTag = tag;
+                mElement = element;
+                currentBoundingBox = null;
+                newBoundingBox = null;
+                centerVectorDifference = XYZ.Zero;
+            }
+        }
     }
 }

@@ -244,7 +244,13 @@ namespace Sheeting_Automation.Source.Tags
             return TagOrientation.Horizontal;
         }
 
-        // Helper method to compare floating-point values with tolerance
+        /// <summary>
+        /// Helper method to compare floating-point values with tolerance
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <param name="tolerance"></param>
+        /// <returns></returns>
         private static bool IsAlmostEqual(double a, double b, double tolerance = 0.0001)
         {
             return Math.Abs(a - b) < tolerance;
@@ -295,8 +301,8 @@ namespace Sheeting_Automation.Source.Tags
         /// <returns>true if intersecting else false</returns>
         public static bool AreTagsIntersecting(IndependentTag tag1, IndependentTag tag2)
         {
-            return AreBoudingBoxesIntersecting(tag1.get_BoundingBox(SheetUtils.m_Document.ActiveView)
-                                                , tag2.get_BoundingBox(SheetUtils.m_Document.ActiveView));
+            return AreBoundingBoxesIntersecting(tag1.get_BoundingBox(SheetUtils.m_ActiveView)
+                                                , tag2.get_BoundingBox(SheetUtils.m_ActiveView));
         }
 
         /// <summary>
@@ -305,7 +311,7 @@ namespace Sheeting_Automation.Source.Tags
         /// <param name="bbox1"></param>
         /// <param name="bbox2"></param>
         /// <returns>true if intersecting else false</returns>
-        public static bool AreBoudingBoxesIntersecting(BoundingBoxXYZ bbox1, BoundingBoxXYZ bbox2)
+        public static bool AreBoundingBoxesIntersecting(BoundingBoxXYZ bbox1, BoundingBoxXYZ bbox2)
         {
             if (bbox1 == null || bbox2 == null)
                 return false;
@@ -326,6 +332,28 @@ namespace Sheeting_Automation.Source.Tags
             return true;
         }
 
+        /// <summary>
+        ///  check if the bounding box is intersecting with any of the bounding box in the given list
+        /// </summary>
+        /// <param name="bbox1">bounding box</param>
+        /// <param name="bboxList">bounding box list</param>
+        /// <returns></returns>
+        public static bool AreBoundingBoxesIntersecting(BoundingBoxXYZ bbox1, List<BoundingBoxXYZ> bboxList)
+        {
+            foreach(var bbox in bboxList)
+            {
+                if(AreBoundingBoxesIntersecting(bbox1,bbox))
+                    return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Get the bounding box the geometry object
+        /// </summary>
+        /// <param name="geomObject"></param>
+        /// <returns> Bounding Box</returns>
         public static BoundingBoxXYZ GetBoundingBox(GeometryObject geomObject) 
         {
             BoundingBoxXYZ boundingBoxXYZ = null;
@@ -432,6 +460,11 @@ namespace Sheeting_Automation.Source.Tags
             return boundingBoxesList;
         }
 
+        /// <summary>
+        /// Get the family name of the passed element
+        /// </summary>
+        /// <param name="element">Element</param>
+        /// <returns>family string name </returns>
         public static string GetFamilyNameOfElement(Element element)
         {
             // Check if the element has a valid Family object
@@ -449,6 +482,75 @@ namespace Sheeting_Automation.Source.Tags
             return null;
         }
 
+        /// <summary>
+        /// Get the nearest element bounding boxes 
+        /// </summary>
+        /// <param name="tag">custom tag struct</param>
+        /// <param name="boundingBoxesDict">bounding box dictionary</param>
+        /// <returns></returns>
+        public static List<BoundingBoxXYZ> GetNearestElementBoundingBoxes(Tag tag, ref Dictionary<ElementId, List<BoundingBoxXYZ>> boundingBoxesDict)
+        {
+            List<BoundingBoxXYZ> nearestBoundingBoxes = new List<BoundingBoxXYZ>();
+
+            //offset for creatting a reference bouding box
+            XYZ offset = new XYZ(10, 10, 0);
+
+            // create a reference bounding box from the element bounding box
+            var referenceBoundingBox = new BoundingBoxXYZ();
+            referenceBoundingBox.Min = tag.currentBoundingBox.Min - offset;
+            referenceBoundingBox.Max = tag.currentBoundingBox.Max + offset;
+
+
+
+            foreach (var kvp in boundingBoxesDict)
+            {
+                var elementBoundingBoxes = kvp.Value;
+                ElementId elementId = kvp.Key;
+
+                if (tag.mElement.Category.Id.IntegerValue == (int)BuiltInCategory.OST_StructuralFraming)
+                {
+                    Element checkElement = SheetUtils.m_Document.GetElement(elementId);
+
+                    if (checkElement.Category.Id.IntegerValue == (int)BuiltInCategory.OST_StructuralFraming)
+                    {
+                        // skip different family elements for structural framing types 
+                        if (TagUtils.GetFamilyNameOfElement(tag.mElement) != TagUtils.GetFamilyNameOfElement(checkElement))
+                            continue;
+                    }
+                }
+
+                if (elementBoundingBoxes != null)
+                {
+                    foreach (var elemBoundingBox in elementBoundingBoxes)
+                    {
+                        if (TagUtils.AreBoundingBoxesIntersecting(elemBoundingBox, referenceBoundingBox))
+                            nearestBoundingBoxes.Add(elemBoundingBox);
+                    }
+                }
+            }
+
+            return nearestBoundingBoxes;
+        }
+
+        /// <summary>
+        /// Get the orientation of the tag
+        /// </summary>
+        /// <param name="tag"></param>
+        /// <returns>Tag orientation</returns>
+        public static TagOrientation GetTagOrientation(Tag tag)
+        {
+            TagOrientation tagOrientation = TagOrientation.Horizontal;
+
+            var boundingBox = tag.currentBoundingBox;
+
+            var width = Math.Abs(boundingBox.Max.X - boundingBox.Min.X);
+            var height = Math.Abs(boundingBox.Max.Y - boundingBox.Min.Y);
+
+            if (width < height)
+                tagOrientation = TagOrientation.Vertical;
+
+            return tagOrientation;
+        }
     }
 
 

@@ -62,7 +62,7 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
 
                     foreach (BoundingBoxXYZ boundingBoxXYZ in GetBoundingBoxesOfElement(elementIds[i]))
                     {
-                        if (TagUtils.AreBoudingBoxesIntersecting(boundingBoxXYZ,
+                        if (TagUtils.AreBoundingBoxesIntersecting(boundingBoxXYZ,
                                                                 m_IndependentTags[j].get_BoundingBox(SheetUtils.m_Document.ActiveView)))
                         {
                             if (!overlapElementIds.Contains(m_IndependentTags[j].Id))

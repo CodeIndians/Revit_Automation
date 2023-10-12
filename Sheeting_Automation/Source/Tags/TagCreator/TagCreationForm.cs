@@ -2,11 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Diagnostics;
-using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Sheeting_Automation.Source.Tags
@@ -48,8 +44,8 @@ namespace Sheeting_Automation.Source.Tags
         private void Worker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             createButton.Enabled = true;
-            var count = BoundingBoxCollector.BoundingBoxesDict.Count;
-            Console.WriteLine(count);
+            //var count = BoundingBoxCollector.BoundingBoxesDict.Count;
+            //Console.WriteLine(count);
         }
 
         /// <summary>
@@ -194,8 +190,16 @@ namespace Sheeting_Automation.Source.Tags
 
             var tagCreator = new TagCreator(formDataList);
 
+            //create tags at the default location
             tagCreator.CreateTags();
 
+            // update the tag bounding box data structure
+            BoundingBoxCollector.UpdateTagBoundingBoxes();
+
+            //adjust the tags
+            TagAdjust.AdjustTagsBasedOnElementsOnly();
+
+            //close the create form
             this.Close();
         }
 

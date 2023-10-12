@@ -1,21 +1,40 @@
 ﻿using Autodesk.Revit.DB;
 using Sheeting_Automation.Source.Tags.TagOverlapChecker;
+using Sheeting_Automation.Utils;
 using System.Collections.Generic;
+using System.Linq;
+using static Sheeting_Automation.Source.Tags.TagData;
 
 namespace Sheeting_Automation.Source.Tags
 {
     public static class BoundingBoxCollector
-    {
+    {   
+        /// <summary>
+        /// list to collect the bouding boxes 
+        /// </summary>
         public static Dictionary<ElementId, List<BoundingBoxXYZ>> BoundingBoxesDict;
 
+        /// <summary>
+        /// list of all the independent tags, this is our custom tag class
+        /// </summary>
+        public static List<Tag> IndependentTags;
+
+        /// <summary>
+        /// list of overlap checkers that are used 
+        /// </summary>m
         private static List<TagOverlapBase> overlapCheckers;
         
-        // collect the bounding boxes
+        /// <summary>
+        /// collect the bounding boxes
+        /// this is called when loading the form on the worker thread
+        /// </summary>
         public static void Initialize()
         {
             BoundingBoxesDict  = new Dictionary<ElementId, List<BoundingBoxXYZ>>();
 
             overlapCheckers = new List<TagOverlapBase>();
+
+            IndependentTags = new List<Tag>();
 
             // add the overlap checkers
             AddOverlapCheckers();
@@ -25,7 +44,7 @@ namespace Sheeting_Automation.Source.Tags
         }
 
         /// <summary>
-        /// Add the overlap checkers for collecting the bouding boxes 
+        /// Add the overlap checkers for collecting the bounding boxes 
         /// </summary>
         private static void AddOverlapCheckers()
         {
@@ -75,6 +94,20 @@ namespace Sheeting_Automation.Source.Tags
                 }
             }
         }
-    
+
+        /// <summary>
+        /// Update the bounding boxes of all the tags
+        /// </summary>
+        public static void UpdateTagBoundingBoxes()
+        {
+            for(int i = 0; i < IndependentTags.Count; i++)
+            {
+                var tag = IndependentTags[i];
+                tag.currentBoundingBox = tag.mTag.get_BoundingBox(SheetUtils.m_ActiveView);
+                tag.newBoundingBox = tag.mTag.get_BoundingBox(SheetUtils.m_ActiveView);
+                IndependentTags[i] = tag;
+            }
+        }
+
     }
 }

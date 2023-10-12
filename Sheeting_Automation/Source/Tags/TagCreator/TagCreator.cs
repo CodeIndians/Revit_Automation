@@ -66,31 +66,25 @@ namespace Sheeting_Automation.Source.Tags
                         // retrieve element from the element id 
                         Element element = SheetUtils.m_Document.GetElement(elementId);
 
-                        if(element != null)
+                        if (element != null)
                         {
                             // create a ref with the element 
                             Reference reference = new Reference(element);
 
-                            // extract the location curve of the element
-                            LocationCurve locationCurve  = element.Location as LocationCurve;
+                            // get the first bounding box of the element from the collector
+                            BoundingBoxXYZ elementBoundingBox = BoundingBoxCollector.BoundingBoxesDict[elementId].FirstOrDefault();
 
-                            // extract the location point of the element
-                            LocationPoint locationPoint = element.Location as LocationPoint;
-
-                            // initialize the tag location
-                            XYZ tagLocation = new XYZ();
-
-                            // handling curve or point 
-                            if (locationCurve != null)
-                                tagLocation = (locationCurve.Curve.GetEndPoint(0) + locationCurve.Curve.GetEndPoint(1)) / 2.0;
-                            else if (locationPoint != null)
-                                tagLocation = locationPoint.Point;
+                            // place the tag at the mid point of the bounding box 
+                            XYZ tagLocation = (elementBoundingBox.Min + elementBoundingBox.Max) / 2;
 
                             // create the tag 
-                            IndependentTag tag = IndependentTag.Create(SheetUtils.m_Document, SheetUtils.m_Document.ActiveView.Id, reference, formData.Leader,TagMode.TM_ADDBY_CATEGORY,TagOrientation.Vertical,tagLocation);
+                            IndependentTag tag = IndependentTag.Create(SheetUtils.m_Document, SheetUtils.m_Document.ActiveView.Id, reference, formData.Leader, TagMode.TM_ADDBY_CATEGORY, TagOrientation.Vertical, tagLocation);
 
                             // set the tag type 
                             tag.ChangeTypeId(tagId);
+
+                            // add all the tags 
+                            BoundingBoxCollector.IndependentTags.Add(new TagData.Tag(tag, element));
                         }
                     }
                 }
