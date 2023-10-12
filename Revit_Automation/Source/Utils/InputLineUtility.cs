@@ -65,11 +65,13 @@ namespace Revit_Automation.Source
 
             FilteredElementCollector locationCurvedCol = null;
             
-            if (commandcode == CommandCode.CeeHeaders)
+            if (commandcode == CommandCode.CeeHeaders || commandcode == CommandCode.CompositeDeck)
             {
                 if (CeeHeaderBoundaries.selectedInputlines.Count == 0)
                 {
                     // For CeeHeaders we want only those input lines present in the view
+                    // Same is the case with Composite Decks, purlins and top tracks as well
+                   
                     locationCurvedCol
                       = new FilteredElementCollector(doc, doc.ActiveView.Id)
                         .WhereElementIsNotElementType()

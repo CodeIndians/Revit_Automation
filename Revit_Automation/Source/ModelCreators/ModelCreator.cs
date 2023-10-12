@@ -165,9 +165,13 @@ namespace Revit_Automation
             {
                 TopTrackCreator topTracksCreator = new TopTrackCreator(doc, form);
                 topTracksCreator.bSelectedModelling = (selection != null && selection.GetElementIds().Count > 0);
-                topTracksCreator.CreateModel( InputLineUtility.colInputLines, levels);
+                topTracksCreator.CreateModel(InputLineUtility.colInputLines, levels);
             }
-
+            else if (commandCode == CommandCode.CompositeDeck)
+            {
+                CCompositeDeckCreator compositeDeckCreator = new CCompositeDeckCreator(doc, form);
+                compositeDeckCreator.CreateModel(InputLineUtility.colInputLines, levels);
+            }
             //uidoc.ActiveView = activeView;
 
             form.Visible = false;

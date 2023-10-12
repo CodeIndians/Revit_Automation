@@ -436,8 +436,45 @@ namespace Revit_Automation
           ElementSet elements)
         {
             UIApplication uiapp = commandData.Application;
+            UIDocument uidoc = uiapp.ActiveUIDocument;
+            Document doc = uidoc.Document;
+            Selection selection = uidoc.Selection;
 
             PrepareCommandClass.PrepareCommand(commandData);
+
+            Reference north = selection.PickObject(
+                ObjectType.Element, "Pick Grid for North Boundary ");
+
+            Grid Northgrid = doc.GetElement(north) as Grid;
+
+            Reference south = selection.PickObject(
+                ObjectType.Element, "Pick Grid for South Boundary ");
+
+            Grid Southgrid = doc.GetElement(south) as Grid;
+
+            Reference east = selection.PickObject(
+                ObjectType.Element, "Pick Grid for East Boundary ");
+
+            Grid Eastgrid = doc.GetElement(east) as Grid;
+
+            Reference west = selection.PickObject(
+                ObjectType.Element, "Pick Grid for West Boundary ");
+
+            Grid Westgrid = doc.GetElement(west) as Grid;
+
+            Reference elemRef = selection.PickObject(
+                ObjectType.Element, "Pick Grid Span Starting  reference ");
+
+            Grid spanStartGrid = doc.GetElement(elemRef) as Grid;
+
+            List<Grid> grids = new List<Grid>();
+            grids.Add(Northgrid);
+            grids.Add(Southgrid);
+            grids.Add(Eastgrid);
+            grids.Add(Westgrid);
+            grids.Add(spanStartGrid);
+
+            CCompositeDeckCreator.lstBoundaries = grids;
 
             Form1 form = new Form1
             {

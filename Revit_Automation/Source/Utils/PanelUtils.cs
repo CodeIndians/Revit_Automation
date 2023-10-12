@@ -164,7 +164,7 @@ namespace Revit_Automation.Source.Utils
 
         public List<XYZ> ComputeMiddleIntersectionPts(InputLine inputLine, SortedDictionary<XYZ, string> sortedDictionary, XYZ StartPoint, XYZ EndPoint)
         {
-            XYZ startPt = StartPoint, endPt = EndPoint;
+            XYZ startPt = StartPoint, endPt = EndPoint ;
             double dPreferedLength = GetPanelPreferredLength(inputLine);
             double dMaxLength = GetPanelMaxLength(inputLine);
             List<XYZ> middleIntersections = new List<XYZ>();
@@ -176,6 +176,19 @@ namespace Revit_Automation.Source.Utils
                     (lineType == LineType.vertical && Math.Abs(StartPoint.Y - EndPoint.Y) < 25.0))
                 return middleIntersections;
 
+            double dPanelStrategy = GetPanelStrategy(inputLine);
+            if (dPanelStrategy == 2)
+            {
+                List<XYZ> retPts = ComputePointsAccordingToSelectedStrategy(inputLine, sortedDictionary, startPt, endPt);
+                middleIntersections.AddRange(retPts);
+
+                // Adjust the intersection points such that Intersections are at studs. 
+                List<XYZ> adjustedMiddleIntersections1 = AdjustIntersectionsAtStud(inputLine, middleIntersections);
+
+                return adjustedMiddleIntersections1;
+
+            }
+            
             // if there are no intersections - Place panels as per 3rd strategy
             if (sortedDictionary.Count == 0)
             {
@@ -479,9 +492,15 @@ namespace Revit_Automation.Source.Utils
 
         private List<XYZ> AdjustIntersectionsAtStud(InputLine inputLine, List<XYZ> middleIntersections)
         {
+
             List<XYZ> returnPoints = new List<XYZ>();
             LineType lineType = GenericUtils.GetLineType(inputLine);
             List<XYZ> studLocations = GetStudlocations(inputLine);
+
+            middleIntersections = lineType == LineType.Horizontal ? middleIntersections.OrderBy(il => il.X).ToList() : middleIntersections.OrderBy(il => il.Y).ToList();
+            
+            // TO-Do : Get Stud Lap Parameter
+            double dPanelLap = GetMinimumPaneLapValue(inputLine);
 
             foreach (XYZ intesectPt in middleIntersections)
             {
@@ -489,13 +508,13 @@ namespace Revit_Automation.Source.Utils
 
                 if (lineType == LineType.Horizontal)
                 {
-                    returnPoints.Add(new XYZ(studPt.X + 0.125, intesectPt.Y, intesectPt.Z));
-                    returnPoints.Add(new XYZ(studPt.X - 0.125, intesectPt.Y, intesectPt.Z));
+                    returnPoints.Add(new XYZ(studPt.X + dPanelLap/2, intesectPt.Y, intesectPt.Z));
+                    returnPoints.Add(new XYZ(studPt.X - dPanelLap/2, intesectPt.Y, intesectPt.Z));
                 }
                 else
                 {
-                    returnPoints.Add(new XYZ(intesectPt.X, studPt.Y + 0.125, intesectPt.Z));
-                    returnPoints.Add(new XYZ(intesectPt.X, studPt.Y - 0.125, intesectPt.Z));
+                    returnPoints.Add(new XYZ(intesectPt.X, studPt.Y + dPanelLap / 2, intesectPt.Z));
+                    returnPoints.Add(new XYZ(intesectPt.X, studPt.Y - dPanelLap / 2, intesectPt.Z));
                 }
             }
 
@@ -576,6 +595,23 @@ namespace Revit_Automation.Source.Utils
             return dPanelPreferredLength;
         }
 
+        private double GetMinimumPaneLapValue(InputLine line)
+        {
+            PanelTypeGlobalParams pg = string.IsNullOrEmpty(line.strPanelType) ?
+                            GlobalSettings.lstPanelParams.Find(panelParams => panelParams.bIsUNO == true) :
+                            GlobalSettings.lstPanelParams.Find(panelParams => panelParams.strWallName == line.strPanelType);
+
+            return pg.iPanelMinLap;
+        }
+
+        private double GetPanelHeightOffsetValue (InputLine line)
+        {
+            PanelTypeGlobalParams pg = string.IsNullOrEmpty(line.strPanelType) ?
+                            GlobalSettings.lstPanelParams.Find(panelParams => panelParams.bIsUNO == true) :
+                            GlobalSettings.lstPanelParams.Find(panelParams => panelParams.strWallName == line.strPanelType);
+
+            return pg.iPanelHeightOffset;
+        }
         private double GetPanelStrategy(InputLine line)
         {
             return double.Parse(GlobalSettings.s_iPanelStrategy);
@@ -631,14 +667,13 @@ namespace Revit_Automation.Source.Utils
                     {
                         if (linetype == LineType.Horizontal)
                         {
-                            XYZ tempPoint = new XYZ(intersectPt.X, 0, 0);
-                            middlePoint = middlePoint + tempPoint;
+                            middlePoint = new XYZ(intersectPt.X, middlePoint.Y, middlePoint.Z);
+                            //middlePoint = middlePoint + tempPoint;
                             middleIntersections.Add(middlePoint);
                         }
                         else
                         {
-                            XYZ tempPoint = new XYZ(0, intersectPt.Y, 0);
-                            middlePoint = middlePoint + tempPoint;
+                            middlePoint = new XYZ(middlePoint.X, intersectPt.Y, middlePoint.Z);
                             middleIntersections.Add(middlePoint);
                         }
                     }

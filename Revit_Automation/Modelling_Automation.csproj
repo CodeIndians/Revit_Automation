@@ -96,6 +96,7 @@
       <DependentUpon>ProjectProperties.cs</DependentUpon>
     </Compile>
     <Compile Include="Source\App.cs" />
+    <Compile Include="Source\ModelCreators\CCompositeDeckCreator.cs" />
     <Compile Include="Source\ModelCreators\CeeHeaderAdjustment.cs" />
     <Compile Include="Source\ModelCreators\TopTrack\TopTrackCreator.cs" />
     <Compile Include="Source\ModelCreators\TopTrack\TopTrackRelations.cs" />

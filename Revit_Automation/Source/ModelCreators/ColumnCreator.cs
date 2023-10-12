@@ -450,14 +450,30 @@ namespace Revit_Automation.Source.ModelCreators
                 XYZ tempXVector = new XYZ(inputLine.dOnCenter, 0, 0);
                 XYZ tempYVector = new XYZ(0, inputLine.dOnCenter, 0);
 
-                double dStartCollisionTolerance = bDoubleStudOnCenter ? 0.8 : 0.32;
+                double dStartCollisionTolerance = dFlangeWidth;
+                double dEndCollisionTolerance = dFlangeWidth;
+
+                if (inputLine.strStudType == "At Ends - R")
+                {
+                    dEndCollisionTolerance += dFlangeWidth;   
+                }
+                if (inputLine.strStudType == "At Ends - L")
+                {
+                    dStartCollisionTolerance += dFlangeWidth;
+                }
+                if (inputLine.strStudType == "At Ends")
+                {
+                    dStartCollisionTolerance += dFlangeWidth;
+                    dEndCollisionTolerance += dFlangeWidth;
+                }
+
                 bool bCanCreateColumn = true;
                 while (bCanCreateColumn)
                 {
                     ElementId StudColumnID;
                     XYZ StudColumnOrientation;
 
-                    if ((lineType == LineType.vertical && studPoint.Y < (studEndPoint.Y - dFlangeWidth)) || (lineType == LineType.horizontal && studPoint.X < (studEndPoint.X - dFlangeWidth)))
+                    if ((lineType == LineType.vertical && studPoint.Y < (studEndPoint.Y - dEndCollisionTolerance)) || (lineType == LineType.horizontal && studPoint.X < (studEndPoint.X - dEndCollisionTolerance)))
                     {
 
                         if ((lineType == LineType.vertical && studPoint.Y > (studStartPoint.Y + dStartCollisionTolerance)) || (lineType == LineType.horizontal && studPoint.X >  (studStartPoint.X + dStartCollisionTolerance))) // This condition ensures there are no collisions at the start
@@ -530,7 +546,7 @@ namespace Revit_Automation.Source.ModelCreators
                                 collisionElementID = StudColumnID
                             };
                             Logger.logMessage("ProcessStudInputLine - Collision detection at On-Center");
-                            if (collider.HandleCollision(collisionObject3)) 
+                            if (collider.CheckStudCollisions(StudColumnID)) 
                                     DeleteColumn(StudColumnID);
                         }
 

@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Data.Common;
 using System.Diagnostics;
 using System.Drawing;
+using System.Linq;
 using System.Linq.Expressions;
 
 namespace Revit_Automation.Source.CollisionDetectors
@@ -26,6 +27,27 @@ namespace Revit_Automation.Source.CollisionDetectors
         
         public PostCollisionResolver(Document doc) { m_Document = doc; }
 
+        public bool CheckStudCollisions(ElementId columnID)
+        {
+            FamilyInstance column = m_Document.GetElement(columnID) as FamilyInstance;
+            XYZ newOrientation = column.FacingOrientation;
+
+            BoundingBoxXYZ boundingBoxXYZ = column.get_BoundingBox(m_Document.ActiveView);
+
+            XYZ min = new XYZ(boundingBoxXYZ.Min.X + 0.05, boundingBoxXYZ.Min.Y + 0.05, boundingBoxXYZ.Min.Z);
+            XYZ max = new XYZ(boundingBoxXYZ.Max.X - 0.05, boundingBoxXYZ.Max.Y - 0.05, boundingBoxXYZ.Min.Z);
+
+            Outline outline = new Outline(min, max);
+
+            BoundingBoxIntersectsFilter filter = new BoundingBoxIntersectsFilter(outline);
+
+            ICollection<ElementId> columns = new FilteredElementCollector(m_Document).WherePasses(filter).OfCategory(BuiltInCategory.OST_StructuralColumns).ToElementIds();
+
+            // Collect only those columns other than self
+            columns = columns.Where(col => col != columnID).ToList();
+            
+            return columns.Count > 0 ;
+        }
         /// <summary>
         /// Handles the collisions at a given location represented by the collission object
         /// </summary>

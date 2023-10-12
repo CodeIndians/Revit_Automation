@@ -50,6 +50,12 @@ namespace Revit_Automation
                 // Get the Span
                 m_DeckSpan = GlobalSettings.framingSettings.dCeeHeaderDeckSpan;
 
+                if (m_DeckSpan == 0.0)
+                {
+                    MessageBox.Show("Cee Header Deck Span is not set, Please set it and rerun the command");
+                    tx.Commit();
+                    return;
+                }
                 // Compute of the slope is horizontal or vertical
                 ComputeSlopeDirection(colInputLines);
 

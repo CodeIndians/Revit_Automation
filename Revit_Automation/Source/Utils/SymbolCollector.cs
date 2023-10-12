@@ -182,5 +182,22 @@ namespace Revit_Automation
             }
             return null;
         }
+
+        internal static FamilySymbol GetCompositeDeckSymbol(string deckName, string deckFamiyName)
+        {
+            FilteredElementCollector families = new FilteredElementCollector(m_Document);
+
+            families.OfClass(typeof(FamilySymbol))
+                    .OfCategory(BuiltInCategory.OST_StructuralFraming);
+
+            foreach (FamilySymbol famSymbol in families)
+            {
+                if (famSymbol.FamilyName == deckFamiyName && famSymbol.Name == deckName)
+                {
+                    return famSymbol;
+                }
+            }
+            return null;
+        }
     }
 }

@@ -56,6 +56,14 @@ namespace Revit_Automation.Source.Utils
             string token = "x";
             string[] result = strColumnName.Split(new string[] { token }, StringSplitOptions.None);
 
+            if (result[0].Contains("2 1/2\""))
+            {
+                return 0.208333;
+            }
+            else if (result[0].Contains("3 5/8\""))
+            {
+                return 0.302083;
+            }
             if (result[0].Contains("4\""))
             {
                 return 0.333333;
@@ -68,15 +76,14 @@ namespace Revit_Automation.Source.Utils
             {
                 return 0.666666;
             }
-            else if (result[0].Contains("2 1/2\""))
+            else if (result[0].Contains("10\""))
             {
-                return 0.208333;
+                return 0.833333;
             }
-            else if (result[0].Contains("3 5/8\""))
+            else if (result[0].Contains("12\""))
             {
-                return 0.302083;
+                return 1;
             }
-
             return width;
 
         }
@@ -505,8 +512,11 @@ namespace Revit_Automation.Source.Utils
                     // iterate through each curve in the curve loop
                     foreach (Curve curve in curveLoop)
                     {
+                        XYZ hallwayLineStart = new XYZ(curve.GetEndPoint(0).X, curve.GetEndPoint(0).Y, startPt.Z);
+                        XYZ hallwayLineEnd = new XYZ(curve.GetEndPoint(1).X, curve.GetEndPoint(1).Y, startPt.Z);
+
                         //create a line from the curve, assuming that hallways always have line curves
-                        Line hallwayLine = Line.CreateBound(curve.GetEndPoint(0), curve.GetEndPoint(1));
+                        Line hallwayLine = Line.CreateBound(hallwayLineStart, hallwayLineEnd);
 
                         // return true if the lines are intersecting
                         if (givenLine.Intersect(hallwayLine) == SetComparisonResult.Overlap)

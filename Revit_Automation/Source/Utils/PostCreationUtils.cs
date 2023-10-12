@@ -1,6 +1,7 @@
 ﻿using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Structure;
 using Revit_Automation.CustomTypes;
+using Revit_Automation.Source.CollisionDetectors;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,7 +23,7 @@ namespace Revit_Automation.Source.Utils
                 bool bFlip = (panelDirection == PanelDirection.U || panelDirection == PanelDirection.L);
 
                 // Remove any existing studs
-                RemoveStudAtPoint(studPoint, inputLine.endpoint - inputLine.startpoint, doc);
+                //RemoveStudAtPoint(studPoint, inputLine.endpoint - inputLine.startpoint, doc);
 
                 // Input line start and end points
                 XYZ pt1 = null, pt2 = null;
@@ -109,6 +110,10 @@ namespace Revit_Automation.Source.Utils
                     MoveColumn(doc, columnID, Adjustedpt1);
                     Logger.logMessage("ProcessStudInputLine - Move Column at end");
                 }
+
+                removeStudsCollidingWithGivenStud(columnID, doc);
+
+
             }
             catch (Exception)
             { 
@@ -568,6 +573,35 @@ namespace Revit_Automation.Source.Utils
                         doc.Delete(elemID);
                 }
             }
+        }
+
+        private static void removeStudsCollidingWithGivenStud(ElementId givenStudID, Document m_Document)
+        {
+
+            FamilyInstance column = m_Document.GetElement(givenStudID) as FamilyInstance;
+            XYZ newOrientation = column.FacingOrientation;
+
+            BoundingBoxXYZ boundingBoxXYZ = column.get_BoundingBox(m_Document.ActiveView);
+
+            XYZ min = new XYZ(boundingBoxXYZ.Min.X , boundingBoxXYZ.Min.Y , boundingBoxXYZ.Min.Z);
+            XYZ max = new XYZ(boundingBoxXYZ.Max.X , boundingBoxXYZ.Max.Y , boundingBoxXYZ.Min.Z);
+
+            Outline outline = new Outline(min, max);
+
+            Element elem = m_Document.GetElement(givenStudID);
+
+            ElementIntersectsElementFilter filter = new ElementIntersectsElementFilter(elem );
+
+            ICollection<ElementId> columns = new FilteredElementCollector(m_Document).WherePasses(filter).OfCategory(BuiltInCategory.OST_StructuralColumns).ToElementIds();
+
+            // Collect only those columns other than self
+            columns = columns.Where(col => col != givenStudID).ToList();
+
+            foreach (ElementId element in columns)
+                m_Document.Delete(element);
+
+            return;
+
         }
     }
 }

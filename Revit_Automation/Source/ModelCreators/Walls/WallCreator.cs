@@ -1,4 +1,5 @@
 ﻿using Autodesk.Revit.DB;
+using Autodesk.Revit.DB.Structure.StructuralSections;
 using Revit_Automation.CustomTypes;
 using Revit_Automation.Source.CollisionDetectors;
 using Revit_Automation.Source.ModelCreators.Walls;
@@ -9,6 +10,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Net;
+using System.Reflection.Emit;
 using System.Runtime.ExceptionServices;
 using System.Security.Cryptography;
 using System.Text;
@@ -91,8 +93,10 @@ namespace Revit_Automation.Source.ModelCreators
             m_Form.PostMessage(string.Format("\n Completed Placement of walls in {0} seconds", seconds));
         }
 
-        private void PlaceWall(InputLine inputLine, IOrderedEnumerable<Level> levels)
+        private void  PlaceWall(InputLine inputLine, IOrderedEnumerable<Level> levels)
         {
+            double dPanelHeighOffset = GetPanelHeightOffsetValue(inputLine, levels);
+
             Logger.logMessage("Method - PlaceWall");
 
             // Get Line End points.
@@ -180,7 +184,7 @@ namespace Revit_Automation.Source.ModelCreators
                 List<Curve> wallCurves = new List<Curve> { wallLine };
 
                 // Place Wall
-                Wall wall = Wall.Create(m_Document, wallLine, wallType.Id, baseLevel.Id, (toplevel.Elevation - baseLevel.Elevation), 0, false, false);
+                Wall wall = Wall.Create(m_Document, wallLine, wallType.Id, baseLevel.Id, (toplevel.Elevation - baseLevel.Elevation - dPanelHeighOffset), 0, false, false);
 
                 // Disallow joins at start and End
                 WallUtils.DisallowWallJoinAtEnd(wall, 0);
@@ -432,10 +436,12 @@ namespace Revit_Automation.Source.ModelCreators
 
                     if (iLineOrientation != linetype)
                     {
+                        string strWallType = string.Empty;
                         string strLineInfo = string.Empty;
                         Parameter WallTypeParam = modelLine.LookupParameter("Wall Type");
                         if (WallTypeParam != null)
                         {
+                            strWallType = WallTypeParam.AsString();
                             strLineInfo += WallTypeParam.AsString();
                         }
                         
@@ -446,7 +452,8 @@ namespace Revit_Automation.Source.ModelCreators
                             strLineInfo += stud.AsString();
                         }
 
-                        PanelDirection panelDir = ComputePanelDirection(modelLine);
+
+                        PanelDirection panelDir =  (strWallType == "Insulation" || strWallType == "Fire") ? PanelDirection.B : ComputePanelDirection(modelLine);
                         strLineInfo += "|";
                         strLineInfo += panelDir.ToString();
 
@@ -652,6 +659,7 @@ namespace Revit_Automation.Source.ModelCreators
             // Panel Direction computation has the following priority.
             // Line > Settings > Automatic Computation
 
+
             PanelDirection panelDirection = PanelDirection.B;
 
             // Get Line End points.
@@ -721,6 +729,67 @@ namespace Revit_Automation.Source.ModelCreators
                 }
                 return panelDirection;
             }
+        }
+
+        private double GetPanelHeightOffsetValue(InputLine line, IOrderedEnumerable<Level> levels)
+        {
+            double dOffset = 0.0;
+
+            Level level = GetLevelForInputLine(line, levels);
+
+            if (level != null)
+            {
+                Parameter thicknessParam = null;
+
+                Element SlabElement = GenericUtils.GetNearestFloorOrRoof(level, line.startpoint, m_Document);
+                if (SlabElement != null)
+                    thicknessParam = SlabElement.get_Parameter(BuiltInParameter.FLOOR_ATTR_THICKNESS_PARAM);
+
+                if (SlabElement == null)
+                {
+                    Element roofElement = GenericUtils.GetRoofAtPoint(line.startpoint, m_Document);
+                    thicknessParam = roofElement.get_Parameter(BuiltInParameter.ROOF_ATTR_THICKNESS_PARAM);
+                }
+                if (thicknessParam != null)
+                {
+                    dOffset = thicknessParam.AsDouble();
+                }
+            }
+                PanelTypeGlobalParams pg = string.IsNullOrEmpty(line.strPanelType) ?
+                            GlobalSettings.lstPanelParams.Find(panelParams => panelParams.bIsUNO == true) :
+                            GlobalSettings.lstPanelParams.Find(panelParams => panelParams.strWallName == line.strPanelType);
+
+            dOffset += pg.iPanelHeightOffset;
+
+            return dOffset;
+        }
+
+        private Level GetLevelForInputLine(InputLine temp, IOrderedEnumerable<Level> levels)
+        {
+            Level level = null;
+
+            // Filter levels based on buldings to use
+            List<Level> filteredLevels = new List<Level>();
+            foreach (Level filteredlevel in levels)
+            {
+                if (filteredlevel.Name.Contains(temp.strBuildingName))
+                {
+                    filteredLevels.Add(filteredlevel);
+                }
+            }
+
+            for (int i = 0; i < filteredLevels.Count() - 1; i++)
+            {
+                Level tempLevel = filteredLevels.ElementAt(i);
+
+                if ((temp.startpoint.Z < (tempLevel.Elevation + 1)) && (temp.startpoint.Z > (tempLevel.Elevation - 1)))
+                {
+                    Level toplevel = filteredLevels.ElementAt(i + 1);
+                    level = toplevel;
+                }
+            }
+
+            return level;
         }
     }
 }
