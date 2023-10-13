@@ -142,6 +142,48 @@ namespace Sheeting_Automation.Source.Tags
     }
 
     [Transaction(TransactionMode.Manual)]
+    public class CheckDuplicateTagsCommand : IExternalCommand
+    {
+        public Result Execute(
+          ExternalCommandData commandData,
+          ref string message,
+          ElementSet elements)
+        {
+
+            UIApplication uiapp = commandData.Application;
+
+            // Walls will be needed for the Properties Dialog
+            UIDocument uidoc = uiapp.ActiveUIDocument;
+            Document doc = uidoc.Document;
+
+            // assign the document
+            SheetUtils.m_Document = doc;
+
+            // assign the selection
+            //SheetUtils.m_Selection = uidoc.Selection;
+
+            // assign the UI Document
+            SheetUtils.m_UIDocument = uidoc;
+
+            // assign active document
+            SheetUtils.m_ActiveView = doc.ActiveView;
+            SheetUtils.m_ActiveViewId = doc.ActiveView.Id;
+
+            // check if the current view is view plan
+            if (!TagUtils.IsCurrentViewPlan())
+            {
+                TaskDialog.Show("Error", "Current view is not a view plan");
+                return Result.Failed;
+            }
+
+            TagDuplicateChecker.CheckDuplicates();
+
+            return Result.Succeeded;
+        }
+
+    }
+
+    [Transaction(TransactionMode.Manual)]
     public class ClearTagOverrides : IExternalCommand
     {
         public Result Execute(

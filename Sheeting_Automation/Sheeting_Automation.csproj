@@ -98,6 +98,7 @@
     <Compile Include="Source\Tags\TagCreator\BoundingBoxCollector.cs" />
     <Compile Include="Source\Tags\TagCreator\TagAdjust.cs" />
     <Compile Include="Source\Tags\TagCreator\TagMovement.cs" />
+    <Compile Include="Source\Tags\TagDuplicateChecker\TagDuplicateChecker.cs" />
     <Compile Include="Source\Tags\TagMissingChecker\TagMissingChecker.cs" />
     <Compile Include="Source\Tags\TagMissingChecker\TagMissingCheckForm.cs">
       <SubType>Form</SubType>

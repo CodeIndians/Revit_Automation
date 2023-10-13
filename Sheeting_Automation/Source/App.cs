@@ -79,6 +79,13 @@ namespace Sheeting_Automation
                    "Sheets.png"); //TODO: use tags.png
 
                 AddRevitCommand(tagsRB,
+                   "Check Duplicate Tags",
+                   "Check Duplicate \n Tags",
+                   "Sheeting_Automation.Source.Tags.CheckDuplicateTagsCommand",
+                   "Check Duplicate Tags",
+                   "Sheets.png"); //TODO: use tags.png
+
+                AddRevitCommand(tagsRB,
                    "Clear Overrides",
                    "Clear Overrides",
                    "Sheeting_Automation.Source.Tags.ClearTagOverrides",
