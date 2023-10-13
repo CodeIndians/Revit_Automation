@@ -1,10 +1,6 @@
 ﻿using Autodesk.Revit.DB;
 using Sheeting_Automation.Utils;
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using static Sheeting_Automation.Source.Tags.TagData;
 
 namespace Sheeting_Automation.Source.Tags
@@ -41,22 +37,32 @@ namespace Sheeting_Automation.Source.Tags
             return tag;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="tag"></param>
+        /// <returns>tag with updatd bounding boxes and center difference vector</returns>
         private static Tag UpdateTagtoCenterOfElement(Tag tag)
         {
+            // bounding box of the element
             var elemBoundingBox = BoundingBoxCollector.BoundingBoxesDict[tag.mElement.Id].FirstOrDefault();
 
+            // element bounding box mid point
             var elemMidPoint = (elemBoundingBox.Min + elemBoundingBox.Max) / 2;
 
+            // mid point of the tag
             var tagMidpoint = (tag.currentBoundingBox.Min + tag.currentBoundingBox.Max) / 2;
 
+            // difference vector between the mid points 
             var differenceVector = elemMidPoint - tagMidpoint;
 
+            // store the diff vector in the custom tag
             tag.centerVectorDifference = differenceVector;
             
+            /// Update the bounding boxes/////
+            //////////////////////////////////
             var tempCurrentBoudingBox = new BoundingBoxXYZ();
-
             tempCurrentBoudingBox.Min = tag.currentBoundingBox.Min + differenceVector;
-
             tempCurrentBoudingBox.Max = tag.currentBoundingBox.Max + differenceVector;
 
             tag.currentBoundingBox = new BoundingBoxXYZ();
@@ -66,7 +72,9 @@ namespace Sheeting_Automation.Source.Tags
             tag.newBoundingBox = new BoundingBoxXYZ();
             tag.newBoundingBox.Min = tempCurrentBoudingBox.Min;
             tag.newBoundingBox.Max = tempCurrentBoudingBox.Max;
-
+            ///////////////////////////////////
+            ///////////////////////////////////
+            
             return tag;
         }
 
@@ -81,7 +89,8 @@ namespace Sheeting_Automation.Source.Tags
                 // start the transaction 
                 tx.Start("Moving Tags");
 
-                // tags will be move to the new bounding boxes
+                /// tags will be moved to the new bounding boxes
+                ////////////////////////////////////////////////
                 foreach (var tag in BoundingBoxCollector.IndependentTags)
                 {
                     // calcuate the translation vector based on new and current bouding boxes 
@@ -90,6 +99,8 @@ namespace Sheeting_Automation.Source.Tags
                     // Move the element based on the obtained translation vector 
                     ElementTransformUtils.MoveElement(SheetUtils.m_Document, tag.mTag.Id, translation + tag.centerVectorDifference);
                 }
+                ////////////////////////////////////////////////
+                ////////////////////////////////////////////////
 
                 //commit the transaction 
                 tx.Commit();
