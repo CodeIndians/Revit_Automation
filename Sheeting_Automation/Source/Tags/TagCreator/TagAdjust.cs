@@ -30,9 +30,9 @@ namespace Sheeting_Automation.Source.Tags
         /// <returns>custom tag struct</returns>
         private static Tag AdjustTagBasedOnElements(Tag tag)
         {
-            var elemBoundingBoxes = TagUtils.GetNearestElementBoundingBoxes(tag, ref BoundingBoxCollector.BoundingBoxesDict);
+            tag.nearestElementBoundingBoxes =  TagUtils.GetNearestElementBoundingBoxes(tag, ref BoundingBoxCollector.BoundingBoxesDict);
 
-            TagMovement.MoveTag(ref tag,ref elemBoundingBoxes);
+            TagMovement.MoveTag(ref tag);
 
             return tag;
         }

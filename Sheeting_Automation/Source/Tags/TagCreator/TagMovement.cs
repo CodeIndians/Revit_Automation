@@ -42,27 +42,32 @@ namespace Sheeting_Automation.Source.Tags
             }
         }
 
-        public static void MoveTag(ref Tag tag, ref List<BoundingBoxXYZ> nearestBoundingBoxes)
+        public static void MoveTag(ref Tag tag)
         {
             List<MoveData> moveDataList = new List<MoveData>
             {
-                Move(tag, ref nearestBoundingBoxes, MoveDirection.Up),
-                Move(tag, ref nearestBoundingBoxes, MoveDirection.Down),
-                Move(tag, ref nearestBoundingBoxes, MoveDirection.Left),
-                Move(tag, ref nearestBoundingBoxes, MoveDirection.Right),
-                Move(tag, ref nearestBoundingBoxes, MoveDirection.UpLeft),
-                Move(tag, ref nearestBoundingBoxes, MoveDirection.UpRight),
-                Move(tag, ref nearestBoundingBoxes, MoveDirection.DownLeft),
-                Move(tag, ref nearestBoundingBoxes, MoveDirection.DownRight)
+                Move(tag, MoveDirection.Up),
+                Move(tag, MoveDirection.Down),
+                Move(tag, MoveDirection.Left),
+                Move(tag, MoveDirection.Right),
+                Move(tag, MoveDirection.UpLeft),
+                Move(tag, MoveDirection.UpRight),
+                Move(tag, MoveDirection.DownLeft),
+                Move(tag, MoveDirection.DownRight)
             };
 
             moveDataList.Sort(new OffsetDistanceComparer());
 
             tag.newBoundingBox = moveDataList[0].computedBoundingBox;
 
+            foreach(var moveData in moveDataList)
+            {
+                tag.bestBoundingBoxes.Add(moveData.computedBoundingBox);
+            }
+
         }
 
-        private static MoveData Move(Tag tag, ref List<BoundingBoxXYZ> nearestBoundingBoxes, MoveDirection direction)
+        private static MoveData Move(Tag tag, MoveDirection direction)
         {
             XYZ moveOffset = XYZ.Zero;
 
@@ -88,9 +93,9 @@ namespace Sheeting_Automation.Source.Tags
             else if (direction == MoveDirection.DownRight)
                 moveOffset = new XYZ(0.3, -0.3, 0);
 
-            while (moveData.moveOffset < 30) 
+            while (moveData.moveOffset < 20) 
             {
-                if(TagUtils.AreBoundingBoxesIntersecting(moveData.computedBoundingBox, nearestBoundingBoxes))
+                if(TagUtils.AreBoundingBoxesIntersecting(moveData.computedBoundingBox, tag.nearestElementBoundingBoxes))
                 {
                     var oldBoundingBox = moveData.computedBoundingBox;
                     oldBoundingBox.Min = moveData.computedBoundingBox.Min + moveOffset;
@@ -106,7 +111,7 @@ namespace Sheeting_Automation.Source.Tags
                 moveData.moveOffset++;
             }
 
-            if (moveData.moveOffset >= 30)
+            if (moveData.moveOffset >= 20)
             {
                 // revert to the original location 
                 moveData.computedBoundingBox = new BoundingBoxXYZ();

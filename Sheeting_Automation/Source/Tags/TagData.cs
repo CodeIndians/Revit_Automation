@@ -49,6 +49,8 @@ namespace Sheeting_Automation.Source.Tags
             public XYZ centerVectorDifference;
             public BoundingBoxXYZ currentBoundingBox;
             public BoundingBoxXYZ newBoundingBox;
+            public List<BoundingBoxXYZ> bestBoundingBoxes;
+            public List<BoundingBoxXYZ> nearestElementBoundingBoxes;
 
             public Tag(IndependentTag tag, Element element)
             {
@@ -57,6 +59,8 @@ namespace Sheeting_Automation.Source.Tags
                 currentBoundingBox = null;
                 newBoundingBox = null;
                 centerVectorDifference = XYZ.Zero;
+                bestBoundingBoxes = new List<BoundingBoxXYZ>();
+                nearestElementBoundingBoxes = new List<BoundingBoxXYZ>();
             }
         }
     }

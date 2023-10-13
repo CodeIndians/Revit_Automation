@@ -493,7 +493,7 @@ namespace Sheeting_Automation.Source.Tags
             List<BoundingBoxXYZ> nearestBoundingBoxes = new List<BoundingBoxXYZ>();
 
             //offset for creatting a reference bouding box
-            XYZ offset = new XYZ(10, 10, 0);
+            XYZ offset = new XYZ(7, 7, 0);
 
             // create a reference bounding box from the element bounding box
             var referenceBoundingBox = new BoundingBoxXYZ();
