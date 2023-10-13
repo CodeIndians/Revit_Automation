@@ -8,7 +8,7 @@ using static Sheeting_Automation.Source.Tags.TagData;
 
 namespace Sheeting_Automation.Source.Tags
 {
-    public static class TagMovement
+    public static class Tag2ElementMovement
     {
         private enum MoveDirection
         {

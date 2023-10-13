@@ -32,7 +32,7 @@ namespace Sheeting_Automation.Source.Tags
         {
             tag.nearestElementBoundingBoxes =  TagUtils.GetNearestElementBoundingBoxes(tag, ref BoundingBoxCollector.BoundingBoxesDict);
 
-            TagMovement.MoveTag(ref tag);
+            Tag2ElementMovement.MoveTag(ref tag);
 
             return tag;
         }
