@@ -43,6 +43,8 @@ namespace Revit_Automation
         {
             using (Transaction tx = new Transaction(doc))
             {
+                form.PostMessage("");
+                form.PostMessage("Starting creation of cee headers");
                 tx.Start("Placing Cee Headers");
                 Dictionary<double, List<InputLine>> sortedInputLineCollection = new Dictionary<double, List<InputLine>>();
                 sortedInputLineCollection = SortInputLinesByElevation(colInputLines);
@@ -95,7 +97,7 @@ namespace Revit_Automation
                         PlaceCeeHeaders(ceeHeaderSettings, list, level);
                     }
                 }
-
+                form.PostMessage("Finished creation of cee headers");
                 tx.Commit();
             }
         }
@@ -195,7 +197,7 @@ namespace Revit_Automation
                         XYZ ceeHeaderStartPoint = kvp1.Key;
                         XYZ ceeHeaderEndPoint = kvp2.Key;
 
-                        form.PostMessage($" \nPlacing Cee-Headers at location {ceeHeaderStartPoint.X} , {ceeHeaderStartPoint.Y}, {ceeHeaderEndPoint.X} , {ceeHeaderEndPoint.Y}");
+                        //form.PostMessage($" \nPlacing Cee-Headers at location {ceeHeaderStartPoint.X} , {ceeHeaderStartPoint.Y}, {ceeHeaderEndPoint.X} , {ceeHeaderEndPoint.Y}");
 
                         double dWebWitdth = Math.Max(kvp1.Value, kvp2.Value);
 

@@ -1,8 +1,11 @@
 ﻿using Autodesk.Revit.DB;
+using Autodesk.Revit.DB.Structure;
 using Autodesk.Revit.UI;
 using Revit_Automation.CustomTypes;
+using Sheeting_Automation.Source.Tags;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -538,6 +541,226 @@ namespace Revit_Automation.Source.Utils
                 return LineType.vertical;
             else
                 return LineType.Horizontal;
+        }
+
+        internal static LineType GetLineType(Element inputLine)
+        {
+            LocationCurve locationCurve = (LocationCurve)inputLine.Location;
+
+            if (locationCurve != null)
+            {
+                XYZ pt1 = locationCurve.Curve.GetEndPoint(0);
+                XYZ pt2 = locationCurve.Curve.GetEndPoint(1);
+                if (MathUtils.ApproximatelyEqual(pt1.X, pt2.X))
+                    return LineType.vertical;
+                else if (MathUtils.ApproximatelyEqual(pt1.Y, pt2.Y))
+                    return LineType.Horizontal;
+                else
+                    return LineType.Inclined;
+            }
+            return LineType.Horizontal;
+        }
+        static public List<List<XYZ>> GetFloorCurves(
+          Element floor,
+          Options opt)
+        {
+            List<List<XYZ>> polygons = new List<List<XYZ>>();
+
+            GeometryElement geo = floor.get_Geometry(opt);
+
+            foreach (GeometryObject obj in geo) // 2013
+            {
+                Solid solid = obj as Solid;
+                if (solid != null)
+                {
+                    GetBoundary(ref polygons, solid);
+                }
+            }
+
+            return polygons;
+        }
+
+        static void GetBoundary(ref List<List<XYZ>> polygons, Solid solid)
+        {
+            PlanarFace lowest = null;
+            FaceArray faces = solid.Faces;
+            foreach (Face f in faces)
+            {
+                PlanarFace pf = f as PlanarFace;
+                if (null != pf && MathUtils.IsParallel( pf.FaceNormal, new XYZ(0, 0 , 1)))
+                {
+                    if ((null == lowest)
+                      || (pf.Origin.Z < lowest.Origin.Z))
+                    {
+                        lowest = pf;
+                    }
+                }
+            }
+            if (null != lowest)
+            {
+                XYZ p, q = XYZ.Zero;
+                bool first;
+                int i, n;
+                EdgeArrayArray loops = lowest.EdgeLoops;
+                foreach (EdgeArray loop in loops)
+                {
+                    List<XYZ> vertices = new List<XYZ>();
+                    first = true;
+                    foreach (Edge e in loop)
+                    {
+                        IList<XYZ> points = e.Tessellate();
+                        p = points[0];
+                        if (!first)
+                        {
+                            Debug.Assert(p.IsAlmostEqualTo(q),
+                              "expected subsequent start point"
+                              + " to equal previous end point");
+                        }
+                        n = points.Count;
+                        q = points[n - 1];
+                        for (i = 0; i < n - 1; ++i)
+                        {
+                            XYZ v = points[i];
+                            vertices.Add(v);
+                        }
+                    }
+                    Debug.Assert(q.IsAlmostEqualTo(vertices[0]),
+                      "expected last end point to equal"
+                      + " first start point");
+                    polygons.Add(vertices);
+                }
+            }
+        }
+
+        internal static PanelDirection ComputeInteriorSide(XYZ startPt, XYZ endPt, Level deckElevation, Autodesk.Revit.DB.Document _document, Transaction m_Transaction)
+        {
+            PanelDirection interiorSide = PanelDirection.L;
+            ElementId rightcolumnID = null, leftColumnID = null;
+            string strStudType = string.Empty, strStudGauge = string.Empty;
+
+            // Choose one stud type
+            List<InputLine> lines = InputLineUtility.colInputLines;
+            foreach (InputLine line in lines) 
+            {
+                if (!string.IsNullOrEmpty(line.strStudType))
+                {
+                    strStudType = line.strStudType;
+                    strStudGauge = line.strStudGuage;
+                    break;
+                }
+            }
+
+            IOrderedEnumerable<Level> levels = ModelCreator.FindAndSortLevels(_document);
+            
+            LineType linetype = GetLineType(startPt, endPt);
+
+            Level toplevel = null, baselevel = null;
+            PostCreationUtils.ComputeTopAndBaseLevels(deckElevation.Elevation, levels, out toplevel, out baselevel);
+
+            Element baseAttach = GenericUtils.GetNearestFloorOrRoof(baselevel, startPt, _document);
+
+            // Create columns on either side of the line and try to attach the base.
+            // Whichever side base attach is true, Panel direction is that
+            XYZ midpoint = (startPt + endPt) / 2.0;
+
+            XYZ rightpoint = null, leftpoint = null;
+
+            if (linetype == LineType.Horizontal)
+            {
+                rightpoint = new XYZ(midpoint.X, midpoint.Y + 1.1, midpoint.Z);
+                leftpoint = new XYZ(midpoint.X, midpoint.Y - 1.1, midpoint.Z);
+            }
+            else 
+            {
+                rightpoint = new XYZ(midpoint.X + 1.1, midpoint.Y, midpoint.Z);
+                leftpoint = new XYZ(midpoint.X - 1.1, midpoint.Y, midpoint.Z);
+            }
+
+            bool bright = false;
+
+            string strFamilySymbol = strStudType + string.Format(" x {0}ga", strStudGauge);
+            FamilySymbol columnType = SymbolCollector.GetSymbol(strFamilySymbol, "Post", SymbolCollector.FamilySymbolType.posts);
+
+            //using (Transaction stx = new Transaction(_document))
+            {
+                GenericUtils.SupressWarningsInTransaction(m_Transaction);
+
+                //stx.Start("Exterior Panel Direction Computation");
+
+                if (rightcolumnID != null)
+                    _document.Delete(rightcolumnID);
+                if (leftColumnID != null)
+                    _document.Delete(leftColumnID);
+
+                // Create the column instance at the point
+                FamilyInstance rightcolumn = _document.Create.NewFamilyInstance(rightpoint, columnType, baselevel, StructuralType.Column);
+                FamilyInstance leftcolumn = _document.Create.NewFamilyInstance(leftpoint, columnType, baselevel, StructuralType.Column);
+
+                rightcolumn.get_Parameter(BuiltInParameter.FAMILY_BASE_LEVEL_OFFSET_PARAM).Set(2);
+                leftcolumn.get_Parameter(BuiltInParameter.FAMILY_BASE_LEVEL_OFFSET_PARAM).Set(2);
+
+                rightcolumnID = rightcolumn.Id;
+                leftColumnID = leftcolumn.Id;
+
+                if (baseAttach != null)
+                {
+                    ColumnAttachment.AddColumnAttachment(_document, rightcolumn, baseAttach, 0, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
+
+                    ColumnAttachment.AddColumnAttachment(_document, leftcolumn, baseAttach, 0, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
+                }
+                //stx.Commit();
+            }
+
+            Element right = _document.GetElement(rightcolumnID);
+            Element left = _document.GetElement(leftColumnID);
+
+            bool bRightSet = false, bLeftSet = false;
+            double dRightHeight = 0.0, dLeftHeight = 0.0;
+
+            Parameter rightHeightParam = right.LookupParameter("Height");
+            if (rightHeightParam != null)
+            {
+                dRightHeight = rightHeightParam.AsDouble();
+            }
+            Parameter LeftHeightParam = left.LookupParameter("Height");
+            if (LeftHeightParam != null)
+            {
+                dLeftHeight = LeftHeightParam.AsDouble();
+            }
+            if (dLeftHeight > dRightHeight)
+            {
+
+                interiorSide = PanelDirection.L;
+            }
+            else
+            {
+                interiorSide = PanelDirection.R;
+            }
+   
+
+            //using (Transaction tx = new Transaction(_document))
+            {
+               // tx.Start("Cleanup");
+                if (rightcolumnID != null)
+                    _document.Delete(rightcolumnID);
+                if (leftColumnID != null)
+                    _document.Delete(leftColumnID);
+                //tx.Commit();
+            }
+
+
+            return interiorSide;
+
+        }
+
+        private static LineType GetLineType(XYZ startPt, XYZ endPt)
+        {
+            if (MathUtils.ApproximatelyEqual(startPt.X, endPt.X))
+                return LineType.vertical;
+            else if (MathUtils.ApproximatelyEqual(startPt.Y, endPt.Y))
+                return LineType.Horizontal;
+            else
+                return LineType.Inclined;
         }
     }
 }

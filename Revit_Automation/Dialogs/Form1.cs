@@ -12,12 +12,12 @@ namespace Revit_Automation
         public Form1()
         {
             InitializeComponent();
-            progressBar1.Value = 0;
+            //progressBar1.Value = 0;
             richTextBox1.Text = "Beginning Creation of Model";
             button1.Text = "START";
-            radioButton1.Checked = true;
-            radioButton3.Checked = true;
-            checkedListBox1.SetItemChecked(0, true);
+            //radioButton1.Checked = true;
+            //radioButton3.Checked = true;
+            //checkedListBox1.SetItemChecked(0, true);
         }
 
         public bool CanCreateModel { get; internal set; }
@@ -39,15 +39,15 @@ namespace Revit_Automation
             {
                 string substring = "\n";
                 substring += message.Substring(34, 8);
-                richTextBox2.AppendText(substring);
-                richTextBox2.SelectionStart = richTextBox2.Text.Length;
-                richTextBox2.ScrollToCaret();
+                //richTextBox2.AppendText(substring);
+                //richTextBox2.SelectionStart = richTextBox2.Text.Length;
+                //richTextBox2.ScrollToCaret();
             }
         }
 
         public void UpdateProgress(int iProgress)
         {
-            progressBar1.Value = iProgress;
+            //progressBar1.Value = iProgress;
         }
 
 
@@ -74,12 +74,12 @@ namespace Revit_Automation
 
         internal void UpdateCompleted()
         {
-            progressBar1.Value = 100;
+            //progressBar1.Value = 100;
             button1.Text = "Finish";
         }
         internal void UpdateStarted()
         {
-            progressBar1.Value = 0;
+            //progressBar1.Value = 0;
             button1.Text = "Generating";
         }
 
@@ -101,18 +101,18 @@ namespace Revit_Automation
 
         private void radioButton4_CheckedChanged(object sender, EventArgs e)
         {
-            if (radioButton4.Checked)
-                Logger.LoggerLevel = 1;
-            else
-                Logger.LoggerLevel = 0;
+            //if (radioButton4.Checked)
+            //    Logger.LoggerLevel = 1;
+            //else
+            //    Logger.LoggerLevel = 0;
         }
 
         private void radioButton3_CheckedChanged(object sender, EventArgs e)
         {
-            if (radioButton3.Checked)
-                Logger.LoggerLevel = 0;
-            else
-                Logger.LoggerLevel = 1;
+            //if (radioButton3.Checked)
+            //    Logger.LoggerLevel = 0;
+            //else
+            //    Logger.LoggerLevel = 1;
         }
 
         private void richTextBox1_TextChanged(object sender, EventArgs e)

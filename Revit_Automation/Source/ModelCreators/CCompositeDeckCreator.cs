@@ -22,6 +22,7 @@ namespace Revit_Automation
         private double m_CompositeDeckSpans;
         private double m_CompositeDeckMaxLength;
         private double m_CompositeDeckOverlap;
+        private Transaction m_Transaction;
         public CCompositeDeckCreator(Document doc, Form1 form)
         {
             this.doc = doc;
@@ -36,26 +37,145 @@ namespace Revit_Automation
         {
             using (Transaction tx = new Transaction(doc))
             {
+                form.PostMessage("");
+                form.PostMessage("\n Placing composite Decks");
+                m_Transaction = tx; 
                 tx.Start("Placing Composite Decks");
 
                 Level deckElevation = GetDeckElevation(colInputLines[0], levels);
+                
                 // Intervals at which decks should be placed. with the given overlap value
                 List<double> spanIntervals = ComputeSpanIntervals(colInputLines);
 
                 // Decking direction is perpendicular to slope direction
                 LineType deckingDirection = ComputeDeckingDirection(colInputLines);
 
+                // Create void families
+                CreateVoidFamilies(colInputLines[0], deckElevation);
+
                 // Place decks according to decking direction
                 PlaceFloorDecks(colInputLines, deckingDirection, spanIntervals, deckElevation);
 
-                // Trim the deck as per the slab boundary
-                //TrimDeckPanels();
-
+                form.PostMessage("\n Finished Placing composite Decks");
                 // Compute the span start and end points.
                 tx.Commit();
             }
         }
 
+        private void CreateVoidFamilies(InputLine inputLine, Level deckElevation)
+        {
+            // Get Floor Boundaries - we will get a collection of loops.
+            Element floorElement =  GenericUtils.GetNearestFloorOrRoof(deckElevation, inputLine.startpoint, doc);
+
+            Options opt = doc.Application.Create.NewGeometryOptions();
+            List<List<XYZ>> floorCurves = GenericUtils.GetFloorCurves(floorElement, opt);
+
+            foreach (List<XYZ> cureveLoop in floorCurves)
+            {
+                // Treat it like an internal opening
+                if (cureveLoop.Count == 4)
+                {
+                    double dMinX = 100000, dMaxX = -100000, dMinY = 100000, dMaxY = -100000;
+                    foreach (XYZ pt in cureveLoop)
+                    {
+                        if (dMaxX < pt.X)
+                            dMaxX = pt.X;
+                        if (dMinX > pt.X)
+                            dMinX = pt.X;
+                        if (dMaxY < pt.Y)
+                            dMaxY = pt.Y;
+                        if (dMinY > pt.Y)
+                            dMinY = pt.Y;
+                    }
+
+                    // create a void family along the line
+                    FamilySymbol voidSymbol = SymbolCollector.GetVoidFamilySymbol();
+
+                    double dElevation = cureveLoop[0].Z;
+
+                    if (voidSymbol != null && !voidSymbol.IsActive)
+                        voidSymbol.Activate();
+
+                    XYZ startPt = new XYZ(dMinX, dMaxY, dElevation);
+                    XYZ endPt = new XYZ(dMinX, dMinY, dElevation);
+
+                    while (startPt.X <  dMaxX - 3.0)
+                    {
+                        Curve line = Line.CreateBound(startPt, endPt) as Curve;
+
+                        if (voidSymbol != null)
+                        {
+                            FamilyInstance voidInstance = doc.Create.NewFamilyInstance(line, voidSymbol, deckElevation, StructuralType.NonStructural);
+                        }
+
+                        startPt = startPt + new XYZ(3.0, 0, 0); // This is the width of the void family
+                        endPt = endPt + new XYZ(3.0, 0, 0); // This is the width of the void family
+                    }
+
+                    startPt = new XYZ(dMaxX - 3.0, startPt.Y, startPt.Z);
+                    endPt = new XYZ(dMaxX - 3.0, endPt.Y, endPt.Z);
+                    Curve curve = Line.CreateBound(startPt, endPt) as Curve;
+
+                    if (voidSymbol != null)
+                    {
+                        FamilyInstance voidInstance = doc.Create.NewFamilyInstance(curve, voidSymbol, deckElevation, StructuralType.NonStructural);
+                    }
+
+                    startPt = startPt + new XYZ(3.0, 0, 0); // This is the width of the void family
+                }
+
+                else
+                {
+                    for (int i = 0; i < cureveLoop.Count; i++)
+                    {
+                        // create a void family along the line
+                        FamilySymbol voidSymbol = SymbolCollector.GetVoidFamilySymbol();
+
+
+                        if (voidSymbol != null && !voidSymbol.IsActive)
+                            voidSymbol.Activate();
+
+                        XYZ startPt = null, endPt = null;
+
+                        Curve line = null;
+                        if (i == cureveLoop.Count - 1)
+                        {
+                            startPt = cureveLoop[i];
+                            endPt = cureveLoop[0];
+                        }
+                        else
+                        { 
+                            startPt = cureveLoop[i];
+                            endPt = cureveLoop[i + 1];
+                        }
+
+                        AdjustPoints(ref startPt, ref endPt, deckElevation);
+                        line = Line.CreateBound(startPt, endPt) as Curve;
+
+                        if (voidSymbol != null)
+                        {
+                            FamilyInstance voidInstance = doc.Create.NewFamilyInstance(line, voidSymbol, deckElevation, StructuralType.NonStructural);
+                        }
+                    }
+                }
+            }
+            // Smaller ones are internal openings, so create voids along them
+            // bigger loops are external, for each line compute the exterior side and place the void accordingly
+        }
+
+        private void AdjustPoints(ref XYZ startPt, ref XYZ endPt, Level deckElevation)
+        {
+            PanelDirection interiorSide = PanelDirection.L;
+
+            interiorSide = GenericUtils.ComputeInteriorSide(startPt, endPt, deckElevation, doc, m_Transaction);
+
+            if (interiorSide == PanelDirection.L)
+            {
+                //swap the points
+                XYZ temp = startPt;
+                startPt = endPt; endPt = temp;
+            }
+        }
         private void PlaceFloorDecks(List<InputLine> colInputLines, LineType deckingDirection, List<double> spanIntervals, Level deckElevation)
         {
             
@@ -114,6 +234,10 @@ namespace Revit_Automation
                                 XYZ startPt = null, endPt = null;
                                 GenericUtils.GetlineStartAndEndPoints(elem, out startPt, out endPt);
 
+                                LineType linetype = GenericUtils.GetLineType(elem);
+
+                                if (linetype == deckingDirection)
+                                    continue; 
                                 // if the line is inclined then intersect the line with the range bottom line and top line and take them as start and end
 
                                 if (!(MathUtils.ApproximatelyEqual(startPt.X, endPt.X) || MathUtils.ApproximatelyEqual(startPt.Y, endPt.Y)))
@@ -190,7 +314,10 @@ namespace Revit_Automation
 
                             StructuralFramingUtils.DisallowJoinAtEnd(compositeDeckInstance, 1);
 
-                            form.PostMessage(string.Format(" Placing Composite Deck ID : {0} \n", compositeDeckInstance.Id));
+                            // Trim the deck as per the slab boundary
+                            //TrimDeckPanel(startPoint, endPoint, compositeDeckInstance);
+
+                            //form.PostMessage(string.Format(" Placing Composite Deck ID : {0} \n", compositeDeckInstance.Id));
 
                         }
                         
@@ -208,61 +335,15 @@ namespace Revit_Automation
             }
         }
 
-
-        //private void ModifyDeckForOpenings(FamilyInstance compositeDeckInstance, XYZ startPoint, XYZ endPoint)
-        //{
-        //    Element elem = compositeDeckInstance as Element;
-
-        //    startPoint = new XYZ(startPoint.X, startPoint.Y - 3.0 /*Deck Thickness - this might change*/, startPoint.Z - 0.5);
-        //    endPoint = new XYZ(endPoint.X, endPoint.Y, endPoint.Z + 0.5);
-
-        //    Outline outline = new Outline(startPoint,endPoint);
-
-        //    BoundingBoxIntersectsFilter filter = new BoundingBoxIntersectsFilter(outline);
-        //    FilteredElementCollector exLinesCollector = new FilteredElementCollector(doc).WherePasses(filter).OfCategory(BuiltInCategory.OST_GenericModel);
-
-        //    ICollection<Element> exLines = exLinesCollector.ToElements();
-
-        //    IList<Element> targetLines = new List<Element>();
-        //    foreach (Element inputLineElem in exLines)
-        //    {
-        //        Parameter param = inputLineElem.LookupParameter("Wall Type");
-        //        if (param != null)
-        //        {
-        //            string strWalltype = param.AsString();
-        //            if (strWalltype == "Ex" || strWalltype == "Ex w/ Insulation" || strWalltype == "Ex Opening")
-        //            {
-        //                targetLines.Add(inputLineElem);
-        //            }
-        //        }
-        //    }
-
-        //    if (targetLines.Count > 0)
-        //    {
-        //        TrimDeckPanel(elem, targetLines);
-        //    }
-        //}
-
-        //private void TrimDeckPanel(Element elem, IList<Element> targetLines)
-        //{
-        //    if (targetLines.Count == 1)
-        //    {
-        //    }
-        //    else if (targetLines.Count == 2)
-        //    {
-        //    }
-        //    else if (targetLines.Count == 3)
-        //    { 
-        //    }
-        //}
+        private void TrimDeckPanel(XYZ startPoint, XYZ endPoint, FamilyInstance compositeDeckInstance)
+        {
+            throw new NotImplementedException();
+        }
 
         private bool CheckIfDeckCanBePlaced(XYZ startPoint, XYZ endPoint, LineType deckingDirection)
         {
-
-            return true;
-
             // TO-DO: The condition whether deck can be placed is that, there should be LB lines or Cee Headers at both start and end
-
+            return true;
         }
 
         private double GetDeckWidth(string m_CompositeDeckType)

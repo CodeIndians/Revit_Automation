@@ -199,6 +199,25 @@ namespace Revit_Automation.Source.Utils
             }
         }
 
+        public static void ComputeTopAndBaseLevels(double dElevation, IOrderedEnumerable<Level> levels, out Level toplevel, out Level baselevel)
+        {
+            toplevel = null;
+            baselevel = null;
+
+            for (int i = 0; i < levels.Count() - 1; i++)
+            {
+                Level tempLevel = levels.ElementAt(i);
+
+                if ((dElevation < (tempLevel.Elevation + 1)) && (dElevation > (tempLevel.Elevation - 1)))
+                {
+
+                    baselevel = tempLevel;
+                    toplevel = levels.ElementAt(i + 1);
+
+                    break;
+                }
+            }
+        }
 
         private static Element GetRoofAtPoint(Document doc, XYZ pt1)
         {

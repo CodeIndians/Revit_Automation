@@ -169,6 +169,14 @@ namespace Revit_Automation
                     "Revit_Automation.RoofDeckCreator",
                     "Place Roof Deck",
                     "Deck.png");
+
+                // Trim Composite / Roof Deck
+                AddRevitCommand(FullModellingRB,
+                    "TrimDeckCMD",
+                    "   Trim Deck  ",
+                    "Revit_Automation.TrimDecks",
+                    "Trim Roof Deck",
+                    "Deck.png");
                 // 
                 //AddRevitCommand(HallWayRB,
                 //   "HallWayCreateHatch",

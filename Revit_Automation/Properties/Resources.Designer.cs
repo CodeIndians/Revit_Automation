@@ -79,5 +79,15 @@ namespace Revit_Automation.Properties {
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap mr_bean_waiting {
+            get {
+                object obj = ResourceManager.GetObject("mr-bean-waiting", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
     }
 }

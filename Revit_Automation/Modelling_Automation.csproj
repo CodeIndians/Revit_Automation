@@ -97,6 +97,7 @@
     </Compile>
     <Compile Include="Source\App.cs" />
     <Compile Include="Source\ModelCreators\CCompositeDeckCreator.cs" />
+    <Compile Include="Source\ModelCreators\CDeckTrimmer.cs" />
     <Compile Include="Source\ModelCreators\CeeHeaderAdjustment.cs" />
     <Compile Include="Source\ModelCreators\TopTrack\TopTrackCreator.cs" />
     <Compile Include="Source\ModelCreators\TopTrack\TopTrackRelations.cs" />
@@ -155,6 +156,8 @@
     <Content Include="Resources\Hallway.png" />
     <Content Include="Resources\Hallway2.png" />
     <Content Include="Resources\Header.png" />
+    <Content Include="Resources\mr-bean-waiting.gif" />
+    <None Include="Resources\mr-bean-waiting1.gif" />
     <Content Include="Resources\ProcessLines.Png" />
     <Content Include="Resources\ProjectSettings.png" />
     <Content Include="Resources\Sheets.png" />

@@ -199,5 +199,40 @@ namespace Revit_Automation
             }
             return null;
         }
+
+        internal static FamilySymbol GetVoidFamilySymbol()
+        {
+            FilteredElementCollector families = new FilteredElementCollector(m_Document);
+
+            families.OfClass(typeof(FamilySymbol))
+                    .OfCategory(BuiltInCategory.OST_GenericModel);
+
+            foreach (FamilySymbol famSymbol in families)
+            {
+                if (famSymbol.FamilyName == "Roof Deck Void" && famSymbol.Name == "Void")
+                {
+                    return famSymbol;
+                }
+            }
+            return null;
+        }
+
+        internal static IList<string> GetDeckNames()
+        {
+            IList<string> lstDeckName = new List<string>(); 
+            FilteredElementCollector families = new FilteredElementCollector(m_Document);
+
+            families.OfClass(typeof(FamilySymbol))
+                    .OfCategory(BuiltInCategory.OST_StructuralFraming);
+
+            foreach (FamilySymbol famSymbol in families)
+            {
+                if (famSymbol.FamilyName == "Composite Deck" )
+                {
+                    lstDeckName.Add(famSymbol.Name);
+                }
+            }
+            return lstDeckName;
+        }
     }
 }

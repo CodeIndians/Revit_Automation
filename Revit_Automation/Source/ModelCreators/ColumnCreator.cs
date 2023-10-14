@@ -35,8 +35,11 @@ namespace Revit_Automation.Source.ModelCreators
             using (Transaction tx = new Transaction(m_Document))
             {
                 GenericUtils.SupressWarningsInTransaction(tx);
+                m_Form.PostMessage("");
+                m_Form.PostMessage("\n Starting Creation of posts");
                 tx.Start("Generating Model");
                 ProcessInputLines(colInputLines, levels);
+                m_Form.PostMessage("\n Finished Creation of posts");
                 tx.Commit();
             }
         }
@@ -56,7 +59,7 @@ namespace Revit_Automation.Source.ModelCreators
                 try
                 {
                     iLineProcessing++;
-                    m_Form.PostMessage(string.Format("\n Processing Line {0} / {1}", iLineProcessing, inputLinesCollection.Count));
+                    //m_Form.PostMessage(string.Format("\n Processing Line {0} / {1}", iLineProcessing, inputLinesCollection.Count));
                     Logger.logMessage(string.Format("Processing Line {0} / {1} : ID : {2}", iLineProcessing, inputLinesCollection.Count, inputLine.id));
 
                     if (iCounter < 100 && (iCounter < dCounter))
@@ -89,13 +92,13 @@ namespace Revit_Automation.Source.ModelCreators
 
                     dCounter += dIncrementFactor;
 
-                    m_Form.PostMessage(string.Format("\n SuccessFully Procesed InputLine {0} at {1}", inputLine.id, DateTime.Now));
+                    //m_Form.PostMessage(string.Format("\n SuccessFully Procesed InputLine {0} at {1}", inputLine.id, DateTime.Now));
                     Logger.logMessage(string.Format("Processed Line {0} / {1} : ID : {2}", iLineProcessing, inputLinesCollection.Count, inputLine.id));
                 }
 
                 catch (Exception)
                 {
-                    m_Form.PostMessage(string.Format("\n !!! Failed  To Process InputLine {0}, at {1}. Please Review", inputLine.id, DateTime.Now), true);
+                    //m_Form.PostMessage(string.Format("\n !!! Failed  To Process InputLine {0}, at {1}. Please Review", inputLine.id, DateTime.Now), true);
                     Logger.logError(string.Format("\n !!! Failed  To Process InputLine {0}, at {1}. Please Review", inputLine.id, DateTime.Now));
                 }
 
@@ -106,7 +109,7 @@ namespace Revit_Automation.Source.ModelCreators
             TimeSpan timeDifference = EndTime - StartTime;
             double seconds = timeDifference.TotalSeconds;
 
-            m_Form.PostMessage(string.Format("\n Completed Generation of Model in {0} seconds", seconds));
+            //m_Form.PostMessage(string.Format("\n Completed Generation of Model in {0} seconds", seconds));
         }
 
         private void ProcessDoubleStud(InputLine inputLine, IOrderedEnumerable<Level> levels)
@@ -927,7 +930,7 @@ namespace Revit_Automation.Source.ModelCreators
             }
             catch (Exception)
             {
-                m_Form.PostMessage(string.Format("\n !!! Failed  To Process InputLine {0}, at {1}. Please Review", inputLine.id, DateTime.Now), true);
+                //m_Form.PostMessage(string.Format("\n !!! Failed  To Process InputLine {0}, at {1}. Please Review", inputLine.id, DateTime.Now), true);
             }
         }
 

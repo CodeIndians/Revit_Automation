@@ -31,9 +31,12 @@ namespace Revit_Automation.Source.ModelCreators
         {
             using (Transaction tx = new Transaction(m_Document))
             {
+                m_Form.PostMessage("");
+                m_Form.PostMessage("\n Placing Bottom Tracks");
                 GenericUtils.SupressWarningsInTransaction(tx);
                 tx.Start("Generating Model");
                 PlaceBottomTracks(colInputLines, levels);
+                m_Form.PostMessage("\n Finished Placing Bottom Tracks");
                 tx.Commit();
             }
         }
@@ -55,7 +58,7 @@ namespace Revit_Automation.Source.ModelCreators
                 try
                 {
                     iLineProcessing++;
-                    m_Form.PostMessage(string.Format("\n Placing Bottom Track at Line {0} / {1}", iLineProcessing, colInputLines.Count));
+                    //m_Form.PostMessage(string.Format("\n Placing Bottom Track at Line {0} / {1}", iLineProcessing, colInputLines.Count));
                     Logger.logMessage(string.Format("Placing Bottom Track at Line {0} / {1} : ID : {2}", iLineProcessing, colInputLines.Count, inputLine.id));
 
                     if (iCounter < 100 && (iCounter < dCounter))
@@ -75,7 +78,7 @@ namespace Revit_Automation.Source.ModelCreators
             TimeSpan timeDifference = EndTime - StartTime;
             double seconds = timeDifference.TotalSeconds;
 
-            m_Form.PostMessage(string.Format("\n Completed Placement of Bottom Tracks in {0} seconds", seconds));
+            //m_Form.PostMessage(string.Format("\n Completed Placement of Bottom Tracks in {0} seconds", seconds));
         }
 
         private void PlaceBottomTrack(InputLine inputLine, IOrderedEnumerable<Level> levels)
@@ -152,7 +155,7 @@ namespace Revit_Automation.Source.ModelCreators
                 
                 StructuralFramingUtils.DisallowJoinAtEnd(bottomTrackInstance, 1);
 
-                m_Form.PostMessage(string.Format("BottomTrack ID : {0}", bottomTrackInstance.Id));
+                //m_Form.PostMessage(string.Format("BottomTrack ID : {0}", bottomTrackInstance.Id));
 
                 refPoint = endPoint;
             }

@@ -172,6 +172,11 @@ namespace Revit_Automation
                 CCompositeDeckCreator compositeDeckCreator = new CCompositeDeckCreator(doc, form);
                 compositeDeckCreator.CreateModel(InputLineUtility.colInputLines, levels);
             }
+            else if (commandCode == CommandCode.TrimDeck)
+            {
+                CDeckTrimmer deckTrimmer = new CDeckTrimmer(doc, form);
+                deckTrimmer.CreateModel( InputLineUtility.colInputLines, levels);
+            }
             //uidoc.ActiveView = activeView;
 
             form.Visible = false;

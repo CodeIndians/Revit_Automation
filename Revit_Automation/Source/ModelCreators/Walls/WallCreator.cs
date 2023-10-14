@@ -53,6 +53,8 @@ namespace Revit_Automation.Source.ModelCreators
 
         private void ProcessWallLines(List<InputLine> colInputLines, IOrderedEnumerable<Level> levels)
         {
+            m_Form.PostMessage("");
+            m_Form.PostMessage("\n Starting Placement of Panels");
             Logger.logMessage("Method - ProcessWallLines");
 
             int iLineProcessing = 0;
@@ -68,7 +70,7 @@ namespace Revit_Automation.Source.ModelCreators
                 try
                 {
                     iLineProcessing++;
-                    m_Form.PostMessage(string.Format("\n Placing Wall at Line {0} / {1}", iLineProcessing, colInputLines.Count));
+                    //m_Form.PostMessage(string.Format("\n Placing Wall at Line {0} / {1}", iLineProcessing, colInputLines.Count));
                     Logger.logMessage(string.Format("Placing Wall at Line {0} / {1} : ID : {2}", iLineProcessing, colInputLines.Count, inputLine.id));
 
                     if (iCounter < 100 && (iCounter < dCounter))

@@ -51,7 +51,8 @@ namespace Revit_Automation
     public enum LineType
     {
         Horizontal = 0,
-        vertical
+        vertical,
+        Inclined
     }
     public enum CommandCode
     {
@@ -66,7 +67,8 @@ namespace Revit_Automation
         DragStrut,
         EaveStrut,
         CompositeDeck,
-        RoofDeck
+        RoofDeck,
+        TrimDeck
     }
 
 
@@ -514,6 +516,34 @@ namespace Revit_Automation
             if (form.CanCreateModel)
             {
                 ModelCreator.CreateModel(uiapp, form, false, CommandCode.RoofDeck);
+            }
+
+            return Result.Succeeded;
+        }
+    }
+
+    [Transaction(TransactionMode.Manual)]
+    public class TrimDecks : IExternalCommand
+    {
+        public Result Execute(
+          ExternalCommandData commandData,
+          ref string message,
+          ElementSet elements)
+        {
+            UIApplication uiapp = commandData.Application;
+
+            PrepareCommandClass.PrepareCommand(commandData);
+
+            Form1 form = new Form1
+            {
+                StartPosition = FormStartPosition.CenterScreen
+            };
+            //form.TopMost= true;
+            _ = form.ShowDialog();
+
+            if (form.CanCreateModel)
+            {
+                ModelCreator.CreateModel(uiapp, form, false, CommandCode.TrimDeck);
             }
 
             return Result.Succeeded;

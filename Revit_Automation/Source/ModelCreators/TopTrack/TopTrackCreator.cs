@@ -69,9 +69,12 @@ namespace Revit_Automation
         {
             using (Transaction tx = new Transaction(m_Document))
             {
+                m_Form.PostMessage("");
+                m_Form.PostMessage("\n Starting placement of Top tracks");
                 GenericUtils.SupressWarningsInTransaction(tx);
                 tx.Start("Generating Model");
                 PlaceTopTracks(colInputLines, levels);
+                m_Form.PostMessage("\n Finished placement of Top tracks");
                 tx.Commit();
             }
         }
@@ -260,7 +263,7 @@ namespace Revit_Automation
 
                 StructuralFramingUtils.DisallowJoinAtEnd(bottomTrackInstance, 1);
 
-                m_Form.PostMessage(string.Format("BottomTrack ID : {0}", bottomTrackInstance.Id));
+                //m_Form.PostMessage(string.Format("BottomTrack ID : {0}", bottomTrackInstance.Id));
 
                 refPoint = endPoint;
             }
