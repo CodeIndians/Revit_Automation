@@ -59,7 +59,7 @@ namespace Revit_Automation.Source.ModelCreators
                 try
                 {
                     iLineProcessing++;
-                    //m_Form.PostMessage(string.Format("\n Processing Line {0} / {1}", iLineProcessing, inputLinesCollection.Count));
+                    m_Form.PostMessage(string.Format("\n Processing Line {0} / {1}", iLineProcessing, inputLinesCollection.Count));
                     Logger.logMessage(string.Format("Processing Line {0} / {1} : ID : {2}", iLineProcessing, inputLinesCollection.Count, inputLine.id));
 
                     if (iCounter < 100 && (iCounter < dCounter))
@@ -92,13 +92,13 @@ namespace Revit_Automation.Source.ModelCreators
 
                     dCounter += dIncrementFactor;
 
-                    //m_Form.PostMessage(string.Format("\n SuccessFully Procesed InputLine {0} at {1}", inputLine.id, DateTime.Now));
+                    m_Form.PostMessage(string.Format("\n SuccessFully Procesed InputLine {0} at {1}", inputLine.id, DateTime.Now));
                     Logger.logMessage(string.Format("Processed Line {0} / {1} : ID : {2}", iLineProcessing, inputLinesCollection.Count, inputLine.id));
                 }
 
                 catch (Exception)
                 {
-                    //m_Form.PostMessage(string.Format("\n !!! Failed  To Process InputLine {0}, at {1}. Please Review", inputLine.id, DateTime.Now), true);
+                    m_Form.PostMessage(string.Format("\n !!! Failed  To Process InputLine {0}, at {1}. Please Review", inputLine.id, DateTime.Now), true);
                     Logger.logError(string.Format("\n !!! Failed  To Process InputLine {0}, at {1}. Please Review", inputLine.id, DateTime.Now));
                 }
 
@@ -109,7 +109,7 @@ namespace Revit_Automation.Source.ModelCreators
             TimeSpan timeDifference = EndTime - StartTime;
             double seconds = timeDifference.TotalSeconds;
 
-            //m_Form.PostMessage(string.Format("\n Completed Generation of Model in {0} seconds", seconds));
+            m_Form.PostMessage(string.Format("\n Completed Generation of Model in {0} seconds", seconds));
         }
 
         private void ProcessDoubleStud(InputLine inputLine, IOrderedEnumerable<Level> levels)
@@ -328,7 +328,7 @@ namespace Revit_Automation.Source.ModelCreators
                         ColumnAttachment.AddColumnAttachment(m_Document, startcolumn, bottomAttachElement, 0, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
                     }
 
-                    //m_Form.PostMessage(string.Format("Placing Post  {3} at {0} , {1} , {2} \n \n ", pt1.X, pt1.Y, pt1.Z, inputLine.strStudType));
+                    m_Form.PostMessage(string.Format("Placing Post  {3} at {0} , {1} , {2} \n \n ", pt1.X, pt1.Y, pt1.Z, inputLine.strStudType));
                     startColumnID = startcolumn.Id;
                     startColumnOrientation = startcolumn.FacingOrientation;
 
@@ -369,7 +369,7 @@ namespace Revit_Automation.Source.ModelCreators
                         ColumnAttachment.AddColumnAttachment(m_Document, endColumn, bottomAttachElement, 0, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
                     }
 
-                    //m_Form.PostMessage(string.Format("Placing Post  {3} at {0} , {1} , {2} \n \n ", pt2.X, pt2.Y, pt2.Z, inputLine.strStudType));
+                    m_Form.PostMessage(string.Format("Placing Post  {3} at {0} , {1} , {2} \n \n ", pt2.X, pt2.Y, pt2.Z, inputLine.strStudType));
                     EndColumnID = endColumn.Id;
                     endColumnOrientation = endColumn.FacingOrientation;
 
@@ -518,7 +518,7 @@ namespace Revit_Automation.Source.ModelCreators
                                 ColumnAttachment.AddColumnAttachment(m_Document, studColumn, bottomAttachElement, 0, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
                             }
 
-                            //m_Form.PostMessage(string.Format("Placing Post  {3} at {0} , {1} , {2} \n \n ", studPoint.X, studPoint.Y, studPoint.Z, inputLine.strStudType));
+                            m_Form.PostMessage(string.Format("Placing Post  {3} at {0} , {1} , {2} \n \n ", studPoint.X, studPoint.Y, studPoint.Z, inputLine.strStudType));
                             StudColumnID = studColumn.Id;
                             StudColumnOrientation = studColumn.FacingOrientation;
 
@@ -792,7 +792,7 @@ namespace Revit_Automation.Source.ModelCreators
                 {
                     FamilyInstance column = m_Document.Create.NewFamilyInstance(studPoint, columnType, baseLevel, StructuralType.Column);
                     Logger.logMessage(" ProcessT62InputLine :At Grid Intersection Points");
-                    //m_Form.PostMessage(string.Format("Placing T62  {3} at {0} , {1} , {2} \n \n ", studPoint.X, studPoint.Y, studPoint.Z, inputLine.strT62Type));
+                    m_Form.PostMessage(string.Format("Placing T62  {3} at {0} , {1} , {2} \n \n ", studPoint.X, studPoint.Y, studPoint.Z, inputLine.strT62Type));
 
                     if (inputLine.dParapetHeight == 0)
                     {
@@ -930,7 +930,7 @@ namespace Revit_Automation.Source.ModelCreators
             }
             catch (Exception)
             {
-                //m_Form.PostMessage(string.Format("\n !!! Failed  To Process InputLine {0}, at {1}. Please Review", inputLine.id, DateTime.Now), true);
+                m_Form.PostMessage(string.Format("\n !!! Failed  To Process InputLine {0}, at {1}. Please Review", inputLine.id, DateTime.Now), true);
             }
         }
 
@@ -1046,7 +1046,7 @@ namespace Revit_Automation.Source.ModelCreators
                             }
 
 
-                            //m_Form.PostMessage(string.Format("Placing Post  {3} at {0} , {1} , {2} \n \n ", studPoint.X, studPoint.Y, studPoint.Z, inputLine.strStudType));
+                            m_Form.PostMessage(string.Format("Placing Post  {3} at {0} , {1} , {2} \n \n ", studPoint.X, studPoint.Y, studPoint.Z, inputLine.strStudType));
                             StudColumnID = studColumn.Id;
                             StudColumnOrientation = studColumn.FacingOrientation;
 
@@ -1177,7 +1177,7 @@ namespace Revit_Automation.Source.ModelCreators
                         ColumnAttachment.AddColumnAttachment(m_Document, startcolumn, bottomAttachElement, 0, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
                     }
 
-                    // m_Form.PostMessage(string.Format("Placing Post  {3} at {0} , {1} , {2} \n \n ", pt1.X, pt1.Y, pt1.Z, inputLine.strStudType));
+                    m_Form.PostMessage(string.Format("Placing Post  {3} at {0} , {1} , {2} \n \n ", pt1.X, pt1.Y, pt1.Z, inputLine.strStudType));
                     startColumnID = startcolumn.Id;
                     startColumnOrientation = startcolumn.FacingOrientation;
                 }
@@ -1221,7 +1221,7 @@ namespace Revit_Automation.Source.ModelCreators
                         ColumnAttachment.AddColumnAttachment(m_Document, endColumn, bottomAttachElement, 0, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
                     }
 
-                    //m_Form.PostMessage(string.Format("Placing Post  {3} at {0} , {1} , {2} \n \n ", pt2.X, pt2.Y, pt2.Z, inputLine.strStudType));
+                   m_Form.PostMessage(string.Format("Placing Post  {3} at {0} , {1} , {2} \n \n ", pt2.X, pt2.Y, pt2.Z, inputLine.strStudType));
                     EndColumnID = endColumn.Id;
                     endColumnOrientation = endColumn.FacingOrientation;
                 }

@@ -177,6 +177,11 @@ namespace Revit_Automation
                 CDeckTrimmer deckTrimmer = new CDeckTrimmer(doc, form);
                 deckTrimmer.CreateModel( InputLineUtility.colInputLines, levels);
             }
+            else if (commandCode == CommandCode.Purlins)
+            {
+                CPurlinsCreator purlinsCreator = new CPurlinsCreator(doc, form);
+                purlinsCreator.CreateModel(InputLineUtility.colInputLines, levels);
+            }
             //uidoc.ActiveView = activeView;
 
             form.Visible = false;

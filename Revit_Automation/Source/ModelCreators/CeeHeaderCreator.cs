@@ -197,6 +197,8 @@ namespace Revit_Automation
                         XYZ ceeHeaderStartPoint = kvp1.Key;
                         XYZ ceeHeaderEndPoint = kvp2.Key;
 
+                        form.PostMessage($" \nPlacing Cee-Headers at location {ceeHeaderStartPoint.X} , {ceeHeaderStartPoint.Y}, {ceeHeaderEndPoint.X} , {ceeHeaderEndPoint.Y}");
+
                         //form.PostMessage($" \nPlacing Cee-Headers at location {ceeHeaderStartPoint.X} , {ceeHeaderStartPoint.Y}, {ceeHeaderEndPoint.X} , {ceeHeaderEndPoint.Y}");
 
                         double dWebWitdth = Math.Max(kvp1.Value, kvp2.Value);
@@ -232,7 +234,7 @@ namespace Revit_Automation
                         {
                             Line bounds2 = Line.CreateBound(ceeHeaderEndPoint, ceeHeaderStartPoint);
                             FamilyInstance ceeHeaderInstance2 = doc.Create.NewFamilyInstance(bounds2, ceeHeaderFamily, level, StructuralType.Beam);
-
+                            
                             // set the Post CL Offset parameter
                             if (dWebWitdth != 0.0)
                                 ceeHeaderInstance2.LookupParameter("Post CL Face Offset").Set(dWebWitdth);

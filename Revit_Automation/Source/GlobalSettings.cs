@@ -158,6 +158,32 @@ namespace Revit_Automation.Source
                 framingSettings.dRoofDeckMaxSpan = string.IsNullOrEmpty(settings[35]) ? 0 : double.Parse(settings[35]);
                 framingSettings.dRoofDeckMaxLength = string.IsNullOrEmpty(settings[36]) ? 0 : double.Parse(settings[36]);
 
+                // Purlin Settings
+                framingSettings.dPurlinLap = string.IsNullOrEmpty(settings[37]) ? 0 : double.Parse(settings[37]);
+                framingSettings.dPurlinPreferredLength = string.IsNullOrEmpty(settings[38]) ? 0 : double.Parse(settings[38]);
+                framingSettings.dPurlinMaxSpans = string.IsNullOrEmpty(settings[39]) ? 0 : double.Parse(settings[39]);
+                framingSettings.bPurlinContAtHallway = settings[40] == "0" ? true : false;
+                framingSettings.bPurlOrientationChange = settings[41] == "0" ? true: false;
+                framingSettings.strRecieverChannelType = settings[42].ToString();
+                framingSettings.strRecieverChannelGauge = settings[43].ToString();
+                framingSettings.bPurlinOverhang = settings[44] == "0" ? true : false;
+                framingSettings.bPurlinRoundOff = settings[45] == "0" ? true : false;
+
+                string pulinSettings = settings[46];
+                {
+                    int j = 0;
+                    string[] lstpurlinSettings = pulinSettings.Split(';');
+
+                    while (j < lstpurlinSettings.Length - 1)
+                    {
+                        PurlinTypeSettings purlinTypeSettings = new PurlinTypeSettings();
+                        
+                        purlinTypeSettings.dOnCenter = string.IsNullOrEmpty(lstpurlinSettings[j]) ? 0 : double.Parse(lstpurlinSettings[j]);
+                        j++;
+                        purlinTypeSettings.strPurlinType = lstpurlinSettings[j++];
+                        purlinTypeSettings.strPurlinGauge = lstpurlinSettings[j++];
+                    }
+                }
             }
 
             return bSettingsFound;

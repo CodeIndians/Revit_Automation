@@ -57,7 +57,6 @@ namespace Revit_Automation
                 PlaceFloorDecks(colInputLines, deckingDirection, spanIntervals, deckElevation);
 
                 form.PostMessage("\n Finished Placing composite Decks");
-                // Compute the span start and end points.
                 tx.Commit();
             }
         }
@@ -455,11 +454,6 @@ namespace Revit_Automation
                     currentPoint = new XYZ(currentPoint.X + 3, currentPoint.Y, currentPoint.Z);
                 }
             }
-        }
-
-        private void TrimDeckPanel(XYZ startPoint, XYZ endPoint, FamilyInstance compositeDeckInstance)
-        {
-            throw new NotImplementedException();
         }
 
         private bool CheckIfDeckCanBePlaced(XYZ startPoint, XYZ endPoint, LineType deckingDirection)

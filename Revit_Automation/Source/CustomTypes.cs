@@ -197,7 +197,23 @@ namespace Revit_Automation.CustomTypes
         public bool bTopTrackAtRakeSide;
         public bool bTopTrackSpliceAtWeb;
         public bool bToptrackRounfOff;
+        public double dPurlinLap;
+        public double dPurlinPreferredLength;
+        public double dPurlinMaxSpans;
+        public bool bPurlinContAtHallway;
+        public bool bPurlOrientationChange;
+        public bool bPurlinOverhang;
+        public bool bPurlinRoundOff;
+        public string strRecieverChannelType;
+        public string strRecieverChannelGauge;
     }
 
+
+    public struct PurlinTypeSettings
+    {
+        public double dOnCenter;
+        public string strPurlinType;
+        public string strPurlinGauge;
+    }
 }
 

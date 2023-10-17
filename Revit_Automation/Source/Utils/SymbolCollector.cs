@@ -234,5 +234,23 @@ namespace Revit_Automation
             }
             return lstDeckName;
         }
+
+        internal static List<string> GetPurlinSymbols()
+        {
+            List<string> lstPurlinTypes = new List<string>();
+            FilteredElementCollector families = new FilteredElementCollector(m_Document);
+
+            families.OfClass(typeof(FamilySymbol))
+                    .OfCategory(BuiltInCategory.OST_StructuralFraming);
+
+            foreach (FamilySymbol famSymbol in families)
+            {
+                if (famSymbol.FamilyName.Contains("Purlin"))
+                {
+                    lstPurlinTypes.Add(famSymbol.Name);
+                }
+            }
+            return lstPurlinTypes;
+        }
     }
 }

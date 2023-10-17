@@ -57,6 +57,7 @@ namespace Revit_Automation
             MultipleSelfParallell,
             MultipleSelfParallelSeparatedyByHallway
         }
+
         public TopTrackCreator(Document doc, Form1 form)
         {
             this.m_Document = doc;
@@ -79,9 +80,8 @@ namespace Revit_Automation
             }
         }
 
-
         // To Debug a particular area, override the line collection logic -Instead of building BB at each
-        // Self and Perpendicular; case 2 :- Multiple self with perpendicular in between
+        // Case 1 :- Self and Perpendicular; case 2 :- Multiple self with perpendicular in between
         // Case 3:- Parallel ; case 4 - Parallel and divided by hallway
         private void PlaceTopTracks(List<InputLine> colInputLines, IOrderedEnumerable<Level> levels)
         {
@@ -252,18 +252,18 @@ namespace Revit_Automation
                 FamilyInstance lineElement = m_Document.GetElement(inputLine.id) as FamilyInstance;
                 Level level = lineElement.Host as Level;
 
-                FamilyInstance bottomTrackInstance = m_Document.Create.NewFamilyInstance(newInputLine, symbol, level, StructuralType.Beam);
+                FamilyInstance topTrackInstance = m_Document.Create.NewFamilyInstance(newInputLine, symbol, level, StructuralType.Beam);
 
-                Parameter zJustification = bottomTrackInstance.get_Parameter(BuiltInParameter.Z_JUSTIFICATION);
+                Parameter zJustification = topTrackInstance.get_Parameter(BuiltInParameter.Z_JUSTIFICATION);
                 if (zJustification != null)
                 {
                     zJustification.Set(((double)ZJustification.Origin));
                 }
-                StructuralFramingUtils.DisallowJoinAtEnd(bottomTrackInstance, 0);
+                StructuralFramingUtils.DisallowJoinAtEnd(topTrackInstance, 0);
 
-                StructuralFramingUtils.DisallowJoinAtEnd(bottomTrackInstance, 1);
+                StructuralFramingUtils.DisallowJoinAtEnd(topTrackInstance, 1);
 
-                //m_Form.PostMessage(string.Format("BottomTrack ID : {0}", bottomTrackInstance.Id));
+                m_Form.PostMessage(string.Format("Placing Top Track with ID : {0} between {1}, {2} and {3}, {4}", topTrackInstance.Id, refPoint.X, refPoint.Y, endPoint.X, endPoint.Y));
 
                 refPoint = endPoint;
             }

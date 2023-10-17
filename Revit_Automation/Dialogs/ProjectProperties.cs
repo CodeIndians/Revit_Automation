@@ -29,7 +29,8 @@ namespace Revit_Automation
 
             dataGridView1.CellContentClick += dataGridView_CellContentClick;
 
-            // TODO : Add values for DragStruct type, eve struct type, they are dynamic check boxes
+            // TODO : Add values for DragStruct type, eve struct type, they are dynamic combo boxes
+
             string strProjectSettings = InputLineUtility.GetProjectSettings();
 
             // Populate the settings from the Line or else default settings
@@ -37,10 +38,32 @@ namespace Revit_Automation
             {
                 PopulateDefaultSettings();
                 PopulateDefaultCHeaderSettings();
+                PopulateDefaultPurlinSettings();
             }
             else
                 PopulateSettingsFromString(strProjectSettings);
 
+        }
+
+        private void PopulateDefaultPurlinSettings()
+        {
+            DataGridViewRow row = new DataGridViewRow();
+
+            List<string> ceeHeaderList = SymbolCollector.GetPurlinSymbols();
+
+            DataGridViewCell onCenterCell = new DataGridViewTextBoxCell();
+
+            DataGridViewComboBoxCell PurlinTypecell = new DataGridViewComboBoxCell();
+            foreach (string ceeheader in ceeHeaderList)
+                PurlinTypecell.Items.Add(ceeheader);
+
+            DataGridViewCell purlinGuage = new DataGridViewTextBoxCell();
+
+            row.Cells.Add(onCenterCell);
+            row.Cells.Add(PurlinTypecell);
+            row.Cells.Add(purlinGuage);
+
+            dataGridView3.Rows.Add(row);
         }
 
         private void PopulateDefaultCHeaderSettings()
@@ -326,6 +349,77 @@ namespace Revit_Automation
                 // Roof Deck Max length
                 textBox19.Text = settings[36].ToString();
 
+                if (settings.Length > 37)
+                {
+                    // Purlin Lap
+                    textBox23.Text = settings[37].ToString();
+
+                    // Purlin Preferred Length
+                    textBox24.Text = settings[38].ToString();
+
+                    // Purlin Max Spans
+                    textBox25.Text = settings[39].ToString();
+
+                    //Purlin Continuous at Insulation
+                    comboBox13.SelectedIndex = int.Parse(settings[40]);
+
+                    //Purlin Orientation Change
+                    comboBox14.SelectedIndex = int.Parse(settings[41]);
+
+                    // Receiver Channel Type
+                    textBox26.Text = settings[42].ToString();
+
+                    // Reciever Channel Guage
+                    textBox27.Text = settings[43].ToString();
+                    strProjectSettings += "|";
+
+                    // Purlin Overhang
+                    comboBox15.SelectedIndex = int.Parse(settings[44]);
+
+                    // Purlin Round Off
+                    comboBox16.SelectedIndex = int.Parse(settings[45]);
+
+
+                    // Purlin Size, gauge and OnCenter 
+                    string strPurlinSettings = settings[46];
+                    string[] purlinSettings = strPurlinSettings.Split(';');
+
+                    if (string.IsNullOrEmpty(strPurlinSettings))
+                        PopulateDefaultPurlinSettings();
+
+                    int kCounter = 0;
+
+                    while (kCounter < purlinSettings.Length - 1)
+                    {
+                        if (string.IsNullOrEmpty(purlinSettings[kCounter]))
+                            break;
+
+                        DataGridViewRow dgvRow = new DataGridViewRow();
+
+                        DataGridViewCell onCenterCell = new DataGridViewTextBoxCell();
+                        onCenterCell.Value = purlinSettings[kCounter++];
+
+                        List<string> purlinList = SymbolCollector.GetPurlinSymbols();
+                        DataGridViewComboBoxCell cell = new DataGridViewComboBoxCell();
+                        foreach (string purlin in purlinList)
+                            cell.Items.Add(purlin);
+                        cell.Value = purlinSettings[kCounter++];
+
+                        DataGridViewCell guageCell = new DataGridViewTextBoxCell();
+                        guageCell.Value = purlinSettings[kCounter++];
+
+                        dgvRow.Cells.Add(onCenterCell);
+                        dgvRow.Cells.Add(cell);
+                        dgvRow.Cells.Add(guageCell);
+
+                        dataGridView3.Rows.Add(dgvRow);
+                    }
+                }
+                else
+                {
+                    PopulateDefaultPurlinSettings();
+                }
+
                 dataGridView1.Invalidate();
                 dataGridView1.Update();
             }
@@ -333,6 +427,7 @@ namespace Revit_Automation
             {
                 PopulateDefaultSettings();
                 PopulateDefaultCHeaderSettings();
+                PopulateDefaultPurlinSettings();
             }
         }
 
@@ -605,6 +700,66 @@ namespace Revit_Automation
             strProjectSettings += textBox19.Text.ToString();
             strProjectSettings += "|";
 
+            // Purlin related settings
+            
+            // Purlin Lap
+            strProjectSettings += textBox23.Text.ToString();
+            strProjectSettings += "|";
+
+            // Purlin Preferred Length
+            strProjectSettings += textBox24.Text.ToString();
+            strProjectSettings += "|";
+
+            // Purlin Max Spans
+            strProjectSettings+= textBox25.Text.ToString();
+            strProjectSettings += "|";
+
+            //Purlin Continuous at Insulation
+            strProjectSettings += comboBox13.SelectedIndex.ToString();
+            strProjectSettings += "|";
+
+            //Purlin Orientation Change
+            strProjectSettings += comboBox14.SelectedIndex.ToString();
+            strProjectSettings += "|";
+
+            // Receiver Channel Type
+            strProjectSettings += textBox26.Text.ToString();
+            strProjectSettings += "|";
+
+            // Reciever Channel Guage
+            strProjectSettings += textBox27.Text.ToString();
+            strProjectSettings += "|";
+
+            // Purlin Overhang
+            strProjectSettings += comboBox15.SelectedIndex.ToString();
+            strProjectSettings += "|";
+
+            // Purlin Round Off
+            strProjectSettings += comboBox16.SelectedIndex.ToString();
+            strProjectSettings += "|";
+
+            // Purlin Size, gauge and OnCenter 
+            string strPurlinSettings = "";
+            foreach (DataGridViewRow dataGridViewRow in dataGridView3.Rows)
+            {
+                DataGridViewTextBoxCell dataGridViewTextBoxCell = dataGridViewRow.Cells[0] as DataGridViewTextBoxCell;
+                DataGridViewComboBoxCell dataGridViewComboBoxCell = dataGridViewRow.Cells[1] as DataGridViewComboBoxCell;
+                DataGridViewTextBoxCell dataGridViewTextBoxCell1 = dataGridViewRow.Cells[2] as DataGridViewTextBoxCell;
+
+                strPurlinSettings += dataGridViewTextBoxCell.Value?.ToString();
+                strPurlinSettings += ";";
+
+                strPurlinSettings += dataGridViewComboBoxCell.Value?.ToString();
+                strPurlinSettings += ";";
+
+                strPurlinSettings += dataGridViewTextBoxCell1.Value?.ToString();
+                strPurlinSettings += ";";
+
+            }
+
+            strProjectSettings += strPurlinSettings;
+            strProjectSettings += "|";
+
             InputLineUtility.SetProjectSettings(strProjectSettings);
             GlobalSettings.UpdateSettings();
 
@@ -655,6 +810,11 @@ namespace Revit_Automation
         }
 
         private void groupBox6_Enter(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label43_Click(object sender, EventArgs e)
         {
 
         }
