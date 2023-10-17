@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Sheeting_Automation.Source.Tags.TagCreator;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -188,7 +189,7 @@ namespace Sheeting_Automation.Source.Tags
             // collect the form data 
             var formDataList = CollectFormData();
 
-            var tagCreator = new TagCreator(formDataList);
+            var tagCreator = new TagCreator.TagCreator(formDataList);
 
             //create tags at the default location
             tagCreator.CreateTags();
@@ -198,6 +199,8 @@ namespace Sheeting_Automation.Source.Tags
 
             //adjust the tags
             TagAdjust.AdjustTagsBasedOnElementsOnly();
+
+            var tagResolveManager = new TagResolverManager();
 
             //close the create form
             this.Close();

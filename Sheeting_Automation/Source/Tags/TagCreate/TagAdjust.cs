@@ -19,7 +19,7 @@ namespace Sheeting_Automation.Source.Tags
                 BoundingBoxCollector.IndependentTags[i] = AdjustTagBasedOnElements(BoundingBoxCollector.IndependentTags[i]);
             }
 
-            // updaate the tag location 
+            // update the tag location ( transaction)
             UpdateTagLocation();
         }
 
@@ -38,10 +38,10 @@ namespace Sheeting_Automation.Source.Tags
         }
 
         /// <summary>
-        /// 
+        ///  Update the tag to the center of the element
         /// </summary>
         /// <param name="tag"></param>
-        /// <returns>tag with updatd bounding boxes and center difference vector</returns>
+        /// <returns>tag with updated bounding boxes and center difference vector</returns>
         private static Tag UpdateTagtoCenterOfElement(Tag tag)
         {
             // bounding box of the element

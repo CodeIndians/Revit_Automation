@@ -93,7 +93,7 @@ namespace Sheeting_Automation.Source.Tags
             else if (direction == MoveDirection.DownRight)
                 moveOffset = new XYZ(0.3, -0.3, 0);
 
-            while (moveData.moveOffset < 20) 
+            while (moveData.moveOffset < 10) 
             {
                 if(TagUtils.AreBoundingBoxesIntersecting(moveData.computedBoundingBox, tag.nearestElementBoundingBoxes))
                 {
@@ -111,7 +111,7 @@ namespace Sheeting_Automation.Source.Tags
                 moveData.moveOffset++;
             }
 
-            if (moveData.moveOffset >= 20)
+            if (moveData.moveOffset >= 10)
             {
                 // revert to the original location 
                 moveData.computedBoundingBox = new BoundingBoxXYZ();
