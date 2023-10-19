@@ -19,8 +19,7 @@ namespace Sheeting_Automation.Source.Tags
                 BoundingBoxCollector.IndependentTags[i] = AdjustTagBasedOnElements(BoundingBoxCollector.IndependentTags[i]);
             }
 
-            // update the tag location ( transaction)
-            UpdateTagLocation();
+            
         }
 
         /// <summary>
@@ -42,7 +41,7 @@ namespace Sheeting_Automation.Source.Tags
         /// </summary>
         /// <param name="tag"></param>
         /// <returns>tag with updated bounding boxes and center difference vector</returns>
-        private static Tag UpdateTagtoCenterOfElement(Tag tag)
+        public static Tag UpdateTagtoCenterOfElement(Tag tag)
         {
             // bounding box of the element
             var elemBoundingBox = BoundingBoxCollector.BoundingBoxesDict[tag.mElement.Id].FirstOrDefault();
@@ -81,7 +80,7 @@ namespace Sheeting_Automation.Source.Tags
         /// <summary>
         /// Transaction to move the tag from current bounding box to the new bounding box
         /// </summary>
-        private static void UpdateTagLocation()
+        public static void UpdateTagLocation()
         {
             // start the transaction to udpate the tags to the new bounding boxes
             using (Transaction tx = new Transaction(SheetUtils.m_Document))

@@ -21,7 +21,7 @@ namespace Sheeting_Automation.Source.Tags.TagCreator
         public TagResolverManager() 
         {
             // compute the overlapping tag lists
-            mOverlappingTagLists = GetOverlappingTagLists();
+            mOverlappingTagLists = GetOverlappingTagLists(BoundingBoxCollector.IndependentTags);
 
             AddTagResolvers();
         }
@@ -36,16 +36,28 @@ namespace Sheeting_Automation.Source.Tags.TagCreator
 
         public void ResolveTags()
         {
-            
+            foreach (var resolver in mTagResolverList) 
+            {
+                // run each resolver logic 
+                resolver.Resolve(ref  mOverlappingTagLists);
+
+                // re- collect tags from the overlapping tag list
+                BoundingBoxCollector.IndependentTags = GetTagListFromOverlapTagList(mOverlappingTagLists);
+
+                //re-collect overlapping tags list from the tags 
+                mOverlappingTagLists = GetOverlappingTagLists(BoundingBoxCollector.IndependentTags);
+            }
         }
 
-
-
-        private List<List<Tag>> GetOverlappingTagLists()
+        /// <summary>
+        ///  Get the overlap list of tags from the collected tags
+        /// </summary>
+        /// <returns>List of List of overlapping tags</returns>
+        private List<List<Tag>> GetOverlappingTagLists(List<Tag> tags)
         {
             List<List<Tag>> overlappingTagLists = new List<List<Tag>>();
 
-            foreach(var tag in BoundingBoxCollector.IndependentTags)
+            foreach(var tag in tags)
             {
                 bool isIntersecting = false;
 
@@ -57,7 +69,7 @@ namespace Sheeting_Automation.Source.Tags.TagCreator
                         if(TagUtils.AreBoundingBoxesIntersecting(tag.newBoundingBox,overlapTag.newBoundingBox))
                         {
                             isIntersecting = true;
-                            overlappingTagLists[i].Add(overlapTag);
+                            overlappingTagLists[i].Add(tag);
                             break;
                         }
                     }
@@ -73,6 +85,22 @@ namespace Sheeting_Automation.Source.Tags.TagCreator
             }
 
             return overlappingTagLists;
+        }
+
+
+        private List<Tag> GetTagListFromOverlapTagList(List<List<Tag>> overlapTagsList)
+        {
+            List<Tag> tagList = new List<Tag>();
+
+            foreach (var overlaptags in overlapTagsList)
+            {
+                foreach(var tag in overlaptags)
+                {
+                    tagList.Add(tag);
+                }
+            }
+
+            return tagList;
         }
     }
 }

@@ -50,10 +50,10 @@ namespace Sheeting_Automation.Source.Tags
                 Move(tag, MoveDirection.Down),
                 Move(tag, MoveDirection.Left),
                 Move(tag, MoveDirection.Right),
-                Move(tag, MoveDirection.UpLeft),
-                Move(tag, MoveDirection.UpRight),
-                Move(tag, MoveDirection.DownLeft),
-                Move(tag, MoveDirection.DownRight)
+                //Move(tag, MoveDirection.UpLeft),
+                //Move(tag, MoveDirection.UpRight),
+                //Move(tag, MoveDirection.DownLeft),
+                //Move(tag, MoveDirection.DownRight)
             };
 
             moveDataList.Sort(new OffsetDistanceComparer());

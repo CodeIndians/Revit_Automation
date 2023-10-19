@@ -551,6 +551,36 @@ namespace Sheeting_Automation.Source.Tags
 
             return tagOrientation;
         }
+
+        public static double GetBBRatio(Tag tag)
+        {
+            // default ratio is 1
+            double ratio = 1.0;
+
+            // get the x length and y length of the tag bounding box
+            var xTagLength = Math.Abs(tag.currentBoundingBox.Max.X - tag.currentBoundingBox.Min.X);
+            var yTagLength = Math.Abs(tag.currentBoundingBox.Max.Y - tag.currentBoundingBox.Min.Y);
+
+            var elementBoundingBox = BoundingBoxCollector.BoundingBoxesDict[tag.mElement.Id].FirstOrDefault();
+
+            //get the x length and y length of the element bounding box 
+            var xElementLength = Math.Abs(elementBoundingBox.Max.X - elementBoundingBox.Min.X);
+            var yElementLength = Math.Abs(elementBoundingBox.Max.Y - elementBoundingBox.Min.Y);
+
+            // tag is vertical
+            if (xTagLength < yTagLength)
+            {
+                // Y lengths 
+                ratio = yTagLength / yElementLength;
+            }
+            else //tag is horizontal
+            {
+                // X lengths 
+                ratio = xTagLength / xElementLength;
+            }
+
+            return ratio;
+        }
     }
 
 

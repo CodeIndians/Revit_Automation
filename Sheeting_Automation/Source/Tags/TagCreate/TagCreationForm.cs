@@ -200,9 +200,13 @@ namespace Sheeting_Automation.Source.Tags
             //adjust the tags
             TagAdjust.AdjustTagsBasedOnElementsOnly();
 
+            // resolve the tags
             var tagResolveManager = new TagResolverManager();
+            tagResolveManager.ResolveTags();
 
-            //close the create form
+            TagAdjust.UpdateTagLocation();
+
+            // close the create form
             this.Close();
         }
 
