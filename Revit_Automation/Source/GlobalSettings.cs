@@ -184,6 +184,10 @@ namespace Revit_Automation.Source
                         purlinTypeSettings.strPurlinGauge = lstpurlinSettings[j++];
                     }
                 }
+
+                framingSettings.dDragStrutLap = string.IsNullOrEmpty(settings[47]) ? 0 : double.Parse(settings[47]);
+                framingSettings.dEaveStrutLap = string.IsNullOrEmpty(settings[48]) ? 0 : double.Parse(settings[48]);
+
             }
 
             return bSettingsFound;

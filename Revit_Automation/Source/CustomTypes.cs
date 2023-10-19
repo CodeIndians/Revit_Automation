@@ -182,9 +182,11 @@ namespace Revit_Automation.CustomTypes
         public double dDragStuctMaxLength;
         public string strDragStructType;
         public bool bDragStructContinuousAtHallway;
+        public double dDragStrutLap;
         public double dEaveStructMaxLength;
         public string strEaveStructType;
         public string strEaveStructLocation;
+        public double dEaveStrutLap;
         public string strFloorDeckType;
         public double dFloorDeckOverlap;
         public double dFloorDeckMaxSpan;

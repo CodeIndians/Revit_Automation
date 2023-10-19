@@ -132,31 +132,35 @@
             this.HallWayCeeHeaderSize = new System.Windows.Forms.DataGridViewComboBoxColumn();
             this.HallWayCeeHeaderCount = new System.Windows.Forms.DataGridViewComboBoxColumn();
             this.tabPage4 = new System.Windows.Forms.TabPage();
-            this.comboBox16 = new System.Windows.Forms.ComboBox();
-            this.comboBox15 = new System.Windows.Forms.ComboBox();
-            this.comboBox14 = new System.Windows.Forms.ComboBox();
-            this.comboBox13 = new System.Windows.Forms.ComboBox();
-            this.textBox27 = new System.Windows.Forms.TextBox();
-            this.textBox26 = new System.Windows.Forms.TextBox();
-            this.textBox25 = new System.Windows.Forms.TextBox();
-            this.textBox24 = new System.Windows.Forms.TextBox();
-            this.textBox23 = new System.Windows.Forms.TextBox();
-            this.label45 = new System.Windows.Forms.Label();
-            this.label46 = new System.Windows.Forms.Label();
-            this.label47 = new System.Windows.Forms.Label();
-            this.label48 = new System.Windows.Forms.Label();
-            this.label43 = new System.Windows.Forms.Label();
-            this.label42 = new System.Windows.Forms.Label();
-            this.label41 = new System.Windows.Forms.Label();
-            this.label40 = new System.Windows.Forms.Label();
+            this.groupBox7 = new System.Windows.Forms.GroupBox();
             this.label30 = new System.Windows.Forms.Label();
+            this.comboBox16 = new System.Windows.Forms.ComboBox();
+            this.label40 = new System.Windows.Forms.Label();
+            this.comboBox15 = new System.Windows.Forms.ComboBox();
+            this.label41 = new System.Windows.Forms.Label();
+            this.comboBox14 = new System.Windows.Forms.ComboBox();
+            this.label42 = new System.Windows.Forms.Label();
+            this.comboBox13 = new System.Windows.Forms.ComboBox();
+            this.label43 = new System.Windows.Forms.Label();
+            this.textBox27 = new System.Windows.Forms.TextBox();
+            this.label48 = new System.Windows.Forms.Label();
+            this.textBox26 = new System.Windows.Forms.TextBox();
+            this.label47 = new System.Windows.Forms.Label();
+            this.textBox25 = new System.Windows.Forms.TextBox();
+            this.label46 = new System.Windows.Forms.Label();
+            this.textBox24 = new System.Windows.Forms.TextBox();
+            this.label45 = new System.Windows.Forms.Label();
+            this.textBox23 = new System.Windows.Forms.TextBox();
             this.dataGridView3 = new System.Windows.Forms.DataGridView();
-            this.button1 = new System.Windows.Forms.Button();
-            this.button2 = new System.Windows.Forms.Button();
             this.OnCenter = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.PurlinSize = new System.Windows.Forms.DataGridViewComboBoxColumn();
             this.PurlinGuage = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.groupBox7 = new System.Windows.Forms.GroupBox();
+            this.button1 = new System.Windows.Forms.Button();
+            this.button2 = new System.Windows.Forms.Button();
+            this.label44 = new System.Windows.Forms.Label();
+            this.textBox28 = new System.Windows.Forms.TextBox();
+            this.textBox29 = new System.Windows.Forms.TextBox();
+            this.label49 = new System.Windows.Forms.Label();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.groupBox4.SuspendLayout();
@@ -170,8 +174,8 @@
             this.tabPage3.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView2)).BeginInit();
             this.tabPage4.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.dataGridView3)).BeginInit();
             this.groupBox7.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dataGridView3)).BeginInit();
             this.SuspendLayout();
             // 
             // tabControl1
@@ -351,6 +355,10 @@
             // 
             // groupBox3
             // 
+            this.groupBox3.Controls.Add(this.textBox29);
+            this.groupBox3.Controls.Add(this.label49);
+            this.groupBox3.Controls.Add(this.textBox28);
+            this.groupBox3.Controls.Add(this.label44);
             this.groupBox3.Controls.Add(this.groupBox6);
             this.groupBox3.Controls.Add(this.groupBox5);
             this.groupBox3.Controls.Add(this.textBox14);
@@ -610,7 +618,7 @@
             "Low Eave",
             "High Eave",
             "Both"});
-            this.comboBox6.Location = new System.Drawing.Point(463, 173);
+            this.comboBox6.Location = new System.Drawing.Point(464, 232);
             this.comboBox6.Margin = new System.Windows.Forms.Padding(2);
             this.comboBox6.Name = "comboBox6";
             this.comboBox6.Size = new System.Drawing.Size(77, 26);
@@ -619,7 +627,7 @@
             // comboBox5
             // 
             this.comboBox5.FormattingEnabled = true;
-            this.comboBox5.Location = new System.Drawing.Point(463, 145);
+            this.comboBox5.Location = new System.Drawing.Point(464, 204);
             this.comboBox5.Margin = new System.Windows.Forms.Padding(2);
             this.comboBox5.Name = "comboBox5";
             this.comboBox5.Size = new System.Drawing.Size(77, 26);
@@ -628,7 +636,7 @@
             // comboBox4
             // 
             this.comboBox4.FormattingEnabled = true;
-            this.comboBox4.Location = new System.Drawing.Point(463, 50);
+            this.comboBox4.Location = new System.Drawing.Point(463, 52);
             this.comboBox4.Margin = new System.Windows.Forms.Padding(2);
             this.comboBox4.Name = "comboBox4";
             this.comboBox4.Size = new System.Drawing.Size(77, 26);
@@ -636,7 +644,7 @@
             // 
             // textBox13
             // 
-            this.textBox13.Location = new System.Drawing.Point(463, 117);
+            this.textBox13.Location = new System.Drawing.Point(464, 176);
             this.textBox13.Margin = new System.Windows.Forms.Padding(2);
             this.textBox13.Name = "textBox13";
             this.textBox13.Size = new System.Drawing.Size(77, 24);
@@ -653,7 +661,7 @@
             // label23
             // 
             this.label23.AutoSize = true;
-            this.label23.Location = new System.Drawing.Point(279, 180);
+            this.label23.Location = new System.Drawing.Point(280, 239);
             this.label23.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label23.Name = "label23";
             this.label23.Size = new System.Drawing.Size(142, 18);
@@ -663,7 +671,7 @@
             // label22
             // 
             this.label22.AutoSize = true;
-            this.label22.Location = new System.Drawing.Point(279, 147);
+            this.label22.Location = new System.Drawing.Point(279, 206);
             this.label22.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label22.Name = "label22";
             this.label22.Size = new System.Drawing.Size(119, 18);
@@ -683,7 +691,7 @@
             // label20
             // 
             this.label20.AutoSize = true;
-            this.label20.Location = new System.Drawing.Point(279, 120);
+            this.label20.Location = new System.Drawing.Point(280, 179);
             this.label20.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label20.Name = "label20";
             this.label20.Size = new System.Drawing.Size(170, 18);
@@ -1284,217 +1292,6 @@
             this.tabPage4.Text = "Purlin Settings";
             this.tabPage4.UseVisualStyleBackColor = true;
             // 
-            // comboBox16
-            // 
-            this.comboBox16.FormattingEnabled = true;
-            this.comboBox16.Items.AddRange(new object[] {
-            "Yes",
-            "No"});
-            this.comboBox16.Location = new System.Drawing.Point(258, 383);
-            this.comboBox16.Name = "comboBox16";
-            this.comboBox16.Size = new System.Drawing.Size(172, 26);
-            this.comboBox16.TabIndex = 18;
-            // 
-            // comboBox15
-            // 
-            this.comboBox15.FormattingEnabled = true;
-            this.comboBox15.Items.AddRange(new object[] {
-            "Yes",
-            "No"});
-            this.comboBox15.Location = new System.Drawing.Point(258, 338);
-            this.comboBox15.Name = "comboBox15";
-            this.comboBox15.Size = new System.Drawing.Size(172, 26);
-            this.comboBox15.TabIndex = 17;
-            // 
-            // comboBox14
-            // 
-            this.comboBox14.FormattingEnabled = true;
-            this.comboBox14.Items.AddRange(new object[] {
-            "Yes",
-            "No"});
-            this.comboBox14.Location = new System.Drawing.Point(258, 205);
-            this.comboBox14.Name = "comboBox14";
-            this.comboBox14.Size = new System.Drawing.Size(172, 26);
-            this.comboBox14.TabIndex = 16;
-            // 
-            // comboBox13
-            // 
-            this.comboBox13.FormattingEnabled = true;
-            this.comboBox13.Items.AddRange(new object[] {
-            "Yes",
-            "No"});
-            this.comboBox13.Location = new System.Drawing.Point(258, 165);
-            this.comboBox13.Name = "comboBox13";
-            this.comboBox13.Size = new System.Drawing.Size(172, 26);
-            this.comboBox13.TabIndex = 15;
-            // 
-            // textBox27
-            // 
-            this.textBox27.Location = new System.Drawing.Point(258, 295);
-            this.textBox27.Name = "textBox27";
-            this.textBox27.Size = new System.Drawing.Size(172, 24);
-            this.textBox27.TabIndex = 14;
-            // 
-            // textBox26
-            // 
-            this.textBox26.Location = new System.Drawing.Point(258, 253);
-            this.textBox26.Name = "textBox26";
-            this.textBox26.Size = new System.Drawing.Size(172, 24);
-            this.textBox26.TabIndex = 13;
-            // 
-            // textBox25
-            // 
-            this.textBox25.Location = new System.Drawing.Point(258, 118);
-            this.textBox25.Name = "textBox25";
-            this.textBox25.Size = new System.Drawing.Size(172, 24);
-            this.textBox25.TabIndex = 12;
-            // 
-            // textBox24
-            // 
-            this.textBox24.Location = new System.Drawing.Point(258, 73);
-            this.textBox24.Name = "textBox24";
-            this.textBox24.Size = new System.Drawing.Size(172, 24);
-            this.textBox24.TabIndex = 11;
-            // 
-            // textBox23
-            // 
-            this.textBox23.Location = new System.Drawing.Point(258, 31);
-            this.textBox23.Name = "textBox23";
-            this.textBox23.Size = new System.Drawing.Size(172, 24);
-            this.textBox23.TabIndex = 10;
-            // 
-            // label45
-            // 
-            this.label45.AutoSize = true;
-            this.label45.Location = new System.Drawing.Point(18, 391);
-            this.label45.Name = "label45";
-            this.label45.Size = new System.Drawing.Size(190, 18);
-            this.label45.TabIndex = 9;
-            this.label45.Text = "Purlin Round off to 1 Inch";
-            // 
-            // label46
-            // 
-            this.label46.AutoSize = true;
-            this.label46.Location = new System.Drawing.Point(18, 346);
-            this.label46.Name = "label46";
-            this.label46.Size = new System.Drawing.Size(119, 18);
-            this.label46.TabIndex = 8;
-            this.label46.Text = "Purlin Overhang";
-            // 
-            // label47
-            // 
-            this.label47.AutoSize = true;
-            this.label47.Location = new System.Drawing.Point(18, 301);
-            this.label47.Name = "label47";
-            this.label47.Size = new System.Drawing.Size(186, 18);
-            this.label47.TabIndex = 7;
-            this.label47.Text = "Reciever Channnel Gauge";
-            // 
-            // label48
-            // 
-            this.label48.AutoSize = true;
-            this.label48.Location = new System.Drawing.Point(18, 259);
-            this.label48.Name = "label48";
-            this.label48.Size = new System.Drawing.Size(166, 18);
-            this.label48.TabIndex = 6;
-            this.label48.Text = "Reciever Channel Type";
-            // 
-            // label43
-            // 
-            this.label43.AutoSize = true;
-            this.label43.Location = new System.Drawing.Point(18, 213);
-            this.label43.Name = "label43";
-            this.label43.Size = new System.Drawing.Size(144, 18);
-            this.label43.TabIndex = 5;
-            this.label43.Text = "Orientation Change";
-            this.label43.Click += new System.EventHandler(this.label43_Click);
-            // 
-            // label42
-            // 
-            this.label42.AutoSize = true;
-            this.label42.Location = new System.Drawing.Point(18, 169);
-            this.label42.Name = "label42";
-            this.label42.Size = new System.Drawing.Size(230, 18);
-            this.label42.TabIndex = 4;
-            this.label42.Text = "Purlin Continuous  at Insulation";
-            // 
-            // label41
-            // 
-            this.label41.AutoSize = true;
-            this.label41.Location = new System.Drawing.Point(18, 124);
-            this.label41.Name = "label41";
-            this.label41.Size = new System.Drawing.Size(128, 18);
-            this.label41.TabIndex = 3;
-            this.label41.Text = "Purlin Max Spans";
-            // 
-            // label40
-            // 
-            this.label40.AutoSize = true;
-            this.label40.Location = new System.Drawing.Point(18, 79);
-            this.label40.Name = "label40";
-            this.label40.Size = new System.Drawing.Size(169, 18);
-            this.label40.TabIndex = 2;
-            this.label40.Text = "Purlin Preferred Length";
-            // 
-            // label30
-            // 
-            this.label30.AutoSize = true;
-            this.label30.Location = new System.Drawing.Point(18, 37);
-            this.label30.Name = "label30";
-            this.label30.Size = new System.Drawing.Size(76, 18);
-            this.label30.TabIndex = 1;
-            this.label30.Text = "Purlin Lap";
-            // 
-            // dataGridView3
-            // 
-            this.dataGridView3.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.dataGridView3.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
-            this.OnCenter,
-            this.PurlinSize,
-            this.PurlinGuage});
-            this.dataGridView3.Location = new System.Drawing.Point(21, 20);
-            this.dataGridView3.Name = "dataGridView3";
-            this.dataGridView3.Size = new System.Drawing.Size(767, 191);
-            this.dataGridView3.TabIndex = 0;
-            // 
-            // button1
-            // 
-            this.button1.Font = new System.Drawing.Font("MS Reference Sans Serif", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.button1.Location = new System.Drawing.Point(676, 760);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(119, 26);
-            this.button1.TabIndex = 1;
-            this.button1.Text = "Save Settings";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
-            // 
-            // button2
-            // 
-            this.button2.Font = new System.Drawing.Font("MS Reference Sans Serif", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.button2.Location = new System.Drawing.Point(801, 760);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(75, 26);
-            this.button2.TabIndex = 2;
-            this.button2.Text = "Close";
-            this.button2.UseVisualStyleBackColor = true;
-            this.button2.Click += new System.EventHandler(this.button2_Click);
-            // 
-            // OnCenter
-            // 
-            this.OnCenter.HeaderText = "On Center";
-            this.OnCenter.Name = "OnCenter";
-            // 
-            // PurlinSize
-            // 
-            this.PurlinSize.HeaderText = "Purlin Size";
-            this.PurlinSize.Name = "PurlinSize";
-            this.PurlinSize.Width = 300;
-            // 
-            // PurlinGuage
-            // 
-            this.PurlinGuage.HeaderText = "Purlin Gauge";
-            this.PurlinGuage.Name = "PurlinGuage";
-            // 
             // groupBox7
             // 
             this.groupBox7.Controls.Add(this.label30);
@@ -1521,6 +1318,251 @@
             this.groupBox7.TabIndex = 19;
             this.groupBox7.TabStop = false;
             this.groupBox7.Text = "Pulin Settings";
+            // 
+            // label30
+            // 
+            this.label30.AutoSize = true;
+            this.label30.Location = new System.Drawing.Point(18, 37);
+            this.label30.Name = "label30";
+            this.label30.Size = new System.Drawing.Size(76, 18);
+            this.label30.TabIndex = 1;
+            this.label30.Text = "Purlin Lap";
+            // 
+            // comboBox16
+            // 
+            this.comboBox16.FormattingEnabled = true;
+            this.comboBox16.Items.AddRange(new object[] {
+            "Yes",
+            "No"});
+            this.comboBox16.Location = new System.Drawing.Point(258, 383);
+            this.comboBox16.Name = "comboBox16";
+            this.comboBox16.Size = new System.Drawing.Size(172, 26);
+            this.comboBox16.TabIndex = 18;
+            // 
+            // label40
+            // 
+            this.label40.AutoSize = true;
+            this.label40.Location = new System.Drawing.Point(18, 79);
+            this.label40.Name = "label40";
+            this.label40.Size = new System.Drawing.Size(169, 18);
+            this.label40.TabIndex = 2;
+            this.label40.Text = "Purlin Preferred Length";
+            // 
+            // comboBox15
+            // 
+            this.comboBox15.FormattingEnabled = true;
+            this.comboBox15.Items.AddRange(new object[] {
+            "Yes",
+            "No"});
+            this.comboBox15.Location = new System.Drawing.Point(258, 338);
+            this.comboBox15.Name = "comboBox15";
+            this.comboBox15.Size = new System.Drawing.Size(172, 26);
+            this.comboBox15.TabIndex = 17;
+            // 
+            // label41
+            // 
+            this.label41.AutoSize = true;
+            this.label41.Location = new System.Drawing.Point(18, 124);
+            this.label41.Name = "label41";
+            this.label41.Size = new System.Drawing.Size(128, 18);
+            this.label41.TabIndex = 3;
+            this.label41.Text = "Purlin Max Spans";
+            // 
+            // comboBox14
+            // 
+            this.comboBox14.FormattingEnabled = true;
+            this.comboBox14.Items.AddRange(new object[] {
+            "Yes",
+            "No"});
+            this.comboBox14.Location = new System.Drawing.Point(258, 205);
+            this.comboBox14.Name = "comboBox14";
+            this.comboBox14.Size = new System.Drawing.Size(172, 26);
+            this.comboBox14.TabIndex = 16;
+            // 
+            // label42
+            // 
+            this.label42.AutoSize = true;
+            this.label42.Location = new System.Drawing.Point(18, 169);
+            this.label42.Name = "label42";
+            this.label42.Size = new System.Drawing.Size(230, 18);
+            this.label42.TabIndex = 4;
+            this.label42.Text = "Purlin Continuous  at Insulation";
+            // 
+            // comboBox13
+            // 
+            this.comboBox13.FormattingEnabled = true;
+            this.comboBox13.Items.AddRange(new object[] {
+            "Yes",
+            "No"});
+            this.comboBox13.Location = new System.Drawing.Point(258, 165);
+            this.comboBox13.Name = "comboBox13";
+            this.comboBox13.Size = new System.Drawing.Size(172, 26);
+            this.comboBox13.TabIndex = 15;
+            // 
+            // label43
+            // 
+            this.label43.AutoSize = true;
+            this.label43.Location = new System.Drawing.Point(18, 213);
+            this.label43.Name = "label43";
+            this.label43.Size = new System.Drawing.Size(144, 18);
+            this.label43.TabIndex = 5;
+            this.label43.Text = "Orientation Change";
+            this.label43.Click += new System.EventHandler(this.label43_Click);
+            // 
+            // textBox27
+            // 
+            this.textBox27.Location = new System.Drawing.Point(258, 295);
+            this.textBox27.Name = "textBox27";
+            this.textBox27.Size = new System.Drawing.Size(172, 24);
+            this.textBox27.TabIndex = 14;
+            // 
+            // label48
+            // 
+            this.label48.AutoSize = true;
+            this.label48.Location = new System.Drawing.Point(18, 259);
+            this.label48.Name = "label48";
+            this.label48.Size = new System.Drawing.Size(166, 18);
+            this.label48.TabIndex = 6;
+            this.label48.Text = "Reciever Channel Type";
+            // 
+            // textBox26
+            // 
+            this.textBox26.Location = new System.Drawing.Point(258, 253);
+            this.textBox26.Name = "textBox26";
+            this.textBox26.Size = new System.Drawing.Size(172, 24);
+            this.textBox26.TabIndex = 13;
+            // 
+            // label47
+            // 
+            this.label47.AutoSize = true;
+            this.label47.Location = new System.Drawing.Point(18, 301);
+            this.label47.Name = "label47";
+            this.label47.Size = new System.Drawing.Size(186, 18);
+            this.label47.TabIndex = 7;
+            this.label47.Text = "Reciever Channnel Gauge";
+            // 
+            // textBox25
+            // 
+            this.textBox25.Location = new System.Drawing.Point(258, 118);
+            this.textBox25.Name = "textBox25";
+            this.textBox25.Size = new System.Drawing.Size(172, 24);
+            this.textBox25.TabIndex = 12;
+            // 
+            // label46
+            // 
+            this.label46.AutoSize = true;
+            this.label46.Location = new System.Drawing.Point(18, 346);
+            this.label46.Name = "label46";
+            this.label46.Size = new System.Drawing.Size(119, 18);
+            this.label46.TabIndex = 8;
+            this.label46.Text = "Purlin Overhang";
+            // 
+            // textBox24
+            // 
+            this.textBox24.Location = new System.Drawing.Point(258, 73);
+            this.textBox24.Name = "textBox24";
+            this.textBox24.Size = new System.Drawing.Size(172, 24);
+            this.textBox24.TabIndex = 11;
+            // 
+            // label45
+            // 
+            this.label45.AutoSize = true;
+            this.label45.Location = new System.Drawing.Point(18, 391);
+            this.label45.Name = "label45";
+            this.label45.Size = new System.Drawing.Size(190, 18);
+            this.label45.TabIndex = 9;
+            this.label45.Text = "Purlin Round off to 1 Inch";
+            // 
+            // textBox23
+            // 
+            this.textBox23.Location = new System.Drawing.Point(258, 31);
+            this.textBox23.Name = "textBox23";
+            this.textBox23.Size = new System.Drawing.Size(172, 24);
+            this.textBox23.TabIndex = 10;
+            // 
+            // dataGridView3
+            // 
+            this.dataGridView3.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dataGridView3.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.OnCenter,
+            this.PurlinSize,
+            this.PurlinGuage});
+            this.dataGridView3.Location = new System.Drawing.Point(21, 20);
+            this.dataGridView3.Name = "dataGridView3";
+            this.dataGridView3.Size = new System.Drawing.Size(767, 191);
+            this.dataGridView3.TabIndex = 0;
+            // 
+            // OnCenter
+            // 
+            this.OnCenter.HeaderText = "On Center";
+            this.OnCenter.Name = "OnCenter";
+            // 
+            // PurlinSize
+            // 
+            this.PurlinSize.HeaderText = "Purlin Size";
+            this.PurlinSize.Name = "PurlinSize";
+            this.PurlinSize.Width = 300;
+            // 
+            // PurlinGuage
+            // 
+            this.PurlinGuage.HeaderText = "Purlin Gauge";
+            this.PurlinGuage.Name = "PurlinGuage";
+            // 
+            // button1
+            // 
+            this.button1.Font = new System.Drawing.Font("MS Reference Sans Serif", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.button1.Location = new System.Drawing.Point(676, 760);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(119, 26);
+            this.button1.TabIndex = 1;
+            this.button1.Text = "Save Settings";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
+            // 
+            // button2
+            // 
+            this.button2.Font = new System.Drawing.Font("MS Reference Sans Serif", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.button2.Location = new System.Drawing.Point(801, 760);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(75, 26);
+            this.button2.TabIndex = 2;
+            this.button2.Text = "Close";
+            this.button2.UseVisualStyleBackColor = true;
+            this.button2.Click += new System.EventHandler(this.button2_Click);
+            // 
+            // label44
+            // 
+            this.label44.AutoSize = true;
+            this.label44.Location = new System.Drawing.Point(282, 117);
+            this.label44.Name = "label44";
+            this.label44.Size = new System.Drawing.Size(114, 18);
+            this.label44.TabIndex = 26;
+            this.label44.Text = "Drag Strut Lap";
+            // 
+            // textBox28
+            // 
+            this.textBox28.Location = new System.Drawing.Point(463, 117);
+            this.textBox28.Margin = new System.Windows.Forms.Padding(2);
+            this.textBox28.Name = "textBox28";
+            this.textBox28.Size = new System.Drawing.Size(77, 24);
+            this.textBox28.TabIndex = 27;
+            // 
+            // textBox29
+            // 
+            this.textBox29.Location = new System.Drawing.Point(463, 266);
+            this.textBox29.Margin = new System.Windows.Forms.Padding(2);
+            this.textBox29.Name = "textBox29";
+            this.textBox29.Size = new System.Drawing.Size(77, 24);
+            this.textBox29.TabIndex = 29;
+            // 
+            // label49
+            // 
+            this.label49.AutoSize = true;
+            this.label49.Location = new System.Drawing.Point(284, 272);
+            this.label49.Name = "label49";
+            this.label49.Size = new System.Drawing.Size(113, 18);
+            this.label49.TabIndex = 28;
+            this.label49.Text = "Eave Strut Lap";
             // 
             // ProjectProperties
             // 
@@ -1552,9 +1594,9 @@
             this.tabPage3.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView2)).EndInit();
             this.tabPage4.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.dataGridView3)).EndInit();
             this.groupBox7.ResumeLayout(false);
             this.groupBox7.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dataGridView3)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -1690,5 +1732,9 @@
         private System.Windows.Forms.DataGridViewComboBoxColumn PurlinSize;
         private System.Windows.Forms.DataGridViewTextBoxColumn PurlinGuage;
         private System.Windows.Forms.GroupBox groupBox7;
+        private System.Windows.Forms.TextBox textBox29;
+        private System.Windows.Forms.Label label49;
+        private System.Windows.Forms.TextBox textBox28;
+        private System.Windows.Forms.Label label44;
     }
 }

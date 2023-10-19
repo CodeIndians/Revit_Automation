@@ -414,6 +414,12 @@ namespace Revit_Automation
 
                         dataGridView3.Rows.Add(dgvRow);
                     }
+                    
+                    // Drag Struct Lap
+                    textBox28.Text = settings[47];
+                    
+                    // Eave Strut Lap
+                    textBox29.Text = settings[48];  
                 }
                 else
                 {
@@ -758,6 +764,14 @@ namespace Revit_Automation
             }
 
             strProjectSettings += strPurlinSettings;
+            strProjectSettings += "|";
+
+            // Drag Strut Lap
+            strProjectSettings += textBox28.Text.ToString();
+            strProjectSettings += "|";
+
+            //Eave Struct Lap
+            strProjectSettings += textBox29.Text.ToString();
             strProjectSettings += "|";
 
             InputLineUtility.SetProjectSettings(strProjectSettings);

@@ -177,6 +177,7 @@ namespace Revit_Automation
         }
         private void PlaceFloorDecks(List<InputLine> colInputLines, LineType deckingDirection, List<double> spanIntervals, Level deckElevation)
         {
+            double dInputLineElevation = colInputLines[0].startpoint.Z;
             
             // if the span grid is horizontal we have a horizontal LBs and if the span grid is vertical we have vertical LBs
             Grid northBoundary = lstBoundaries[0];
@@ -211,8 +212,8 @@ namespace Revit_Automation
                 while (currentPoint.Y < northGridStartPt.Y)
                 {
                     double minX = 10000, maxX = -100000;
-                    XYZ min = new XYZ(WestGridStartPt.X, currentPoint.Y, WestGridStartPt.Z - 0.5);
-                    XYZ max = new XYZ(EastGridStartPt.X, currentPoint.Y + 3, EastGridStartPt.Z + 0.5);
+                    XYZ min = new XYZ(WestGridStartPt.X, currentPoint.Y, dInputLineElevation - 0.5);
+                    XYZ max = new XYZ(EastGridStartPt.X, currentPoint.Y + 3, dInputLineElevation + 0.5);
 
                     Outline outline = new Outline(min, max);
 
@@ -224,7 +225,7 @@ namespace Revit_Automation
 
                     foreach (Element elem in inputLineElems)
                     {
-                        Parameter param = elem.LookupParameter("Wall Type");
+                        Parameter param = elem.LookupParameter("Wall Type" );
                         if (param != null)
                         {
                             string strWalltype = param.AsString();
@@ -549,8 +550,8 @@ namespace Revit_Automation
                     
                     while (!bFoundLBLines)
                     {
-                        XYZ min = new XYZ(currentPoint.X - 0.5, minBoundary1.Y, currentPoint.Z - 0.5);
-                        XYZ max = new XYZ(currentPoint.X + 0.5, maxBoundary1.Y, currentPoint.Z + 0.5);
+                        XYZ min = new XYZ(currentPoint.X - 0.5, minBoundary1.Y, dElevation - 0.5);
+                        XYZ max = new XYZ(currentPoint.X + 0.5, maxBoundary1.Y, dElevation + 0.5);
 
                         Outline outline = new Outline(min, max);
 
@@ -609,8 +610,8 @@ namespace Revit_Automation
 
                     while (!bFoundLBLines)
                     {
-                        XYZ min = new XYZ(minBoundary1.X , currentPoint.Y - 0.5, currentPoint.Z - 0.5);
-                        XYZ max = new XYZ(maxBoundary1.X , currentPoint.Y + 0.5, currentPoint.Z + 0.5);
+                        XYZ min = new XYZ(minBoundary1.X , currentPoint.Y - 0.5, dElevation - 0.5);
+                        XYZ max = new XYZ(maxBoundary1.X , currentPoint.Y + 0.5, dElevation + 0.5);
 
                         Outline outline = new Outline(min, max);
 

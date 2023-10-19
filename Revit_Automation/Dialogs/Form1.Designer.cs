@@ -42,7 +42,7 @@
             this.button1.BackColor = System.Drawing.SystemColors.Highlight;
             this.button1.ForeColor = System.Drawing.SystemColors.HighlightText;
             this.button1.Location = new System.Drawing.Point(11, 292);
-            this.button1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.button1.Margin = new System.Windows.Forms.Padding(2);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(277, 37);
             this.button1.TabIndex = 0;
@@ -53,7 +53,7 @@
             // richTextBox1
             // 
             this.richTextBox1.Location = new System.Drawing.Point(11, 38);
-            this.richTextBox1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.richTextBox1.Margin = new System.Windows.Forms.Padding(2);
             this.richTextBox1.Name = "richTextBox1";
             this.richTextBox1.Size = new System.Drawing.Size(277, 227);
             this.richTextBox1.TabIndex = 2;
@@ -64,7 +64,7 @@
             // 
             this.CloseBtn.ForeColor = System.Drawing.SystemColors.HotTrack;
             this.CloseBtn.Location = new System.Drawing.Point(118, 350);
-            this.CloseBtn.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.CloseBtn.Margin = new System.Windows.Forms.Padding(2);
             this.CloseBtn.Name = "CloseBtn";
             this.CloseBtn.Size = new System.Drawing.Size(75, 25);
             this.CloseBtn.TabIndex = 8;
@@ -104,6 +104,7 @@
             this.button3.TabIndex = 11;
             this.button3.Text = "Close";
             this.button3.UseVisualStyleBackColor = true;
+            this.button3.Click += new System.EventHandler(this.button3_Click);
             // 
             // Form1
             // 
@@ -117,7 +118,7 @@
             this.Controls.Add(this.richTextBox1);
             this.Controls.Add(this.button1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.Margin = new System.Windows.Forms.Padding(2);
             this.Name = "Form1";
             this.Text = "Revit Automation Tool";
             this.Load += new System.EventHandler(this.Form1_Load);
