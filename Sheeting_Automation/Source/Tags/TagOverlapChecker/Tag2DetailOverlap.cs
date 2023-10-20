@@ -56,7 +56,7 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
                 // set the options 
                 var options = new Options();
                 options.ComputeReferences = true;
-                options.View = SheetUtils.m_Document.ActiveView;
+                options.View = SheetUtils.m_ActiveView;
 
                 // collect the geometry instances to a list
                 List<GeometryInstance> geomInstancesList = detailElement.get_Geometry(options)?
