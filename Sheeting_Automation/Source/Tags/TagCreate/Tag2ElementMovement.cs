@@ -50,6 +50,7 @@ namespace Sheeting_Automation.Source.Tags
                 Move(tag, MoveDirection.Down),
                 Move(tag, MoveDirection.Left),
                 Move(tag, MoveDirection.Right),
+                //  skip the diagonal checks for now 
                 //Move(tag, MoveDirection.UpLeft),
                 //Move(tag, MoveDirection.UpRight),
                 //Move(tag, MoveDirection.DownLeft),

@@ -15,7 +15,6 @@ namespace Sheeting_Automation.Source.Tags
           ref string message,
           ElementSet elements)
         {
-
             UIApplication uiapp = commandData.Application;
 
             // Walls will be needed for the Properties Dialog
@@ -27,6 +26,8 @@ namespace Sheeting_Automation.Source.Tags
 
             SheetUtils.m_ActiveView = doc.ActiveView;
 
+            SheetUtils.m_DetailLevel = SheetUtils.m_ActiveView.DetailLevel;
+
             SheetUtils.m_ActiveViewId = doc.ActiveView.Id;
 
             // check if the current view is view plan 
@@ -36,13 +37,15 @@ namespace Sheeting_Automation.Source.Tags
                 return Result.Failed;
             }
 
+            SheetUtils.SetDetailLevelToFine();
+
             // intialize the tag data 
             TagData.Initialize();
 
-
             var form = new TagCreationForm();
-
             form.ShowDialog();
+
+            SheetUtils.ResetDetailLevel();
 
             return Result.Succeeded;
         }
@@ -130,11 +133,15 @@ namespace Sheeting_Automation.Source.Tags
                 return Result.Failed;
             }
 
+            SheetUtils.SetDetailLevelToFine();
+
             TagOverlapManager manager = new TagOverlapManager();
 
             manager.HighlightTags();
 
             manager.CleanupTempTags();
+
+            SheetUtils.ResetDetailLevel();
 
             return Result.Succeeded;
         }

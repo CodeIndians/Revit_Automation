@@ -96,6 +96,7 @@
     </Compile>
     <Compile Include="Source\Schedules\ScheduleUtils.cs" />
     <Compile Include="Source\Tags\TagCreate\BoundingBoxCollector.cs" />
+    <Compile Include="Source\Tags\TagCreate\TagResolver\TagMovement.cs" />
     <Compile Include="Source\Tags\TagCreate\TagResolver\TagResolverGeneric.cs" />
     <Compile Include="Source\Tags\TagCreate\TagResolver\TagResolverBase.cs" />
     <Compile Include="Source\Tags\TagCreate\TagResolver\TagResolverManager.cs" />
