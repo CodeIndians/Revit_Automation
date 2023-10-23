@@ -96,12 +96,12 @@
     </Compile>
     <Compile Include="Source\Schedules\ScheduleUtils.cs" />
     <Compile Include="Source\Tags\TagCreate\BoundingBoxCollector.cs" />
-    <Compile Include="Source\Tags\TagCreate\TagResolver\TagMovement.cs" />
     <Compile Include="Source\Tags\TagCreate\TagResolver\TagResolverGeneric.cs" />
     <Compile Include="Source\Tags\TagCreate\TagResolver\TagResolverBase.cs" />
     <Compile Include="Source\Tags\TagCreate\TagResolver\TagResolverManager.cs" />
     <Compile Include="Source\Tags\TagCreate\TagAdjust.cs" />
     <Compile Include="Source\Tags\TagCreate\Tag2ElementMovement.cs" />
+    <Compile Include="Source\Tags\TagCreate\TagResolver\TagResolverParallel.cs" />
     <Compile Include="Source\Tags\TagDuplicateChecker\TagDuplicateChecker.cs" />
     <Compile Include="Source\Tags\TagMissingChecker\TagMissingChecker.cs" />
     <Compile Include="Source\Tags\TagMissingChecker\TagMissingCheckForm.cs">

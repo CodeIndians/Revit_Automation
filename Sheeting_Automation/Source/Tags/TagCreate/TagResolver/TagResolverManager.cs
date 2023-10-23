@@ -31,6 +31,7 @@ namespace Sheeting_Automation.Source.Tags.TagCreator
             mTagResolverList = new List<TagResolverBase>
             {
                 new TagResolverGeneric(),
+                new TagResolverParallel()
             };
         }
 

@@ -350,6 +350,38 @@ namespace Sheeting_Automation.Source.Tags
         }
 
         /// <summary>
+        /// check if the passed bounding box is intersecting with the list of list of tags
+        /// </summary>
+        /// <param name="bbox"> bounding box of the tag </param>
+        /// <param name="skipElemId">element id of the tag that needs to be skipped</param>
+        /// <param name="overlapTagsList"> overlap tags list</param>
+        /// <returns></returns>
+        public static bool AreBoundingBoxesIntersecting(BoundingBoxXYZ bbox, ElementId skipElemId, List<List<Tag>> overlapTagsList)
+        {
+            int intersectCount = 0;
+
+            // check for overlaps with all the existing tags 
+            foreach (var bbList in overlapTagsList)
+            {
+                foreach (var bb in bbList)
+                {
+                    if (bb.mElement.Id == skipElemId)
+                        continue;
+
+                    if (TagUtils.AreBoundingBoxesIntersecting(bb.newBoundingBox, bbox))
+                        intersectCount++;
+                }
+            }
+
+            // return false if no intersections are found 
+            if(intersectCount == 0) return false;
+
+            // return true by default
+            return true;
+        }
+
+
+        /// <summary>
         /// Get the bounding box the geometry object
         /// </summary>
         /// <param name="geomObject"></param>
