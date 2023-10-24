@@ -113,7 +113,7 @@ namespace Sheeting_Automation.Source.Tags.TagCreate.TagResolver
 
         }
 
-        private void MoveTagUp(ref Tag tag, double topOffset, ref List<List<Tag>> overlapTagsList)
+        protected void MoveTagUp(ref Tag tag, double topOffset, ref List<List<Tag>> overlapTagsList)
         {
             var computedBoundingBox = new BoundingBoxXYZ();
             computedBoundingBox.Min = tag.newBoundingBox.Min;
@@ -152,7 +152,7 @@ namespace Sheeting_Automation.Source.Tags.TagCreate.TagResolver
             }
         }
 
-        private void MoveTagBottom(ref Tag tag, double bottomOffset, ref List<List<Tag>> overlapTagsList)
+        protected void MoveTagBottom(ref Tag tag, double bottomOffset, ref List<List<Tag>> overlapTagsList)
         {
             var computedBoundingBox = new BoundingBoxXYZ();
             computedBoundingBox.Min = tag.newBoundingBox.Min;
@@ -192,7 +192,7 @@ namespace Sheeting_Automation.Source.Tags.TagCreate.TagResolver
             }
         }
 
-        private void MoveTagRight(ref Tag tag, double rightOffset, ref List<List<Tag>> overlapTagsList)
+        protected void MoveTagRight(ref Tag tag, double rightOffset, ref List<List<Tag>> overlapTagsList)
         {
             var computedBoundingBox = new BoundingBoxXYZ();
             computedBoundingBox.Min = tag.newBoundingBox.Min;
@@ -232,7 +232,7 @@ namespace Sheeting_Automation.Source.Tags.TagCreate.TagResolver
             }
         }
 
-        private void MoveTagLeft(ref Tag tag, double leftOffset, ref List<List<Tag>> overlapTagsList)
+        protected void MoveTagLeft(ref Tag tag, double leftOffset, ref List<List<Tag>> overlapTagsList)
         {
             var computedBoundingBox = new BoundingBoxXYZ();
             computedBoundingBox.Min = tag.newBoundingBox.Min;

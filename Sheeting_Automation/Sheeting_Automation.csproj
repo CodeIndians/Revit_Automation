@@ -102,6 +102,7 @@
     <Compile Include="Source\Tags\TagCreate\TagAdjust.cs" />
     <Compile Include="Source\Tags\TagCreate\Tag2ElementMovement.cs" />
     <Compile Include="Source\Tags\TagCreate\TagResolver\TagResolverParallel.cs" />
+    <Compile Include="Source\Tags\TagCreate\TagResolver\TagResolverPerpendicular.cs" />
     <Compile Include="Source\Tags\TagDuplicateChecker\TagDuplicateChecker.cs" />
     <Compile Include="Source\Tags\TagMissingChecker\TagMissingChecker.cs" />
     <Compile Include="Source\Tags\TagMissingChecker\TagMissingCheckForm.cs">
