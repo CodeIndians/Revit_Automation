@@ -22,7 +22,8 @@ namespace Sheeting_Automation.Source.Tags.TagCreate.TagResolver
             UpLeft,
             DownLeft,
             UpRight,
-            DownRight
+            DownRight,
+            Zero
         }
 
         /// <summary>

@@ -380,6 +380,39 @@ namespace Sheeting_Automation.Source.Tags
             return true;
         }
 
+        /// <summary>
+        /// check if the passed bounding box is intersecting with the list of list of tags
+        /// </summary>
+        /// <param name="bbox">bounding box of the tag</param>
+        /// <param name="skipElemId1">first skip element id</param>
+        /// <param name="skipElemId2">second skip element id </param>
+        /// <param name="overlapTagsList">overlap tags list</param>
+        /// <returns></returns>
+        public static bool AreBoundingBoxesIntersecting(BoundingBoxXYZ bbox, ElementId skipElemId1, ElementId skipElemId2, List<List<Tag>> overlapTagsList)
+        {
+            int intersectCount = 0;
+
+            // check for overlaps with all the existing tags 
+            foreach (var bbList in overlapTagsList)
+            {
+                foreach (var bb in bbList)
+                {
+                    // skip the elements specified by element ids 
+                    if ((bb.mElement.Id == skipElemId1 ) || bb.mElement.Id == skipElemId2)
+                        continue;
+
+                    if (TagUtils.AreBoundingBoxesIntersecting(bb.newBoundingBox, bbox))
+                        intersectCount++;
+                }
+            }
+
+            // return false if no intersections are found 
+            if (intersectCount == 0) return false;
+
+            // return true by default
+            return true;
+        }
+
 
         /// <summary>
         /// Get the bounding box the geometry object
@@ -612,6 +645,20 @@ namespace Sheeting_Automation.Source.Tags
             }
 
             return ratio;
+        }
+
+        /// <summary>
+        /// Get the distance between two bounding boxes ( mid points ) 
+        /// </summary>
+        /// <param name="boundingBox">bounding box that needs to be checked</param>
+        /// <param name="elementBoundingBox">element bounding box </param>
+        /// <returns></returns>
+        public static double GetDistanceFromElement(BoundingBoxXYZ boundingBox, BoundingBoxXYZ elementBoundingBox)
+        {
+            XYZ boundingBoxMidPoint = (boundingBox.Max + boundingBox.Min) / 2;
+            XYZ elementMidPoint = (elementBoundingBox.Max + elementBoundingBox.Min) / 2; ;
+
+           return boundingBoxMidPoint.DistanceTo(elementMidPoint);
         }
     }
 
