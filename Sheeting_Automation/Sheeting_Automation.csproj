@@ -95,6 +95,16 @@
       <DependentUpon>ScheduleUpdateForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Source\Schedules\ScheduleUtils.cs" />
+    <Compile Include="Source\Tags\TagCreate\BoundingBoxCollector.cs" />
+    <Compile Include="Source\Tags\TagCreate\TagResolver\TagResolverExhaustive.cs" />
+    <Compile Include="Source\Tags\TagCreate\TagResolver\TagResolverGeneric.cs" />
+    <Compile Include="Source\Tags\TagCreate\TagResolver\TagResolverBase.cs" />
+    <Compile Include="Source\Tags\TagCreate\TagResolver\TagResolverManager.cs" />
+    <Compile Include="Source\Tags\TagCreate\TagAdjust.cs" />
+    <Compile Include="Source\Tags\TagCreate\Tag2ElementMovement.cs" />
+    <Compile Include="Source\Tags\TagCreate\TagResolver\TagResolverParallel.cs" />
+    <Compile Include="Source\Tags\TagCreate\TagResolver\TagResolverPerpendicular.cs" />
+    <Compile Include="Source\Tags\TagDuplicateChecker\TagDuplicateChecker.cs" />
     <Compile Include="Source\Tags\TagMissingChecker\TagMissingChecker.cs" />
     <Compile Include="Source\Tags\TagMissingChecker\TagMissingCheckForm.cs">
       <SubType>Form</SubType>
@@ -102,13 +112,13 @@
     <Compile Include="Source\Tags\TagMissingChecker\TagMissingCheckForm.Designer.cs">
       <DependentUpon>TagMissingCheckForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="Source\Tags\TagCreator\TagCreationForm.cs">
+    <Compile Include="Source\Tags\TagCreate\TagCreationForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Source\Tags\TagCreator\TagCreationForm.Designer.cs">
+    <Compile Include="Source\Tags\TagCreate\TagCreationForm.Designer.cs">
       <DependentUpon>TagCreationForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="Source\Tags\TagCreator\TagCreator.cs" />
+    <Compile Include="Source\Tags\TagCreate\TagCreator.cs" />
     <Compile Include="Source\Tags\TagData.cs" />
     <Compile Include="Source\Tags\TagOverlapChecker\Tag2DetailOverlap.cs" />
     <Compile Include="Source\Tags\TagOverlapChecker\Tag2DimensionOverlap.cs" />
@@ -121,6 +131,8 @@
     <Compile Include="Source\Tags\TagOverlapChecker\Tag2ViewOverlap.cs" />
     <Compile Include="Source\Tags\TagOverlapChecker\Tag2WallOverlap.cs" />
     <Compile Include="Source\Tags\TagOverlapChecker\Tag2WindowOverlap.cs" />
+    <Compile Include="Source\Tags\TagOverlapChecker\TagDataCache.cs" />
+    <Compile Include="Source\Tags\TagOverlapChecker\TagGraphicOverrider.cs" />
     <Compile Include="Source\Tags\TagOverlapChecker\TagOverlapBase.cs" />
     <Compile Include="Source\Tags\TagOverlapChecker\TagOverlapManager.cs" />
     <Compile Include="Source\Tags\TagUtils.cs" />
@@ -140,7 +152,7 @@
     <EmbeddedResource Include="Source\Tags\TagMissingChecker\TagMissingCheckForm.resx">
       <DependentUpon>TagMissingCheckForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Source\Tags\TagCreator\TagCreationForm.resx">
+    <EmbeddedResource Include="Source\Tags\TagCreate\TagCreationForm.resx">
       <DependentUpon>TagCreationForm.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>

@@ -10,7 +10,7 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
     {
         // Element ids that are overlapping
         // These should be higlighted
-        private List<ElementId> m_ElementIds;
+        public static  List<ElementId> m_ElementIds;
 
         // List of overlap chckers 
         private List<TagOverlapBase> m_TagOverlapCheckers;
@@ -18,6 +18,11 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
         //constructor
         public TagOverlapManager()
         {
+            if ( m_ElementIds != null && m_ElementIds.Count > 0 )
+            {
+                // delete the overrides
+                TagGraphicOverrider.DeleteOverrides( m_ElementIds );
+            }
             //intialize the list
             m_ElementIds = new List<ElementId>();
 
@@ -100,6 +105,8 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
                 Reference reference = new Reference(SheetUtils.m_Document.GetElement(elementId));
                 references.Add(reference);
             }
+
+            TagGraphicOverrider.CreateOverrides(m_ElementIds);
 
             // clear the previous selection
             SheetUtils.m_Selection.SetElementIds(new List<ElementId>());
