@@ -12,18 +12,21 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
     {
         //list of all the independent tags in the current view
         public static List<IndependentTag> m_IndependentTags;
+        // list of all the independent tags with leaders
         public static List<IndependentTag> m_TagsWithLeaders;
+        // list of all the independent tags that will be created without leaders
         public static List<IndependentTag> m_TagsWithOutLeaders;
 
-        /// <summary>
-        /// Base class constrcutor
-        /// Collects all the independent tags in the view
-        /// </summary>
         public TagOverlapBase() 
         {
             
         }
 
+        /// <summary>
+        /// Collect and initialze all the tags
+        /// separate leader tags
+        /// create no leader tags 
+        /// </summary>
         public static void InitializeTags()
         {
             // collect independent tags in the current view
@@ -44,9 +47,9 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
         /// <returns></returns>
         public virtual List<ElementId> CheckOverlap()
         {
-            List<ElementId> overlapElementIds = new List<ElementId>();
+            var overlapElementIds = new List<ElementId>();
 
-            // get the element ids
+            // get the wall element ids
             var elementIds = GetElementIds();
 
 
@@ -54,22 +57,25 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
             {
                 for (int j = 0; j < m_IndependentTags.Count; j++)
                 {
-                    if (TagUtils.AreBoudingBoxesIntersecting(GetBoundingBoxOfElement(elementIds[i]),
-                                                                m_IndependentTags[j].get_BoundingBox(SheetUtils.m_Document.ActiveView)))
+                    foreach (BoundingBoxXYZ boundingBoxXYZ in GetBoundingBoxesOfElement(elementIds[i]))
                     {
-                        if (!overlapElementIds.Contains(m_IndependentTags[j].Id))
+                        if (TagUtils.AreBoundingBoxesIntersecting(boundingBoxXYZ,
+                                                       m_IndependentTags[j].get_BoundingBox(SheetUtils.m_Document.ActiveView)))
                         {
-                            overlapElementIds.Add(m_IndependentTags[j].Id);
-                            overlapElementIds.AddRange(m_IndependentTags[j].GetTaggedLocalElementIds());
+                            if (!overlapElementIds.Contains(m_IndependentTags[j].Id))
+                            {
+                                overlapElementIds.Add(m_IndependentTags[j].Id);
+                                overlapElementIds.AddRange(m_IndependentTags[j].GetTaggedLocalElementIds());
 
-                            var indexDiff = m_IndependentTags.Count - m_TagsWithLeaders.Count;
-                            if (j >= indexDiff)
-                                elementIds.Add(m_TagsWithLeaders[j - indexDiff].Id);
-                        }
+                                var indexDiff = m_IndependentTags.Count - m_TagsWithLeaders.Count;
+                                if (j >= indexDiff)
+                                    elementIds.Add(m_TagsWithLeaders[j - indexDiff].Id);
+                            }
 
-                        if (!overlapElementIds.Contains(elementIds[i]))
-                        {
-                            overlapElementIds.Add(elementIds[i]);
+                            if (!overlapElementIds.Contains(elementIds[i]))
+                            {
+                                overlapElementIds.Add(elementIds[i]);
+                            }
                         }
                     }
                 }
@@ -95,12 +101,23 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
         /// </summary>
         /// <param name="elementId"></param>
         /// <returns></returns>
-        protected virtual BoundingBoxXYZ GetBoundingBoxOfElement(ElementId elementId)
+        public virtual List<BoundingBoxXYZ> GetBoundingBoxesOfElement(ElementId elementId)
         {
-            // Retrieve the element using its ElementId
-            return SheetUtils.m_Document.GetElement(elementId)?.get_BoundingBox(SheetUtils.m_Document.ActiveView);
+            
+            if (TagDataCache.cachedBoundingBoxDict.ContainsKey(elementId))
+                return TagDataCache.cachedBoundingBoxDict[elementId];
+            else
+            {
+                var boundingBoxXYZList = new List<BoundingBoxXYZ> { SheetUtils.m_Document.GetElement(elementId)?.get_BoundingBox(SheetUtils.m_Document.ActiveView) };
+                TagDataCache.cachedBoundingBoxDict[elementId] = boundingBoxXYZList;
+                return boundingBoxXYZList;
+            }
+            
         }
 
+        /// <summary>
+        /// Place the tags with out leaders
+        /// </summary>
         private static void PlaceTagsWithOutLeaders()
         {
 
@@ -110,13 +127,14 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
 
                 foreach (IndependentTag tag in m_TagsWithLeaders)
                 {
-
+                    // create an idnependent tag with out leader from the leader tag
                     IndependentTag noLeaderTag = IndependentTag.Create(SheetUtils.m_Document, SheetUtils.m_Document.ActiveView.Id, tag.GetTaggedReferences().FirstOrDefault(), false, TagMode.TM_ADDBY_CATEGORY, tag.TagOrientation, tag.TagHeadPosition);
-
                     noLeaderTag.ChangeTypeId(tag.GetTypeId());
 
+                    // track the tags without leaders into a list
                     m_TagsWithOutLeaders.Add(noLeaderTag);
 
+                    // add the no leader tags to the main tags list
                     m_IndependentTags.Add(noLeaderTag);
                 }
 
@@ -124,6 +142,9 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
             }
         }
 
+        /// <summary>
+        /// Delete the temporarily created no leader tags 
+        /// </summary>
         public static void DeleteNoLeaderTags()
         {
             using (Transaction transaction = new Transaction(SheetUtils.m_Document))
@@ -139,5 +160,20 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
             }
         }
 
+        public Dictionary <ElementId,List<BoundingBoxXYZ>> GetAllBoundingBoxes()
+        {
+            Dictionary<ElementId, List<BoundingBoxXYZ>> boundingBoxesDict = new Dictionary<ElementId, List<BoundingBoxXYZ>>();
+
+            var elementIds = GetElementIds();
+
+            foreach (var elementId in elementIds)
+            {
+                var boundingBoxes = GetBoundingBoxesOfElement(elementId);
+
+                boundingBoxesDict.Add(elementId, boundingBoxes);
+            }
+
+            return boundingBoxesDict;
+        }
     }
 }

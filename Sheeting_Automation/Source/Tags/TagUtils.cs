@@ -244,7 +244,13 @@ namespace Sheeting_Automation.Source.Tags
             return TagOrientation.Horizontal;
         }
 
-        // Helper method to compare floating-point values with tolerance
+        /// <summary>
+        /// Helper method to compare floating-point values with tolerance
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <param name="tolerance"></param>
+        /// <returns></returns>
         private static bool IsAlmostEqual(double a, double b, double tolerance = 0.0001)
         {
             return Math.Abs(a - b) < tolerance;
@@ -295,8 +301,8 @@ namespace Sheeting_Automation.Source.Tags
         /// <returns>true if intersecting else false</returns>
         public static bool AreTagsIntersecting(IndependentTag tag1, IndependentTag tag2)
         {
-            return AreBoudingBoxesIntersecting(tag1.get_BoundingBox(SheetUtils.m_Document.ActiveView)
-                                                , tag2.get_BoundingBox(SheetUtils.m_Document.ActiveView));
+            return AreBoundingBoxesIntersecting(tag1.get_BoundingBox(SheetUtils.m_ActiveView)
+                                                , tag2.get_BoundingBox(SheetUtils.m_ActiveView));
         }
 
         /// <summary>
@@ -305,7 +311,7 @@ namespace Sheeting_Automation.Source.Tags
         /// <param name="bbox1"></param>
         /// <param name="bbox2"></param>
         /// <returns>true if intersecting else false</returns>
-        public static bool AreBoudingBoxesIntersecting(BoundingBoxXYZ bbox1, BoundingBoxXYZ bbox2)
+        public static bool AreBoundingBoxesIntersecting(BoundingBoxXYZ bbox1, BoundingBoxXYZ bbox2)
         {
             if (bbox1 == null || bbox2 == null)
                 return false;
@@ -326,6 +332,93 @@ namespace Sheeting_Automation.Source.Tags
             return true;
         }
 
+        /// <summary>
+        ///  check if the bounding box is intersecting with any of the bounding box in the given list
+        /// </summary>
+        /// <param name="bbox1">bounding box</param>
+        /// <param name="bboxList">bounding box list</param>
+        /// <returns></returns>
+        public static bool AreBoundingBoxesIntersecting(BoundingBoxXYZ bbox1, List<BoundingBoxXYZ> bboxList)
+        {
+            foreach(var bbox in bboxList)
+            {
+                if(AreBoundingBoxesIntersecting(bbox1,bbox))
+                    return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// check if the passed bounding box is intersecting with the list of list of tags
+        /// </summary>
+        /// <param name="bbox"> bounding box of the tag </param>
+        /// <param name="skipElemId">element id of the tag that needs to be skipped</param>
+        /// <param name="overlapTagsList"> overlap tags list</param>
+        /// <returns></returns>
+        public static bool AreBoundingBoxesIntersecting(BoundingBoxXYZ bbox, ElementId skipElemId, List<List<Tag>> overlapTagsList)
+        {
+            int intersectCount = 0;
+
+            // check for overlaps with all the existing tags 
+            foreach (var bbList in overlapTagsList)
+            {
+                foreach (var bb in bbList)
+                {
+                    if (bb.mElement.Id == skipElemId)
+                        continue;
+
+                    if (TagUtils.AreBoundingBoxesIntersecting(bb.newBoundingBox, bbox))
+                        intersectCount++;
+                }
+            }
+
+            // return false if no intersections are found 
+            if(intersectCount == 0) return false;
+
+            // return true by default
+            return true;
+        }
+
+        /// <summary>
+        /// check if the passed bounding box is intersecting with the list of list of tags
+        /// </summary>
+        /// <param name="bbox">bounding box of the tag</param>
+        /// <param name="skipElemId1">first skip element id</param>
+        /// <param name="skipElemId2">second skip element id </param>
+        /// <param name="overlapTagsList">overlap tags list</param>
+        /// <returns></returns>
+        public static bool AreBoundingBoxesIntersecting(BoundingBoxXYZ bbox, ElementId skipElemId1, ElementId skipElemId2, List<List<Tag>> overlapTagsList)
+        {
+            int intersectCount = 0;
+
+            // check for overlaps with all the existing tags 
+            foreach (var bbList in overlapTagsList)
+            {
+                foreach (var bb in bbList)
+                {
+                    // skip the elements specified by element ids 
+                    if ((bb.mElement.Id == skipElemId1 ) || bb.mElement.Id == skipElemId2)
+                        continue;
+
+                    if (TagUtils.AreBoundingBoxesIntersecting(bb.newBoundingBox, bbox))
+                        intersectCount++;
+                }
+            }
+
+            // return false if no intersections are found 
+            if (intersectCount == 0) return false;
+
+            // return true by default
+            return true;
+        }
+
+
+        /// <summary>
+        /// Get the bounding box the geometry object
+        /// </summary>
+        /// <param name="geomObject"></param>
+        /// <returns> Bounding Box</returns>
         public static BoundingBoxXYZ GetBoundingBox(GeometryObject geomObject) 
         {
             BoundingBoxXYZ boundingBoxXYZ = null;
@@ -432,6 +525,11 @@ namespace Sheeting_Automation.Source.Tags
             return boundingBoxesList;
         }
 
+        /// <summary>
+        /// Get the family name of the passed element
+        /// </summary>
+        /// <param name="element">Element</param>
+        /// <returns>family string name </returns>
         public static string GetFamilyNameOfElement(Element element)
         {
             // Check if the element has a valid Family object
@@ -449,6 +547,119 @@ namespace Sheeting_Automation.Source.Tags
             return null;
         }
 
+        /// <summary>
+        /// Get the nearest element bounding boxes 
+        /// </summary>
+        /// <param name="tag">custom tag struct</param>
+        /// <param name="boundingBoxesDict">bounding box dictionary</param>
+        /// <returns></returns>
+        public static List<BoundingBoxXYZ> GetNearestElementBoundingBoxes(Tag tag, ref Dictionary<ElementId, List<BoundingBoxXYZ>> boundingBoxesDict)
+        {
+            List<BoundingBoxXYZ> nearestBoundingBoxes = new List<BoundingBoxXYZ>();
+
+            //offset for creatting a reference bouding box
+            XYZ offset = new XYZ(7, 7, 0);
+
+            // create a reference bounding box from the element bounding box
+            var referenceBoundingBox = new BoundingBoxXYZ();
+            referenceBoundingBox.Min = tag.currentBoundingBox.Min - offset;
+            referenceBoundingBox.Max = tag.currentBoundingBox.Max + offset;
+
+
+
+            foreach (var kvp in boundingBoxesDict)
+            {
+                var elementBoundingBoxes = kvp.Value;
+                ElementId elementId = kvp.Key;
+
+                if (tag.mElement.Category.Id.IntegerValue == (int)BuiltInCategory.OST_StructuralFraming)
+                {
+                    Element checkElement = SheetUtils.m_Document.GetElement(elementId);
+
+                    if (checkElement.Category.Id.IntegerValue == (int)BuiltInCategory.OST_StructuralFraming)
+                    {
+                        // skip different family elements for structural framing types 
+                        if (TagUtils.GetFamilyNameOfElement(tag.mElement) != TagUtils.GetFamilyNameOfElement(checkElement))
+                            continue;
+                    }
+                }
+
+                if (elementBoundingBoxes != null)
+                {
+                    foreach (var elemBoundingBox in elementBoundingBoxes)
+                    {
+                        if (TagUtils.AreBoundingBoxesIntersecting(elemBoundingBox, referenceBoundingBox))
+                            nearestBoundingBoxes.Add(elemBoundingBox);
+                    }
+                }
+            }
+
+            return nearestBoundingBoxes;
+        }
+
+        /// <summary>
+        /// Get the orientation of the tag
+        /// </summary>
+        /// <param name="tag"></param>
+        /// <returns>Tag orientation</returns>
+        public static TagOrientation GetTagOrientation(Tag tag)
+        {
+            TagOrientation tagOrientation = TagOrientation.Horizontal;
+
+            var boundingBox = tag.currentBoundingBox;
+
+            var width = Math.Abs(boundingBox.Max.X - boundingBox.Min.X);
+            var height = Math.Abs(boundingBox.Max.Y - boundingBox.Min.Y);
+
+            if (width < height)
+                tagOrientation = TagOrientation.Vertical;
+
+            return tagOrientation;
+        }
+
+        public static double GetBBRatio(Tag tag)
+        {
+            // default ratio is 1
+            double ratio = 1.0;
+
+            // get the x length and y length of the tag bounding box
+            var xTagLength = Math.Abs(tag.currentBoundingBox.Max.X - tag.currentBoundingBox.Min.X);
+            var yTagLength = Math.Abs(tag.currentBoundingBox.Max.Y - tag.currentBoundingBox.Min.Y);
+
+            var elementBoundingBox = BoundingBoxCollector.BoundingBoxesDict[tag.mElement.Id].FirstOrDefault();
+
+            //get the x length and y length of the element bounding box 
+            var xElementLength = Math.Abs(elementBoundingBox.Max.X - elementBoundingBox.Min.X);
+            var yElementLength = Math.Abs(elementBoundingBox.Max.Y - elementBoundingBox.Min.Y);
+
+            // tag is vertical
+            if (xTagLength < yTagLength)
+            {
+                // Y lengths 
+                ratio = yTagLength / yElementLength;
+            }
+            else //tag is horizontal
+            {
+                // X lengths 
+                ratio = xTagLength / xElementLength;
+            }
+
+            return ratio;
+        }
+
+        /// <summary>
+        /// Get the distance between two bounding boxes ( mid points ) 
+        /// </summary>
+        /// <param name="boundingBox">bounding box that needs to be checked</param>
+        /// <param name="elementBoundingBox">element bounding box </param>
+        /// <returns></returns>
+        public static double GetDistanceFromElement(BoundingBoxXYZ boundingBox, BoundingBoxXYZ elementBoundingBox)
+        {
+            XYZ boundingBoxMidPoint = (boundingBox.Max + boundingBox.Min) / 2;
+            XYZ elementMidPoint = (elementBoundingBox.Max + elementBoundingBox.Min) / 2; ;
+
+           return boundingBoxMidPoint.DistanceTo(elementMidPoint);
+        }
     }
 
 

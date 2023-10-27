@@ -19,7 +19,7 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
             List<ElementId> elementIds = new List<ElementId>();
 
             // Create a filtered element collector 
-            FilteredElementCollector collector = new FilteredElementCollector(SheetUtils.m_Document, SheetUtils.m_Document.ActiveView.Id);
+            FilteredElementCollector collector = new FilteredElementCollector(SheetUtils.m_Document, SheetUtils.m_ActiveViewId);
 
             // Filter for elements of category doors
             collector.OfCategory(BuiltInCategory.OST_Doors);

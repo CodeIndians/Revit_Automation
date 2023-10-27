@@ -17,7 +17,7 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
             List<ElementId> elementIds = new List<ElementId>();
 
             // Create a filtered element collector
-            FilteredElementCollector collector = new FilteredElementCollector(SheetUtils.m_Document, SheetUtils.m_Document.ActiveView.Id);
+            FilteredElementCollector collector = new FilteredElementCollector(SheetUtils.m_Document, SheetUtils.m_ActiveViewId);
 
             // Filter for elements of category Wall
             collector.OfCategory(BuiltInCategory.OST_DetailComponents);
@@ -44,77 +44,48 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
         /// </summary>
         /// <param name="elementId"></param>
         /// <returns></returns>
-        private  List<BoundingBoxXYZ> GetBoundingBoxesOfElement(ElementId elementId)
+        public override  List<BoundingBoxXYZ> GetBoundingBoxesOfElement(ElementId elementId)
         {
-            // get the detail element from the id
-            Element detailElement = SheetUtils.m_Document.GetElement(elementId);
-
-            // set the options 
-            var options = new Options();
-            options.ComputeReferences = true;
-            options.View = SheetUtils.m_Document.ActiveView;
-
-            // collect the geometry instances to a list
-            List<GeometryInstance> geomInstancesList = detailElement.get_Geometry(options)
-                                                           .Where(o => o is GeometryInstance)
-                                                           .Cast<GeometryInstance>()
-                                                           .ToList();
-
-            // initialize the bounding boxes list
-            List<BoundingBoxXYZ> boundingBoxes = new List<BoundingBoxXYZ>();
-
-            // iterate all the geometry instances 
-            foreach ( GeometryInstance geomInstance in  geomInstancesList ) 
+            if (TagDataCache.cachedBoundingBoxDict.ContainsKey(elementId))
+                return TagDataCache.cachedBoundingBoxDict[elementId];
+            else
             {
-                // iterate all the shapes 
-                foreach(GeometryObject geomObj in geomInstance.GetInstanceGeometry())
+                // get the detail element from the id
+                Element detailElement = SheetUtils.m_Document.GetElement(elementId);
+
+                // set the options 
+                var options = new Options();
+                options.ComputeReferences = true;
+                options.View = SheetUtils.m_ActiveView;
+
+                // collect the geometry instances to a list
+                List<GeometryInstance> geomInstancesList = detailElement.get_Geometry(options)?
+                                                               .Where(o => o is GeometryInstance)
+                                                               .Cast<GeometryInstance>()
+                                                               .ToList();
+
+                // initialize the bounding boxes list
+                List<BoundingBoxXYZ> boundingBoxes = new List<BoundingBoxXYZ>();
+
+                if (geomInstancesList == null)
+                    return boundingBoxes;
+
+                // iterate all the geometry instances 
+                foreach (GeometryInstance geomInstance in geomInstancesList)
                 {
-                    // add the bouding box of the geometry object
-                    boundingBoxes.Add( TagUtils.GetBoundingBox(geomObj));
-                }
-            }
-
-            // return the final bounding boxes list
-            return boundingBoxes;
-        }
-
-        public override List<ElementId> CheckOverlap()
-        {
-            var overlapElementIds = new List<ElementId>();
-
-            // get the wall element ids
-            var elementIds = GetElementIds();
-
-
-            for (int i = 0; i < elementIds.Count; i++)
-            {
-                for (int j = 0; j < m_IndependentTags.Count; j++)
-                {
-                    foreach (BoundingBoxXYZ boundingBoxXYZ in GetBoundingBoxesOfElement(elementIds[i]))
+                    // iterate all the shapes 
+                    foreach (GeometryObject geomObj in geomInstance.GetInstanceGeometry())
                     {
-                        if (TagUtils.AreBoudingBoxesIntersecting(boundingBoxXYZ,
-                                                       m_IndependentTags[j].get_BoundingBox(SheetUtils.m_Document.ActiveView)))
-                        {
-                            if (!overlapElementIds.Contains(m_IndependentTags[j].Id))
-                            {
-                                overlapElementIds.Add(m_IndependentTags[j].Id);
-                                overlapElementIds.AddRange(m_IndependentTags[j].GetTaggedLocalElementIds());
-
-                                var indexDiff = m_IndependentTags.Count - m_TagsWithLeaders.Count;
-                                if (j >= indexDiff)
-                                    elementIds.Add(m_TagsWithLeaders[j - indexDiff].Id);
-                            }
-
-                            if (!overlapElementIds.Contains(elementIds[i]))
-                            {
-                                overlapElementIds.Add(elementIds[i]);
-                            }
-                        }
+                        // add the bouding box of the geometry object
+                        boundingBoxes.Add(TagUtils.GetBoundingBox(geomObj));
                     }
                 }
-            }
 
-            return overlapElementIds;
+                TagDataCache.cachedBoundingBoxDict[elementId] = boundingBoxes;
+                // return the final bounding boxes list
+                return boundingBoxes;
+            }
         }
+
     }
 }

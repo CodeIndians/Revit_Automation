@@ -78,6 +78,27 @@ namespace Sheeting_Automation
                    "Check Tags Overlap",
                    "Sheets.png"); //TODO: use tags.png
 
+                AddRevitCommand(tagsRB,
+                   "Check Duplicate Tags",
+                   "Check Duplicate \n Tags",
+                   "Sheeting_Automation.Source.Tags.CheckDuplicateTagsCommand",
+                   "Check Duplicate Tags",
+                   "Sheets.png"); //TODO: use tags.png
+
+                AddRevitCommand(tagsRB,
+                   "Clear Overrides",
+                   "Clear Overrides",
+                   "Sheeting_Automation.Source.Tags.ClearTagOverrides",
+                   "Clear Overrides",
+                   "Sheets.png"); //TODO: use tags.png
+
+                AddRevitCommand(tagsRB,
+                   "Clear Data \n Cache",
+                   "Clear Data \n Cache",
+                   "Sheeting_Automation.Source.Tags.ClearDataCache",
+                   "Clear Data \n Cache",
+                   "Sheets.png"); //TODO: use tags.png
+
                 return Result.Succeeded;
             }
             else

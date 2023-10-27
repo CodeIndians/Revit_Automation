@@ -1,12 +1,9 @@
-﻿using System;
+﻿using Sheeting_Automation.Source.Tags.TagCreator;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Diagnostics;
-using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Sheeting_Automation.Source.Tags
@@ -14,6 +11,8 @@ namespace Sheeting_Automation.Source.Tags
     public partial class TagCreationForm : Form
     {
         private int m_ActiveCellCol = -1;
+
+        private BackgroundWorker worker = new BackgroundWorker();
         public TagCreationForm()
         {
             InitializeComponent();
@@ -22,6 +21,32 @@ namespace Sheeting_Automation.Source.Tags
             SetForm();
 
             InitializeDataGridView();
+
+            // configure the background worker
+            worker.DoWork += Worker_DoWork;
+            worker.RunWorkerCompleted += Worker_RunWorkerCompleted;
+
+            //start the background operation ( collecting bounding boxes)
+            worker.RunWorkerAsync();
+        }
+
+        /// <summary>
+        ///  Do the back ground work
+        ///  Collect the bounding boxes
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void Worker_DoWork(object sender, DoWorkEventArgs e)
+        {
+            createButton.Enabled = false;
+            BoundingBoxCollector.Initialize();
+        }
+
+        private void Worker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            createButton.Enabled = true;
+            //var count = BoundingBoxCollector.BoundingBoxesDict.Count;
+            //Console.WriteLine(count);
         }
 
         /// <summary>
@@ -164,10 +189,24 @@ namespace Sheeting_Automation.Source.Tags
             // collect the form data 
             var formDataList = CollectFormData();
 
-            var tagCreator = new TagCreator(formDataList);
+            var tagCreator = new TagCreator.TagCreator(formDataList);
 
+            //create tags at the default location
             tagCreator.CreateTags();
 
+            // update the tag bounding box data structure
+            BoundingBoxCollector.UpdateTagBoundingBoxes();
+
+            //adjust the tags
+            TagAdjust.AdjustTagsBasedOnElementsOnly();
+
+            // resolve the tags
+            var tagResolveManager = new TagResolverManager();
+            tagResolveManager.ResolveTags();
+
+            TagAdjust.UpdateTagLocation();
+
+            // close the create form
             this.Close();
         }
 

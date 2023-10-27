@@ -21,7 +21,7 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
             List<ElementId> elementIds = new List<ElementId>();
 
             // Create a filtered element collector 
-            FilteredElementCollector collector = new FilteredElementCollector(SheetUtils.m_Document, SheetUtils.m_Document.ActiveView.Id);
+            FilteredElementCollector collector = new FilteredElementCollector(SheetUtils.m_Document, SheetUtils.m_ActiveViewId);
 
             // Filter for elements of category windows
             collector.OfCategory(BuiltInCategory.OST_Dimensions);
@@ -44,33 +44,47 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
         /// </summary>
         /// <param name="elementId"></param>
         /// <returns></returns>
-        protected List<BoundingBoxXYZ> GetBoundingBoxOfDimensionSegments(ElementId elementId)
+        public override List<BoundingBoxXYZ> GetBoundingBoxesOfElement(ElementId elementId)
         {
-            Dimension dim = dimensionList[elementId];
-
-            List<BoundingBoxXYZ> boundingBoxes = new List<BoundingBoxXYZ>();
-
-            if(dim != null)
+            if (TagDataCache.cachedBoundingBoxDict.ContainsKey(elementId))
+                return TagDataCache.cachedBoundingBoxDict[elementId];
+            else
             {
-                DimensionSegmentArray segments = dim.Segments;
+                List<BoundingBoxXYZ> boundingBoxes = new List<BoundingBoxXYZ>();
 
-                foreach (DimensionSegment segment in segments)
+                Dimension dim;
+
+                // return if the element is not of the desired type
+                if (!dimensionList.TryGetValue(elementId, out dim))
                 {
-                    BoundingBoxXYZ boundingBox = GetBoundingBoxOfSegment(segment, elementId) ;
-
-                    boundingBoxes.Add(boundingBox);
+                    TagDataCache.cachedBoundingBoxDict[elementId] = boundingBoxes;
+                    return boundingBoxes;
                 }
 
-                if(segments.Size == 0)
+                if (dim != null)
                 {
-                    // dimension has no segment, check the dimension directly
-                    BoundingBoxXYZ boundingBox = GetBoundingBoxOfDimension(dim, elementId);
+                    DimensionSegmentArray segments = dim.Segments;
 
-                    boundingBoxes.Add(boundingBox);
+                    foreach (DimensionSegment segment in segments)
+                    {
+                        BoundingBoxXYZ boundingBox = GetBoundingBoxOfSegment(segment, elementId);
+
+                        boundingBoxes.Add(boundingBox);
+                    }
+
+                    if (segments.Size == 0)
+                    {
+                        // dimension has no segment, check the dimension directly
+                        BoundingBoxXYZ boundingBox = GetBoundingBoxOfDimension(dim, elementId);
+
+                        boundingBoxes.Add(boundingBox);
+                    }
                 }
+
+                TagDataCache.cachedBoundingBoxDict[elementId] = boundingBoxes;
+
+                return boundingBoxes;
             }
-
-            return boundingBoxes;
         }
 
         private BoundingBoxXYZ GetBoundingBoxOfSegment(DimensionSegment segment, ElementId elementId)
@@ -93,46 +107,6 @@ namespace Sheeting_Automation.Source.Tags.TagOverlapChecker
             return GetBoundingBox(textPoint,textLength,elementId);
 
         }
-
-        public override List<ElementId> CheckOverlap()
-        {
-            var overlapElementIds = new List<ElementId>();
-
-            // get the wall element ids
-            var elementIds = GetElementIds();
-
-
-            for (int i = 0; i < elementIds.Count; i++)
-            {
-                for (int j = 0; j < m_IndependentTags.Count; j++)
-                {
-                    foreach (BoundingBoxXYZ boundingBoxXYZ in GetBoundingBoxOfDimensionSegments(elementIds[i]))
-                    {
-                        if (TagUtils.AreBoudingBoxesIntersecting(boundingBoxXYZ,
-                                                       m_IndependentTags[j].get_BoundingBox(SheetUtils.m_Document.ActiveView)))
-                        {
-                            if (!overlapElementIds.Contains(m_IndependentTags[j].Id))
-                            {
-                                overlapElementIds.Add(m_IndependentTags[j].Id);
-                                overlapElementIds.AddRange(m_IndependentTags[j].GetTaggedLocalElementIds());
-
-                                var indexDiff = m_IndependentTags.Count - m_TagsWithLeaders.Count;
-                                if (j >= indexDiff)
-                                    elementIds.Add(m_TagsWithLeaders[j - indexDiff].Id);
-                            }
-
-                            if (!overlapElementIds.Contains(elementIds[i]))
-                            {
-                                overlapElementIds.Add(elementIds[i]);
-                            }
-                        }
-                    }
-                }
-            }
-
-            return overlapElementIds;
-        }
-
         private BoundingBoxXYZ GetBoundingBox(XYZ textPoint, int textLength, ElementId elementId)
         {
             double offset = 1.0f; ; // this offset is by default
