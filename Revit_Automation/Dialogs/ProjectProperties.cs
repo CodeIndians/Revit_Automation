@@ -15,21 +15,29 @@ using static Autodesk.Revit.DB.SpecTypeId;
 
 namespace Revit_Automation
 {
-    public partial class ProjectProperties : System.Windows.Forms.Form
+    public partial class ProjectPropertiesDG : System.Windows.Forms.Form
     {
         private DataTable dataTable;
         private DataGridViewCheckBoxColumn radioButtonColumn;
         private Document m_doc;
 
         public static int iUNONumber;
-        public ProjectProperties()
+        public ProjectPropertiesDG()
         {
 
             InitializeComponent();
 
-            dataGridView1.CellContentClick += dataGridView_CellContentClick;
+            PanelSettingsDG.CellContentClick += dataGridView_CellContentClick;
 
-            // TODO : Add values for DragStruct type, eve struct type, they are dynamic combo boxes
+            // Roof Deck Combos 
+            List<string> strRoofDeckTypes = SymbolCollector.GetRoofDeckTypes();
+            foreach (string type in strRoofDeckTypes)
+                comboBox4.Items.Add(type);
+
+            // Composite Deck Combos.
+            List<string> strCompositeDeckTypes = SymbolCollector.GetCompositeDeckTypes();
+            foreach (string type in strCompositeDeckTypes)
+                comboBox5.Items.Add(type);
 
             string strProjectSettings = InputLineUtility.GetProjectSettings();
 
@@ -39,35 +47,136 @@ namespace Revit_Automation
                 PopulateDefaultSettings();
                 PopulateDefaultCHeaderSettings();
                 PopulateDefaultPurlinSettings();
+                PopulateDefaultDragStrutSettings();
+                PopulateDefaultEaveStrutSettings();
             }
             else
                 PopulateSettingsFromString(strProjectSettings);
 
         }
 
+        private void PopulateDefaultEaveStrutSettings()
+        {
+            // Clear the contents before inserting new row s
+            EaveStrutSettingsDG.Rows.Clear();
+
+            foreach (string roofName in RoofUtility.NamedRoofs)
+            {
+                DataGridViewRow dgvRow = new DataGridViewRow();
+
+                DataGridViewCell roofNameCell = new DataGridViewTextBoxCell();
+                roofNameCell.Value = roofName;
+
+                List<string> eaveStrutList = SymbolCollector.GetEaveStrutTypes();
+                DataGridViewComboBoxCell dragStrutTypeCell = new DataGridViewComboBoxCell();
+                foreach (string ds in eaveStrutList)
+                    dragStrutTypeCell.Items.Add(ds);
+
+                DataGridViewComboBoxCell locationCell = new DataGridViewComboBoxCell();
+                locationCell.Items.Add("Low Eave");
+                locationCell.Items.Add("High Eave");
+                locationCell.Items.Add("Both");
+
+                DataGridViewCell maxLengthCell = new DataGridViewTextBoxCell();
+
+                DataGridViewCell LapCell = new DataGridViewTextBoxCell();
+
+                dgvRow.Cells.Add(roofNameCell);
+                dgvRow.Cells.Add(dragStrutTypeCell);
+                dgvRow.Cells.Add(locationCell);
+                dgvRow.Cells.Add(maxLengthCell);
+                dgvRow.Cells.Add(LapCell);
+
+                EaveStrutSettingsDG.Rows.Add(dgvRow);
+            }
+        }
+
+        private void PopulateDefaultDragStrutSettings()
+        {
+            DragStrutSettingsDG.Rows.Clear();
+
+            foreach (string roofName in RoofUtility.NamedRoofs)
+            {
+                DataGridViewRow dgvRow = new DataGridViewRow();
+
+                DataGridViewCell roofNameCell = new DataGridViewTextBoxCell();
+                roofNameCell.Value = roofName;
+
+                List<string> dragStrutList = SymbolCollector.GetDragStrutTypes();
+                DataGridViewComboBoxCell eaveStrutTypeCell = new DataGridViewComboBoxCell();
+                foreach (string ds in dragStrutList)
+                    eaveStrutTypeCell.Items.Add(ds);
+
+                DataGridViewComboBoxCell atHallwayCell = new DataGridViewComboBoxCell();
+                atHallwayCell.Items.Add("yes");
+                atHallwayCell.Items.Add("no");
+
+                DataGridViewCell maxLengthCell = new DataGridViewTextBoxCell();
+
+                DataGridViewCell LapCell = new DataGridViewTextBoxCell();
+
+                dgvRow.Cells.Add(roofNameCell);
+                dgvRow.Cells.Add(eaveStrutTypeCell);
+                dgvRow.Cells.Add(atHallwayCell);
+                dgvRow.Cells.Add(maxLengthCell);
+                dgvRow.Cells.Add(LapCell);
+
+                DragStrutSettingsDG.Rows.Add(dgvRow);
+            }
+        }
+
         private void PopulateDefaultPurlinSettings()
         {
-            DataGridViewRow row = new DataGridViewRow();
+            PurlinSettingsDG.Rows.Clear();
 
-            List<string> ceeHeaderList = SymbolCollector.GetPurlinSymbols();
+            foreach (string roofName in RoofUtility.NamedRoofs)
+            {
+                DataGridViewRow dgvRow = new DataGridViewRow();
 
-            DataGridViewCell onCenterCell = new DataGridViewTextBoxCell();
+                DataGridViewCell roofNameCell = new DataGridViewTextBoxCell();
+                roofNameCell.Value = roofName;
 
-            DataGridViewComboBoxCell PurlinTypecell = new DataGridViewComboBoxCell();
-            foreach (string ceeheader in ceeHeaderList)
-                PurlinTypecell.Items.Add(ceeheader);
+                List<string> purlinList = SymbolCollector.GetPurlinSymbols();
+                DataGridViewComboBoxCell cell = new DataGridViewComboBoxCell();
+                foreach (string purlin in purlinList)
+                    cell.Items.Add(purlin);
 
-            DataGridViewCell purlinGuage = new DataGridViewTextBoxCell();
+                DataGridViewCell guageCell = new DataGridViewTextBoxCell();
 
-            row.Cells.Add(onCenterCell);
-            row.Cells.Add(PurlinTypecell);
-            row.Cells.Add(purlinGuage);
+                DataGridViewCell onCenterCell = new DataGridViewTextBoxCell();
 
-            dataGridView3.Rows.Add(row);
+                DataGridViewCell maxSpansCell = new DataGridViewTextBoxCell();
+
+                DataGridViewCell thicknessCell = new DataGridViewTextBoxCell();
+
+                List<string> receiverChannelSymbols = SymbolCollector.GetReceiverChannelSymbols();
+                DataGridViewComboBoxCell receiverChannelCel = new DataGridViewComboBoxCell();
+                foreach (string rc in receiverChannelSymbols)
+                    receiverChannelCel.Items.Add(rc);
+
+                DataGridViewCell receiverChannelGauge = new DataGridViewTextBoxCell();
+
+                DataGridViewComboBoxCell orientationChangeCell = new DataGridViewComboBoxCell();
+                orientationChangeCell.Items.Add("yes");
+                orientationChangeCell.Items.Add("no");
+
+                dgvRow.Cells.Add(roofNameCell);
+                dgvRow.Cells.Add(cell);
+                dgvRow.Cells.Add(guageCell);
+                dgvRow.Cells.Add(onCenterCell);
+                dgvRow.Cells.Add(maxSpansCell);
+                dgvRow.Cells.Add(thicknessCell);
+                dgvRow.Cells.Add(receiverChannelCel);
+                dgvRow.Cells.Add(receiverChannelGauge);
+                dgvRow.Cells.Add(orientationChangeCell);
+
+                PurlinSettingsDG.Rows.Add(dgvRow);
+            }
         }
 
         private void PopulateDefaultCHeaderSettings()
         {
+            CeeHeaderSettingsDG.Rows.Clear();
             IOrderedEnumerable<Level> levels = LevelCollector.levels;
 
             // Fill empty data
@@ -107,7 +216,7 @@ namespace Revit_Automation
                 row.Cells.Add(cell3);
                 row.Cells.Add(cell4);
 
-                dataGridView2.Rows.Add(row);
+                CeeHeaderSettingsDG.Rows.Add(row);
             }
         }
 
@@ -184,7 +293,7 @@ namespace Revit_Automation
                     row.Cells.Add(verticalPanelDirection);
                     row.Cells.Add(hourRate);
 
-                    dataGridView1.Rows.Add(row);
+                    PanelSettingsDG.Rows.Add(row);
                 }
                 // Building Type
                 comboBox1.SelectedIndex = int.Parse(settings[1]);
@@ -209,22 +318,6 @@ namespace Revit_Automation
                 //Panel Direction Computation
                 comboBox2.SelectedIndex = int.Parse(settings[10]);
 
-                //// UNO Row Setting
-                //int iUNORowNumber = int.Parse(settings[11]);
-
-                //// Save the number on the static
-                //iUNONumber = iUNORowNumber;
-
-                //foreach (DataGridViewRow row in dataGridView1.Rows)
-                //{
-                //    DataGridViewCheckBoxCell checkBoxCell = row.Cells["RadioButtonColumn"] as DataGridViewCheckBoxCell;
-                //    if (row.Index == iUNORowNumber)
-                //    {
-                //        checkBoxCell.Value = true;  // Check the clicked checkbox
-                //        break;
-                //    }
-                //}
-
                 // Panel at hallway
                 comboBox3.SelectedIndex = int.Parse(settings[12]);
 
@@ -240,25 +333,7 @@ namespace Revit_Automation
                 //Deck Span
                 textBox11.Text = settings[16].ToString();
 
-                // Drag Struct Max length
-                textBox12.Text = settings[17].ToString();
-
-                //Drag Struct Type
-                comboBox4.SelectedIndex = int.Parse(settings[18]);
-
-                //Drag Struct continuous at hallway
-                comboBox7.SelectedIndex = int.Parse(settings[19]);
-
-                // Eave struct max length
-                textBox13.Text = settings[20].ToString();
-
-                //Eave Struct type
-                comboBox4.SelectedIndex = int.Parse(settings[21]);
-
-                //Eave Struct location
-                comboBox6.SelectedIndex = int.Parse(settings[22]);
-
-                string StrCeeHeaderSettings = settings[23].ToString();
+                string StrCeeHeaderSettings = settings[17].ToString();
                 string[] strings = StrCeeHeaderSettings.Split(';');
 
                 if (string.IsNullOrEmpty(StrCeeHeaderSettings))
@@ -306,82 +381,65 @@ namespace Revit_Automation
                     dgvRow.Cells.Add(cell3);
                     dgvRow.Cells.Add(cell4);
 
-                    dataGridView2.Rows.Add(dgvRow);
+                    CeeHeaderSettingsDG.Rows.Add(dgvRow);
                 }
 
                 //Roof Perpendicular NLB splice
-                comboBox9.SelectedIndex = int.Parse(settings[24]);
+                comboBox9.SelectedIndex = int.Parse(settings[18]);
 
                 // Round off
-                comboBox10.SelectedIndex = int.Parse(settings[25]);
+                comboBox10.SelectedIndex = int.Parse(settings[19]);
                 
                 // Top track at rake side
-                comboBox11.SelectedIndex = int.Parse(settings[26]);
+                comboBox11.SelectedIndex = int.Parse(settings[20]);
                 
                 // Top track splice at web
-                comboBox12.SelectedIndex = int.Parse(settings[27]);
+                comboBox12.SelectedIndex = int.Parse(settings[21]);
 
 
                 // Cee Header Max length
-                textBox14.Text = settings[28].ToString();
+                textBox14.Text = settings[22].ToString();
 
                 // Floor Deck Type
-                textBox15.Text = settings[29].ToString();
+                comboBox5.SelectedIndex = int.Parse(settings[23]);
 
                 // Floor Deck overlap
-                textBox16.Text = settings[30].ToString();
+                textBox16.Text = settings[24].ToString();
 
                 // Floor Deck max span
-                textBox17.Text = settings[31].ToString();
+                textBox17.Text = settings[25].ToString();
 
                 // Floor Deck Max length
-                textBox18.Text = settings[32].ToString();
+                textBox18.Text = settings[26].ToString();
 
                 // Roof Deck Type
-                textBox22.Text = settings[33].ToString();
+                comboBox4.SelectedIndex = int.Parse(settings[27]);
 
                 // Roof Deck overlap
-                textBox21.Text = settings[34].ToString();
+                textBox21.Text = settings[28].ToString();
 
                 // Roof Deck max span
-                textBox20.Text = settings[35].ToString();
+                textBox20.Text = settings[29].ToString();
 
                 // Roof Deck Max length
-                textBox19.Text = settings[36].ToString();
+                textBox19.Text = settings[30].ToString();
 
-                if (settings.Length > 37)
+                if (settings.Length > 30)
                 {
                     // Purlin Lap
-                    textBox23.Text = settings[37].ToString();
+                    textBox23.Text = settings[31].ToString();
 
                     // Purlin Preferred Length
-                    textBox24.Text = settings[38].ToString();
-
-                    // Purlin Max Spans
-                    textBox25.Text = settings[39].ToString();
+                    textBox24.Text = settings[32].ToString();
 
                     //Purlin Continuous at Insulation
-                    comboBox13.SelectedIndex = int.Parse(settings[40]);
-
-                    //Purlin Orientation Change
-                    comboBox14.SelectedIndex = int.Parse(settings[41]);
-
-                    // Receiver Channel Type
-                    textBox26.Text = settings[42].ToString();
-
-                    // Reciever Channel Guage
-                    textBox27.Text = settings[43].ToString();
-                    strProjectSettings += "|";
-
-                    // Purlin Overhang
-                    comboBox15.SelectedIndex = int.Parse(settings[44]);
+                    comboBox13.SelectedIndex = int.Parse(settings[33]);
 
                     // Purlin Round Off
-                    comboBox16.SelectedIndex = int.Parse(settings[45]);
-
+                    comboBox16.SelectedIndex = int.Parse(settings[34]);
 
                     // Purlin Size, gauge and OnCenter 
-                    string strPurlinSettings = settings[46];
+                    string strPurlinSettings = settings[35];
                     string[] purlinSettings = strPurlinSettings.Split(';');
 
                     if (string.IsNullOrEmpty(strPurlinSettings))
@@ -396,8 +454,8 @@ namespace Revit_Automation
 
                         DataGridViewRow dgvRow = new DataGridViewRow();
 
-                        DataGridViewCell onCenterCell = new DataGridViewTextBoxCell();
-                        onCenterCell.Value = purlinSettings[kCounter++];
+                        DataGridViewCell roofNameCell = new DataGridViewTextBoxCell();
+                        roofNameCell.Value = purlinSettings[kCounter++];
 
                         List<string> purlinList = SymbolCollector.GetPurlinSymbols();
                         DataGridViewComboBoxCell cell = new DataGridViewComboBoxCell();
@@ -408,32 +466,169 @@ namespace Revit_Automation
                         DataGridViewCell guageCell = new DataGridViewTextBoxCell();
                         guageCell.Value = purlinSettings[kCounter++];
 
-                        dgvRow.Cells.Add(onCenterCell);
+                        DataGridViewCell onCenterCell = new DataGridViewTextBoxCell();
+                        onCenterCell.Value = purlinSettings[kCounter++];
+
+                        DataGridViewCell maxSpansCell = new DataGridViewTextBoxCell();
+                        maxSpansCell.Value = purlinSettings[kCounter++];
+
+                        DataGridViewCell thicknessCell = new DataGridViewTextBoxCell();
+                        thicknessCell.Value = purlinSettings[kCounter++];
+
+                        List<string> receiverChannelSymbols = SymbolCollector.GetReceiverChannelSymbols();
+                        DataGridViewComboBoxCell receiverChannelCel = new DataGridViewComboBoxCell();
+                        foreach (string rc in receiverChannelSymbols)
+                            receiverChannelCel.Items.Add(rc);
+                        receiverChannelCel.Value = purlinSettings[kCounter++];
+
+                        DataGridViewCell receiverChannelGauge = new DataGridViewTextBoxCell();
+                        receiverChannelGauge.Value = purlinSettings[kCounter++];
+
+                        DataGridViewComboBoxCell orientationChangeCell = new DataGridViewComboBoxCell();
+                        orientationChangeCell.Items.Add("yes");
+                        orientationChangeCell.Items.Add("no");
+                        orientationChangeCell.Value = purlinSettings[kCounter++];
+
+
+                        dgvRow.Cells.Add(roofNameCell);
                         dgvRow.Cells.Add(cell);
                         dgvRow.Cells.Add(guageCell);
+                        dgvRow.Cells.Add(onCenterCell);
+                        dgvRow.Cells.Add(maxSpansCell);
+                        dgvRow.Cells.Add(thicknessCell);
+                        dgvRow.Cells.Add(receiverChannelCel);
+                        dgvRow.Cells.Add(receiverChannelGauge);
+                        dgvRow.Cells.Add(orientationChangeCell);
 
-                        dataGridView3.Rows.Add(dgvRow);
+                        PurlinSettingsDG.Rows.Add(dgvRow);
                     }
-                    
-                    // Drag Struct Lap
-                    textBox28.Text = settings[47];
-                    
-                    // Eave Strut Lap
-                    textBox29.Text = settings[48];  
+
+                    // Drag Strut Settings
+                    string strDragStrutSettings = settings[36];
+                    string[] strDragStrutSettingsList = strDragStrutSettings.Split(';');
+
+                    if (string.IsNullOrEmpty(strDragStrutSettings))
+                        PopulateDefaultDragStrutSettings();
+
+                    int lCounter = 0;
+
+                    while (lCounter < strDragStrutSettingsList.Length - 1)
+                    {
+                        // Empty row condition
+                        if (string.IsNullOrEmpty(strDragStrutSettingsList[lCounter]))
+                            break;
+
+                        DataGridViewRow dgvRow = new DataGridViewRow();
+
+                        DataGridViewCell roofNameCell = new DataGridViewTextBoxCell();
+                        roofNameCell.Value = strDragStrutSettingsList[lCounter++];
+
+                        List<string> dragStrutList = SymbolCollector.GetDragStrutTypes();
+                        DataGridViewComboBoxCell dragStrutTypeCell = new DataGridViewComboBoxCell();
+                        foreach (string ds in dragStrutList)
+                            dragStrutTypeCell.Items.Add(ds);
+
+
+                        dragStrutTypeCell.Value = strDragStrutSettingsList[lCounter++];
+
+                        DataGridViewComboBoxCell atHallwayCell = new DataGridViewComboBoxCell();
+                        atHallwayCell.Items.Add("yes");
+                        atHallwayCell.Items.Add("no");
+                        atHallwayCell.Items.Add("");
+                        atHallwayCell.Value = strDragStrutSettingsList[lCounter++];
+
+                        DataGridViewCell maxLengthCell = new DataGridViewTextBoxCell();
+                        maxLengthCell.Value = strDragStrutSettingsList[lCounter++];
+
+                        DataGridViewCell LapCell = new DataGridViewTextBoxCell();
+                        LapCell.Value = strDragStrutSettingsList[lCounter++];
+
+                        dgvRow.Cells.Add(roofNameCell);
+                        dgvRow.Cells.Add(dragStrutTypeCell);
+                        dgvRow.Cells.Add(atHallwayCell);
+                        dgvRow.Cells.Add(maxLengthCell);
+                        dgvRow.Cells.Add(LapCell);
+
+                        DragStrutSettingsDG.Rows.Add(dgvRow);
+                    }
+
+                    // Eave Strut Settings
+                    string strEaveStrutSettings = settings[37];
+                    string[] strEaveStrutSettingsList = strEaveStrutSettings.Split(';');
+
+                    if (string.IsNullOrEmpty(strEaveStrutSettings))
+                        PopulateDefaultEaveStrutSettings();
+
+                    int mCounter = 0;
+
+                    while (mCounter < strEaveStrutSettingsList.Length - 1)
+                    {
+                        // Empty row condition
+                        if (string.IsNullOrEmpty(strEaveStrutSettingsList[mCounter]))
+                            break;
+
+                        DataGridViewRow dgvRow = new DataGridViewRow();
+
+                        DataGridViewCell roofNameCell = new DataGridViewTextBoxCell();
+                        roofNameCell.Value = strEaveStrutSettingsList[mCounter++];
+
+                        List<string> eaveStrutList = SymbolCollector.GetEaveStrutTypes();
+                        DataGridViewComboBoxCell eaveStrutTypeCell = new DataGridViewComboBoxCell();
+                        foreach (string ds in eaveStrutList)
+                            eaveStrutTypeCell.Items.Add(ds);
+                        eaveStrutTypeCell.Value = strEaveStrutSettingsList[mCounter++];
+
+                        DataGridViewComboBoxCell locationCell = new DataGridViewComboBoxCell();
+                        locationCell.Items.Add("Low Eave");
+                        locationCell.Items.Add("High Eave");
+                        locationCell.Items.Add("Both");
+                        locationCell.Items.Add("");
+                        locationCell.Value = strEaveStrutSettingsList[mCounter++];
+
+                        DataGridViewCell maxLengthCell = new DataGridViewTextBoxCell();
+                        maxLengthCell.Value = strEaveStrutSettingsList[mCounter++];
+
+                        DataGridViewCell LapCell = new DataGridViewTextBoxCell();
+                        LapCell.Value = strEaveStrutSettingsList[mCounter++];
+
+                        dgvRow.Cells.Add(roofNameCell);
+                        dgvRow.Cells.Add(eaveStrutTypeCell);
+                        dgvRow.Cells.Add(locationCell);
+                        dgvRow.Cells.Add(maxLengthCell);
+                        dgvRow.Cells.Add(LapCell);
+
+                        EaveStrutSettingsDG.Rows.Add(dgvRow);
+                    }
                 }
                 else
                 {
                     PopulateDefaultPurlinSettings();
+                    PopulateDefaultDragStrutSettings();
+                    PopulateDefaultEaveStrutSettings();
                 }
 
-                dataGridView1.Invalidate();
-                dataGridView1.Update();
+                PanelSettingsDG.Invalidate();
+                PanelSettingsDG.Update();
+
+                CeeHeaderSettingsDG.Invalidate();
+                CeeHeaderSettingsDG.Update();
+
+                PurlinSettingsDG.Invalidate();
+                PurlinSettingsDG.Update();
+
+                DragStrutSettingsDG.Invalidate();
+                DragStrutSettingsDG.Update();
+
+                EaveStrutSettingsDG.Invalidate();
+                EaveStrutSettingsDG.Update();
             }
             catch (Exception)
             {
                 PopulateDefaultSettings();
                 PopulateDefaultCHeaderSettings();
                 PopulateDefaultPurlinSettings();
+                PopulateDefaultDragStrutSettings();
+                PopulateDefaultEaveStrutSettings();
             }
         }
 
@@ -444,9 +639,9 @@ namespace Revit_Automation
         /// <param name="e"></param>
         private void dataGridView_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.ColumnIndex == dataGridView1.Columns["UNO"].Index)
+            if (e.ColumnIndex == PanelSettingsDG.Columns["UNO"].Index)
             {
-                foreach (DataGridViewRow row in dataGridView1.Rows)
+                foreach (DataGridViewRow row in PanelSettingsDG.Rows)
                 {
                     DataGridViewCheckBoxCell checkBoxCell = row.Cells["UNO"] as DataGridViewCheckBoxCell;
                     if (row.Index == e.RowIndex)
@@ -492,8 +687,9 @@ namespace Revit_Automation
             bool bFoundUNO = false;
 
             // Panel Settings
-            DataTable dt = (DataTable)dataGridView1.DataSource;
-            foreach (DataGridViewRow row in dataGridView1.Rows)
+            string strPanelSettings = "";
+            DataTable dt = (DataTable)PanelSettingsDG.DataSource;
+            foreach (DataGridViewRow row in PanelSettingsDG.Rows)
             {
                 DataGridViewCheckBoxCell checkBoxCell = row.Cells[0] as DataGridViewCheckBoxCell;
                 DataGridViewTextBoxCell panelType = row.Cells[1] as DataGridViewTextBoxCell;
@@ -514,72 +710,80 @@ namespace Revit_Automation
                     break; // This is the last row 
                 }
 
-                strProjectSettings += (checkBoxCell.Value != null)? checkBoxCell.Value.ToString() : "False";
-                strProjectSettings += ";";
+                strPanelSettings += (checkBoxCell.Value != null)? checkBoxCell.Value.ToString() : "False";
+                strPanelSettings += ";";
 
-                strProjectSettings += panelType.Value?.ToString();
-                strProjectSettings += ";";
+                strPanelSettings += panelType.Value?.ToString();
+                strPanelSettings += ";";
 
-                strProjectSettings += panelGauge.Value?.ToString();
-                strProjectSettings += ";";
+                strPanelSettings += panelGauge.Value?.ToString();
+                strPanelSettings += ";";
 
-                strProjectSettings += panelClearance.Value?.ToString();
-                strProjectSettings += ";";
+                strPanelSettings += panelClearance.Value?.ToString();
+                strPanelSettings += ";";
 
-                strProjectSettings += panelMaxLap.Value?.ToString();
-                strProjectSettings += ";";
+                strPanelSettings += panelMaxLap.Value?.ToString();
+                strPanelSettings += ";";
 
-                strProjectSettings += panelMinLap.Value?.ToString();
-                strProjectSettings += ";";
+                strPanelSettings += panelMinLap.Value?.ToString();
+                strPanelSettings += ";";
 
-                strProjectSettings += panelOrientation.Value?.ToString();
-                strProjectSettings += ";";
+                strPanelSettings += panelOrientation.Value?.ToString();
+                strPanelSettings += ";";
 
-                strProjectSettings += panelPreferredLength.Value?.ToString();
-                strProjectSettings += ";";
+                strPanelSettings += panelPreferredLength.Value?.ToString();
+                strPanelSettings += ";";
 
-                strProjectSettings += panelMaxLength.Value?.ToString();
-                strProjectSettings += ";";
+                strPanelSettings += panelMaxLength.Value?.ToString();
+                strPanelSettings += ";";
 
-                strProjectSettings += panelHeightOffset.Value?.ToString();
-                strProjectSettings += ";";
+                strPanelSettings += panelHeightOffset.Value?.ToString();
+                strPanelSettings += ";";
 
-                strProjectSettings += horizontalPanelDirection.Value?.ToString();
-                strProjectSettings += ";";
+                strPanelSettings += horizontalPanelDirection.Value?.ToString();
+                strPanelSettings += ";";
 
-                strProjectSettings += verticalPanelDirection.Value?.ToString();
-                strProjectSettings += ";";
+                strPanelSettings += verticalPanelDirection.Value?.ToString();
+                strPanelSettings += ";";
 
-                strProjectSettings += HourRate.Value?.ToString();
-                strProjectSettings += ";";
+                strPanelSettings += HourRate.Value?.ToString();
+                strPanelSettings += ";";
             }
-            
+
+            // Settings[0]
+            strProjectSettings += strPanelSettings;
             strProjectSettings += "|";
 
-            // Building Type
+            // Building Type // Settings[1]
             strProjectSettings += comboBox1.SelectedIndex.ToString() ;
             strProjectSettings += "|";
 
             // Bottom Track Preferred length
+            // Settings[2], settings[3]
             strProjectSettings += textBox1.Text.ToString() + "|" + textBox6.Text.ToString();
             strProjectSettings += "|";
 
             //top track preferred length
+            // Settings[4], settings [5]
             strProjectSettings += textBox3.Text.ToString() + "|" + textBox2.Text.ToString();
             strProjectSettings += "|";
 
             // Bottom Track max length
+            // Settings[6], Settings[7]
             strProjectSettings += textBox8.Text.ToString() + "|" + textBox7.Text.ToString();
             strProjectSettings += "|";
 
             //Top Track max length
+            // Settings[8], Settings[9]
             strProjectSettings += textBox10.Text.ToString() + "|" + textBox9.Text.ToString();
             strProjectSettings += "|";
 
             // Panel Direction Computation
+            // Settings[10]
             strProjectSettings += comboBox2.SelectedIndex.ToString();
             strProjectSettings += "|";
 
+            // Settings[11]
             if (!bFoundUNO)
             {
                 strProjectSettings += -1;
@@ -587,51 +791,34 @@ namespace Revit_Automation
             }
 
             // Panel At Hallway
+            // Settings[12]
             strProjectSettings += comboBox3.SelectedIndex.ToString();
             strProjectSettings += "|";
 
             // Partition stud type
+            // Settings[13]
             strProjectSettings += textBox4.Text.ToString();
             strProjectSettings += "|";
 
             // Hallway Panel Thickness
+            // Settings[14]
             strProjectSettings += textBox5.Text.ToString();
             strProjectSettings += "|";
 
             // Panel Strategy
+            // Settings[15]
             strProjectSettings += comboBox8.SelectedIndex.ToString();
             strProjectSettings += "|";
 
             //Deck Span
+            // Settings[16]
             strProjectSettings += textBox11.Text.ToString();
             strProjectSettings += "|";
 
-            // Drag Struct Max length
-            strProjectSettings += textBox12.Text.ToString();
-            strProjectSettings += "|";
-
-            //Drag Struct Type
-            strProjectSettings += comboBox4.SelectedIndex.ToString();
-            strProjectSettings += "|";
-
-            //Drag Struct continuous at hallway
-            strProjectSettings += comboBox7.SelectedIndex.ToString();
-            strProjectSettings += "|";
-
-            // Eave struct max length
-            strProjectSettings += textBox13.Text.ToString();
-            strProjectSettings += "|";
-
-            //Eave Struct type
-            strProjectSettings += comboBox4.SelectedIndex.ToString();
-            strProjectSettings += "|";
-
-            //Eave Struct location
-            strProjectSettings += comboBox6.SelectedIndex.ToString();
-            strProjectSettings += "|";
+           
 
             string StrCeeHeaderSettings = "";
-            foreach (DataGridViewRow row in dataGridView2.Rows)
+            foreach (DataGridViewRow row in CeeHeaderSettingsDG.Rows)
             {
                 DataGridViewCheckBoxCell checkBoxCell = row.Cells[0] as DataGridViewCheckBoxCell;
                 DataGridViewTextBoxCell GridCell = row.Cells[1] as DataGridViewTextBoxCell;
@@ -664,115 +851,189 @@ namespace Revit_Automation
 
             }
 
+            //Settings[17]
             strProjectSettings += StrCeeHeaderSettings;
             strProjectSettings += "|";
 
+            //Settings[18] - //Roof Perpendicular NLB splice
             strProjectSettings += comboBox9.SelectedIndex.ToString();
             strProjectSettings += "|";
             
+            // Settings [19] - Top Track Round Off
             strProjectSettings += comboBox10.SelectedIndex.ToString();
             strProjectSettings += "|";
             
+            // Settings[20] - Top Track at rake side
             strProjectSettings += comboBox11.SelectedIndex.ToString();
             strProjectSettings += "|";
             
+            //Settings[21] - Top track Splice at Web
             strProjectSettings += comboBox12.SelectedIndex.ToString();
             strProjectSettings += "|";
 
+            //Settings[22] - Cee Header max length
             strProjectSettings += textBox14.Text.ToString();
             strProjectSettings += "|";
 
-            strProjectSettings += textBox15.Text.ToString();
+            // Settings [23] - Floor Deck Type
+            strProjectSettings += comboBox4.SelectedIndex.ToString();
             strProjectSettings += "|";
 
+            //Settings [24] - Floor Deck Overlap
             strProjectSettings += textBox16.Text.ToString();
             strProjectSettings += "|";
 
+            //Settings [25] - Floor Deck Max Span
             strProjectSettings += textBox17.Text.ToString();
             strProjectSettings += "|";
 
+            //Settings [26] - Floor Deck Max Length
             strProjectSettings += textBox18.Text.ToString();
             strProjectSettings += "|";
 
-            strProjectSettings += textBox22.Text.ToString();
+            // Settings [27] - Roof Deck type
+            strProjectSettings += comboBox5.SelectedIndex.ToString();
             strProjectSettings += "|";
 
+            //Settings [28] - Roof  Deck Overlap
             strProjectSettings += textBox21.Text.ToString();
             strProjectSettings += "|";
 
+            //Settings [29] - Roof Deck Max Span
             strProjectSettings += textBox20.Text.ToString();
             strProjectSettings += "|";
 
+            //Settings [30] - Roof Deck Max Length
             strProjectSettings += textBox19.Text.ToString();
             strProjectSettings += "|";
 
             // Purlin related settings
             
-            // Purlin Lap
+            // Settings [31] - Purlin Lap 
             strProjectSettings += textBox23.Text.ToString();
             strProjectSettings += "|";
 
-            // Purlin Preferred Length
+            // Settings [32] Purlin Preferred Length
             strProjectSettings += textBox24.Text.ToString();
             strProjectSettings += "|";
 
-            // Purlin Max Spans
-            strProjectSettings+= textBox25.Text.ToString();
-            strProjectSettings += "|";
-
-            //Purlin Continuous at Insulation
+            //Settings [33] - Purlin Continuous at Insulation
             strProjectSettings += comboBox13.SelectedIndex.ToString();
             strProjectSettings += "|";
 
-            //Purlin Orientation Change
-            strProjectSettings += comboBox14.SelectedIndex.ToString();
-            strProjectSettings += "|";
-
-            // Receiver Channel Type
-            strProjectSettings += textBox26.Text.ToString();
-            strProjectSettings += "|";
-
-            // Reciever Channel Guage
-            strProjectSettings += textBox27.Text.ToString();
-            strProjectSettings += "|";
-
-            // Purlin Overhang
-            strProjectSettings += comboBox15.SelectedIndex.ToString();
-            strProjectSettings += "|";
-
-            // Purlin Round Off
+            // Settings[34] - Purlin Round Off
             strProjectSettings += comboBox16.SelectedIndex.ToString();
             strProjectSettings += "|";
 
-            // Purlin Size, gauge and OnCenter 
+            // Purlin Size, gauge and OnCenter - Purlin Settings Roof Wise
             string strPurlinSettings = "";
-            foreach (DataGridViewRow dataGridViewRow in dataGridView3.Rows)
+            foreach (DataGridViewRow dataGridViewRow in PurlinSettingsDG.Rows)
             {
-                DataGridViewTextBoxCell dataGridViewTextBoxCell = dataGridViewRow.Cells[0] as DataGridViewTextBoxCell;
-                DataGridViewComboBoxCell dataGridViewComboBoxCell = dataGridViewRow.Cells[1] as DataGridViewComboBoxCell;
-                DataGridViewTextBoxCell dataGridViewTextBoxCell1 = dataGridViewRow.Cells[2] as DataGridViewTextBoxCell;
 
-                strPurlinSettings += dataGridViewTextBoxCell.Value?.ToString();
+                DataGridViewTextBoxCell roofCell = dataGridViewRow.Cells[0] as DataGridViewTextBoxCell;
+                DataGridViewComboBoxCell purlinTypeCell = dataGridViewRow.Cells[1] as DataGridViewComboBoxCell;
+                DataGridViewTextBoxCell purlinGaugeCell = dataGridViewRow.Cells[2] as DataGridViewTextBoxCell;
+                DataGridViewTextBoxCell onCenterCell = dataGridViewRow.Cells[3] as DataGridViewTextBoxCell;
+                DataGridViewTextBoxCell maxSpanCell = dataGridViewRow.Cells[4] as DataGridViewTextBoxCell;
+                DataGridViewTextBoxCell thicknessCell = dataGridViewRow.Cells[5] as DataGridViewTextBoxCell;
+                DataGridViewComboBoxCell receiverChannelCell = dataGridViewRow.Cells[6] as DataGridViewComboBoxCell;
+                DataGridViewTextBoxCell receiverChannelGaugeCell = dataGridViewRow.Cells[7] as DataGridViewTextBoxCell;
+                DataGridViewComboBoxCell OrientationChangeCell = dataGridViewRow.Cells[8] as DataGridViewComboBoxCell;
+
+                strPurlinSettings += roofCell.Value?.ToString();
                 strPurlinSettings += ";";
 
-                strPurlinSettings += dataGridViewComboBoxCell.Value?.ToString();
+                strPurlinSettings += purlinTypeCell.Value?.ToString();
                 strPurlinSettings += ";";
 
-                strPurlinSettings += dataGridViewTextBoxCell1.Value?.ToString();
+                strPurlinSettings += purlinGaugeCell.Value?.ToString();
                 strPurlinSettings += ";";
+
+                strPurlinSettings += onCenterCell.Value?.ToString();
+                strPurlinSettings += ";";
+
+                strPurlinSettings += maxSpanCell.Value?.ToString();
+                strPurlinSettings += ";";
+
+                strPurlinSettings += thicknessCell.Value?.ToString();
+                strPurlinSettings += ";";
+
+                strPurlinSettings += receiverChannelCell.Value?.ToString();
+                strPurlinSettings += ";";
+
+                strPurlinSettings += receiverChannelGaugeCell.Value?.ToString();
+                strPurlinSettings += ";";
+
+                strPurlinSettings += OrientationChangeCell.Value?.ToString();
+                strPurlinSettings += ";";
+
 
             }
 
+            // settings [35] Purlin Settings Roof Wise
             strProjectSettings += strPurlinSettings;
             strProjectSettings += "|";
 
-            // Drag Strut Lap
-            strProjectSettings += textBox28.Text.ToString();
+            string strDragStrutSettings = "";
+            foreach (DataGridViewRow dataGridViewRow in DragStrutSettingsDG.Rows)
+            {
+
+                DataGridViewTextBoxCell roofCell = dataGridViewRow.Cells[0] as DataGridViewTextBoxCell;
+                DataGridViewComboBoxCell dragStrutTypeCell = dataGridViewRow.Cells[1] as DataGridViewComboBoxCell;
+                DataGridViewComboBoxCell ContinuousAthallwayCell = dataGridViewRow.Cells[2] as DataGridViewComboBoxCell;
+                DataGridViewTextBoxCell MaxLengthCell = dataGridViewRow.Cells[3] as DataGridViewTextBoxCell;
+                DataGridViewTextBoxCell LapCell = dataGridViewRow.Cells[4] as DataGridViewTextBoxCell;
+
+                strDragStrutSettings += roofCell.Value?.ToString();
+                strDragStrutSettings += ";";
+
+                strDragStrutSettings += dragStrutTypeCell.Value?.ToString();
+                strDragStrutSettings += ";";
+
+                strDragStrutSettings += ContinuousAthallwayCell.Value?.ToString();
+                strDragStrutSettings += ";";
+
+                strDragStrutSettings += MaxLengthCell.Value?.ToString();
+                strDragStrutSettings += ";";
+
+                strDragStrutSettings += LapCell.Value?.ToString();
+                strDragStrutSettings += ";";
+            }
+
+            // settings [36] Drag Strut Settings
+            strProjectSettings += strDragStrutSettings;                ;
             strProjectSettings += "|";
 
-            //Eave Struct Lap
-            strProjectSettings += textBox29.Text.ToString();
+            string strEaveStrutSettings = "";
+            foreach (DataGridViewRow dataGridViewRow in EaveStrutSettingsDG.Rows)
+            {
+
+                DataGridViewTextBoxCell roofCell = dataGridViewRow.Cells[0] as DataGridViewTextBoxCell;
+                DataGridViewComboBoxCell eaveStrutTypeCell = dataGridViewRow.Cells[1] as DataGridViewComboBoxCell;
+                DataGridViewComboBoxCell locationCell = dataGridViewRow.Cells[2] as DataGridViewComboBoxCell;
+                DataGridViewTextBoxCell MaxLengthCell = dataGridViewRow.Cells[3] as DataGridViewTextBoxCell;
+                DataGridViewTextBoxCell LapCell = dataGridViewRow.Cells[4] as DataGridViewTextBoxCell;
+
+                strEaveStrutSettings += roofCell.Value?.ToString();
+                strEaveStrutSettings += ";";
+
+                strEaveStrutSettings += eaveStrutTypeCell.Value?.ToString();
+                strEaveStrutSettings += ";";
+
+                strEaveStrutSettings += locationCell.Value?.ToString();
+                strEaveStrutSettings += ";";
+
+                strEaveStrutSettings += MaxLengthCell.Value?.ToString();
+                strEaveStrutSettings += ";";
+
+                strEaveStrutSettings += LapCell.Value?.ToString();
+                strEaveStrutSettings += ";";
+            }
+
+            // settings [37] Eave Strut Settings
+            strProjectSettings += strEaveStrutSettings; ;
             strProjectSettings += "|";
+
 
             InputLineUtility.SetProjectSettings(strProjectSettings);
             GlobalSettings.UpdateSettings();
@@ -789,7 +1050,7 @@ namespace Revit_Automation
             {
                 if (strWallType == "" || strWallType == " ")
                     continue;
-                dataGridView1.Rows.Add(false, strWallType, "", "", "", "", "", "","", "", " ", " ","");
+                PanelSettingsDG.Rows.Add(false, strWallType, "", "", "", "", "", "","", "", " ", " ","");
             }
         }
 
@@ -829,6 +1090,11 @@ namespace Revit_Automation
         }
 
         private void label43_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void dataGridView3_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
 
         }

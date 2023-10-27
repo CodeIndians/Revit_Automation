@@ -252,5 +252,97 @@ namespace Revit_Automation
             }
             return lstPurlinTypes;
         }
+
+        internal static List<string> GetReceiverChannelSymbols()
+        {
+            List<string> lstReceiverChannelTypes = new List<string>();
+            FilteredElementCollector families = new FilteredElementCollector(m_Document);
+
+            families.OfClass(typeof(FamilySymbol))
+                    .OfCategory(BuiltInCategory.OST_StructuralFraming);
+
+            foreach (FamilySymbol famSymbol in families)
+            {
+                if (famSymbol.FamilyName.Contains("Receiver channel"))
+                {
+                    lstReceiverChannelTypes.Add(famSymbol.Name);
+                }
+            }
+            return lstReceiverChannelTypes;
+        }
+
+        internal static List<string> GetDragStrutTypes()
+        {
+            List<string> lstDragStrutTypes = new List<string>();
+            FilteredElementCollector families = new FilteredElementCollector(m_Document);
+
+            families.OfClass(typeof(FamilySymbol))
+                    .OfCategory(BuiltInCategory.OST_StructuralFraming);
+
+            foreach (FamilySymbol famSymbol in families)
+            {
+                if (famSymbol.FamilyName.Contains("Drag Strut"))
+                {
+                    lstDragStrutTypes.Add(famSymbol.Name);
+                }
+            }
+            return lstDragStrutTypes;
+        }
+
+        internal static List<string> GetEaveStrutTypes()
+        {
+            List<string> lstEaveStrutTypes = new List<string>();
+            FilteredElementCollector families = new FilteredElementCollector(m_Document);
+
+            families.OfClass(typeof(FamilySymbol))
+                    .OfCategory(BuiltInCategory.OST_StructuralFraming);
+
+            foreach (FamilySymbol famSymbol in families)
+            {
+                if (famSymbol.FamilyName.Contains("Eave Strut"))
+                {
+                    lstEaveStrutTypes.Add(famSymbol.Name);
+                }
+            }
+            return lstEaveStrutTypes;
+        }
+
+        internal static List<string> GetCompositeDeckTypes()
+        {
+            List<string> lstCompositeDeckTypes = new List<string>();
+            FilteredElementCollector families = new FilteredElementCollector(m_Document);
+
+            families.OfClass(typeof(FamilySymbol))
+                    .OfCategory(BuiltInCategory.OST_StructuralFraming);
+
+            foreach (FamilySymbol famSymbol in families)
+            {
+                if (famSymbol.FamilyName.Contains("Composite Deck"))
+                {
+                    lstCompositeDeckTypes.Add(famSymbol.Name);
+                }
+            }
+            return lstCompositeDeckTypes;
+        }
+
+        internal static List<string> GetRoofDeckTypes()
+        {
+            List<string> lstRoofDeckTypes = new List<string>();
+            FilteredElementCollector families = new FilteredElementCollector(m_Document);
+
+            families.OfClass(typeof(FamilySymbol))
+                    .OfCategory(BuiltInCategory.OST_StructuralFraming);
+
+            foreach (FamilySymbol famSymbol in families)
+            {
+                if (famSymbol.FamilyName.Contains("Roof Deck"))
+                {
+                    lstRoofDeckTypes.Add(famSymbol.Name);
+                }
+            }
+            return lstRoofDeckTypes;
+        }
+
+
     }
 }

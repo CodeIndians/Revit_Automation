@@ -2,6 +2,7 @@
 using Revit_Automation.CustomTypes;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 
 namespace Revit_Automation.Source.Utils
@@ -11,6 +12,8 @@ namespace Revit_Automation.Source.Utils
         public static List<RoofObject> colRoofs = new List<RoofObject>();
 
         public static List<RoofObject> colExtendedRoofs = new List<RoofObject>();
+
+        public static List<string> NamedRoofs = new List<string>();
 
         public static Document m_Document;
 
@@ -23,8 +26,12 @@ namespace Revit_Automation.Source.Utils
             // Get all the roof elements
             List<RoofBase> roofs = collector.Cast<RoofBase>().ToList();
 
+            // Clear the Named roofs collection
+            NamedRoofs.Clear();
+
             foreach (RoofBase roof in roofs)
             {
+                
                 ElementId roofId = roof.Id;
                 Parameter phaseCreated = roof.get_Parameter(BuiltInParameter.PHASE_CREATED);
                 string strBuldName = string.Empty;
@@ -32,6 +39,13 @@ namespace Revit_Automation.Source.Utils
                 {
                     strBuldName = phaseCreated.AsValueString();
                 }
+
+                Parameter roofNameParam = roof.LookupParameter("Roof Name");
+                if (roofNameParam != null) 
+                {
+                    NamedRoofs.Add(roofNameParam.AsString());
+                }
+
                 // Get the geometry of the roof element
                 GeometryElement geometryElement = roof.get_Geometry(new Options());
 
@@ -143,6 +157,7 @@ namespace Revit_Automation.Source.Utils
                     }
                 }
             }
+            NamedRoofs.Sort();
         }
 
         public static XYZ GetRoofSlopeDirection(XYZ pt1)

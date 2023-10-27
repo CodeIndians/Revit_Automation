@@ -206,6 +206,17 @@ namespace Revit_Automation
             SymbolCollector.m_Document = doc;
             RoofUtility.m_Document = doc;
 
+            // For Purlin Drag and Eave struts we need roof specific settings
+            try
+            {
+                // 1. Identify the roof slopes
+                RoofUtility.computeRoofSlopes(doc);
+            }
+            catch (Exception)
+            {
+                _ = TaskDialog.Show("Automation Error", "Failed while processing the roofs");
+            }
+
             // Check if a Project Settings line is present or not
             if (SymbolCollector.GetProjectSpecificationLineSymbol() == null)
             {
@@ -217,7 +228,7 @@ namespace Revit_Automation
             InputLineUtility.GatherWallTypesFromInputLines(doc);
             LevelCollector.FindAndSortLevels(doc);
 
-            ProjectProperties form = new ProjectProperties()
+            ProjectPropertiesDG form = new ProjectPropertiesDG()
             {
                 StartPosition = FormStartPosition.CenterScreen
             };

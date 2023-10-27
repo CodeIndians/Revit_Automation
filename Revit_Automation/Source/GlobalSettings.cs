@@ -73,24 +73,6 @@ namespace Revit_Automation.Source
                 // Deck span
                 framingSettings.dCeeHeaderDeckSpan = string.IsNullOrEmpty(settings[16]) ? 0 : double.Parse(settings[16]) ;
 
-                // Drag Struct Max Length
-                framingSettings.dDragStuctMaxLength  = string.IsNullOrEmpty(settings[17]) ? 0 : double.Parse(settings[17]);
-
-                // Drag StructType
-                framingSettings.strDragStructType = settings[18].ToString();
-
-                // Drag Struct Continuous at hallway
-                framingSettings.bDragStructContinuousAtHallway = settings[19] == "0" ? true : false;
-
-                // Eave stuct Max length
-                framingSettings.dEaveStructMaxLength  = string.IsNullOrEmpty(settings[20]) ? 0 : double.Parse(settings[20]);
-
-                // Eave Struct type
-                framingSettings.strEaveStructType = settings[21].ToString();
-                
-                // Eave Struct Location
-                framingSettings.strEaveStructLocation = settings[22].ToString();
-
                 string strPanelSettings = settings[0];
                 {
                     int j = 0;
@@ -119,7 +101,7 @@ namespace Revit_Automation.Source
                     }
                 }
 
-                string strCeeHeaderSettings = settings[23];
+                string strCeeHeaderSettings = settings[17];
                 {
                     int j = 0;
                     string[] ceeHeaderSettings = strCeeHeaderSettings.Split(';');
@@ -138,56 +120,105 @@ namespace Revit_Automation.Source
                 }
 
                 // Top track related settings
-                framingSettings.bNLBSpliceAtRoof = settings[24] == "0" ? true : false;
-                framingSettings.bToptrackRounfOff = settings[25] == "0" ? true : false;
-                framingSettings.bTopTrackAtRakeSide = settings[26] == "0" ? true : false;
-                framingSettings.bTopTrackSpliceAtWeb = settings[27] == "0" ? true : false;
+                framingSettings.bNLBSpliceAtRoof = settings[18] == "0" ? true : false;
+                framingSettings.bToptrackRounfOff = settings[19] == "0" ? true : false;
+                framingSettings.bTopTrackAtRakeSide = settings[20] == "0" ? true : false;
+                framingSettings.bTopTrackSpliceAtWeb = settings[21] == "0" ? true : false;
 
                 // Cee Header max length
-                framingSettings.dCeeHeaderMaxLength = string.IsNullOrEmpty(settings[28]) ? 0 : double.Parse(settings[28]);
+                framingSettings.dCeeHeaderMaxLength = string.IsNullOrEmpty(settings[22]) ? 0 : double.Parse(settings[22]);
                 
                 // Floor or composite deck settings
-                framingSettings.strFloorDeckType = settings[29].ToString();
-                framingSettings.dFloorDeckOverlap = string.IsNullOrEmpty(settings[30]) ? 0 : double.Parse(settings[30]);
-                framingSettings.dFloorDeckMaxSpan = string.IsNullOrEmpty(settings[31]) ? 0 : double.Parse(settings[31]);
-                framingSettings.dFloorDeckMaxLength = string.IsNullOrEmpty(settings[32]) ? 0 : double.Parse(settings[32]);
+                framingSettings.strFloorDeckType = settings[23].ToString();
+                framingSettings.dFloorDeckOverlap = string.IsNullOrEmpty(settings[24]) ? 0 : double.Parse(settings[24]);
+                framingSettings.dFloorDeckMaxSpan = string.IsNullOrEmpty(settings[25]) ? 0 : double.Parse(settings[25]);
+                framingSettings.dFloorDeckMaxLength = string.IsNullOrEmpty(settings[26]) ? 0 : double.Parse(settings[26]);
 
                 // Roof deck settings
-                framingSettings.strRoofDeckType = settings[33].ToString();
-                framingSettings.dRoofDeckOverlap = string.IsNullOrEmpty(settings[34]) ? 0 : double.Parse(settings[34]);
-                framingSettings.dRoofDeckMaxSpan = string.IsNullOrEmpty(settings[35]) ? 0 : double.Parse(settings[35]);
-                framingSettings.dRoofDeckMaxLength = string.IsNullOrEmpty(settings[36]) ? 0 : double.Parse(settings[36]);
+                framingSettings.strRoofDeckType = settings[27].ToString();
+                framingSettings.dRoofDeckOverlap = string.IsNullOrEmpty(settings[28]) ? 0 : double.Parse(settings[28]);
+                framingSettings.dRoofDeckMaxSpan = string.IsNullOrEmpty(settings[29]) ? 0 : double.Parse(settings[29]);
+                framingSettings.dRoofDeckMaxLength = string.IsNullOrEmpty(settings[30]) ? 0 : double.Parse(settings[30]);
 
-                // Purlin Settings
-                framingSettings.dPurlinLap = string.IsNullOrEmpty(settings[37]) ? 0 : double.Parse(settings[37]);
-                framingSettings.dPurlinPreferredLength = string.IsNullOrEmpty(settings[38]) ? 0 : double.Parse(settings[38]);
-                framingSettings.dPurlinMaxSpans = string.IsNullOrEmpty(settings[39]) ? 0 : double.Parse(settings[39]);
-                framingSettings.bPurlinContAtHallway = settings[40] == "0" ? true : false;
-                framingSettings.bPurlOrientationChange = settings[41] == "0" ? true: false;
-                framingSettings.strRecieverChannelType = settings[42].ToString();
-                framingSettings.strRecieverChannelGauge = settings[43].ToString();
-                framingSettings.bPurlinOverhang = settings[44] == "0" ? true : false;
-                framingSettings.bPurlinRoundOff = settings[45] == "0" ? true : false;
+                // Purlin General Settings
+                framingSettings.dPurlinLap = string.IsNullOrEmpty(settings[31]) ? 0 : double.Parse(settings[31]);
+                framingSettings.dPurlinPreferredLength = string.IsNullOrEmpty(settings[32]) ? 0 : double.Parse(settings[32]);
+                framingSettings.bPurlinContinuousAtInsulation = settings[33] == "0" ? true : false;
+                framingSettings.bPurlinRoundOff = settings[34] == "0" ? true : false;
 
-                string pulinSettings = settings[46];
+                // Purlin Roof Specific Settings
+                string pulinSettings = settings[35];
                 {
                     int j = 0;
                     string[] lstpurlinSettings = pulinSettings.Split(';');
-
+                    List<PurlinTypeSettings> purlinSettingList = new List<PurlinTypeSettings>();
                     while (j < lstpurlinSettings.Length - 1)
                     {
                         PurlinTypeSettings purlinTypeSettings = new PurlinTypeSettings();
                         
+                        purlinTypeSettings.strRoofName = lstpurlinSettings[j++];
+                        purlinTypeSettings.strPurlinType = lstpurlinSettings[j++] ;
+                        purlinTypeSettings.strPurlinGauge = lstpurlinSettings[j++];
                         purlinTypeSettings.dOnCenter = string.IsNullOrEmpty(lstpurlinSettings[j]) ? 0 : double.Parse(lstpurlinSettings[j]);
                         j++;
-                        purlinTypeSettings.strPurlinType = lstpurlinSettings[j++];
-                        purlinTypeSettings.strPurlinGauge = lstpurlinSettings[j++];
+                        purlinTypeSettings.dMaxSpan = string.IsNullOrEmpty(lstpurlinSettings[j]) ? 0 : double.Parse(lstpurlinSettings[j]);
+                        j++;
+                        purlinTypeSettings.dExtWallThickness = string.IsNullOrEmpty(lstpurlinSettings[j]) ? 0 : double.Parse(lstpurlinSettings[j]);
+                        j++;
+                        purlinTypeSettings.strReceiverChannelType = lstpurlinSettings[j++];
+                        purlinTypeSettings.strReceiverChannelGauge = lstpurlinSettings[j++];
+                        purlinTypeSettings.bOrientationChange = lstpurlinSettings[j] == "0" ? true:false;
+                        j++;
+                        purlinSettingList.Add(purlinTypeSettings);
                     }
+                    framingSettings.purlinSettings = purlinSettingList;
                 }
 
-                framingSettings.dDragStrutLap = string.IsNullOrEmpty(settings[47]) ? 0 : double.Parse(settings[47]);
-                framingSettings.dEaveStrutLap = string.IsNullOrEmpty(settings[48]) ? 0 : double.Parse(settings[48]);
+                // Drag Strut Settings
+                string dragStrutSettings = settings[36];
+                {
+                    int k = 0;
+                    string[] lstDragStrutSettings = dragStrutSettings.Split(';');
+                    List<DragStrutSettings> dragStrutSettingsList = new List<DragStrutSettings>();
+                    while (k < lstDragStrutSettings.Length - 1)
+                    {
+                        if (lstDragStrutSettings[k] == "")
+                            break;
+                        DragStrutSettings dragStrutSet = new DragStrutSettings();
+                        dragStrutSet.strRoofName = lstDragStrutSettings[k++];
+                        dragStrutSet.strStrutType = lstDragStrutSettings[k++];
+                        dragStrutSet.bContinuousAtHallway = lstDragStrutSettings[k] == "0" ? true : false;
+                        k++;
+                        dragStrutSet.dMaxLength = string.IsNullOrEmpty(lstDragStrutSettings[k]) ? 0 : double.Parse(lstDragStrutSettings[k]);
+                        k++;
+                        dragStrutSet.dLap = string.IsNullOrEmpty(lstDragStrutSettings[k]) ? 0 : double.Parse(lstDragStrutSettings[k]);
+                        k++;
+                    }
+                    framingSettings.lstDragStrutSettings = dragStrutSettingsList;
+                }
 
+                // Eave Strut Settings
+                string eaveStrutSettings = settings[37];
+                {
+                    int l = 0;
+                    string[] lstEaveStrutSettings = eaveStrutSettings.Split(';');
+                    List<EaveStrutSettings> eaveStrutSettingsList = new List<EaveStrutSettings>();
+                    while (l < eaveStrutSettings.Length - 1)
+                    {
+                        if (lstEaveStrutSettings[l] == "")
+                            break;
+                        EaveStrutSettings eaveStrutSet = new EaveStrutSettings();
+                        eaveStrutSet.strRoofName = lstEaveStrutSettings[l++];
+                        eaveStrutSet.strStrutType = lstEaveStrutSettings[l++];
+                        eaveStrutSet.strLocationOfStrut = lstEaveStrutSettings[l++];
+                        eaveStrutSet.dMaxLength = string.IsNullOrEmpty(lstEaveStrutSettings[l]) ? 0 : double.Parse(lstEaveStrutSettings[l]);
+                        l++;
+                        eaveStrutSet.dLap = string.IsNullOrEmpty(lstEaveStrutSettings[l]) ? 0 : double.Parse(lstEaveStrutSettings[l]);
+                        l++;
+
+                    }
+                    framingSettings.lstEaveStrutSettings = eaveStrutSettingsList;
+                }
             }
 
             return bSettingsFound;

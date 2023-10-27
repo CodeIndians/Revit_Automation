@@ -1,5 +1,6 @@
 ﻿using Autodesk.Revit.DB;
 using System.Collections.Generic;
+using System.Security.Permissions;
 using System.Security.Policy;
 
 namespace Revit_Automation.CustomTypes
@@ -179,14 +180,6 @@ namespace Revit_Automation.CustomTypes
     {
         public double dCeeHeaderDeckSpan;
         public double dCeeHeaderMaxLength;
-        public double dDragStuctMaxLength;
-        public string strDragStructType;
-        public bool bDragStructContinuousAtHallway;
-        public double dDragStrutLap;
-        public double dEaveStructMaxLength;
-        public string strEaveStructType;
-        public string strEaveStructLocation;
-        public double dEaveStrutLap;
         public string strFloorDeckType;
         public double dFloorDeckOverlap;
         public double dFloorDeckMaxSpan;
@@ -201,21 +194,44 @@ namespace Revit_Automation.CustomTypes
         public bool bToptrackRounfOff;
         public double dPurlinLap;
         public double dPurlinPreferredLength;
-        public double dPurlinMaxSpans;
-        public bool bPurlinContAtHallway;
-        public bool bPurlOrientationChange;
-        public bool bPurlinOverhang;
+        public bool bPurlinContinuousAtInsulation;
         public bool bPurlinRoundOff;
-        public string strRecieverChannelType;
-        public string strRecieverChannelGauge;
+        public List<PurlinTypeSettings> purlinSettings;
+        public List<DragStrutSettings> lstDragStrutSettings;
+        public List<EaveStrutSettings> lstEaveStrutSettings;
     }
 
 
     public struct PurlinTypeSettings
     {
-        public double dOnCenter;
+        public string strRoofName;
         public string strPurlinType;
         public string strPurlinGauge;
+        public double dOnCenter;
+        public double dMaxSpan;
+        public double dExtWallThickness;
+        public string strReceiverChannelType;
+        public string strReceiverChannelGauge;
+        public bool bOrientationChange;
+
+    }
+
+    public struct DragStrutSettings
+    {
+        public string strRoofName;
+        public string strStrutType;
+        public bool bContinuousAtHallway;
+        public double dMaxLength;
+        public double dLap;
+    }
+
+    public struct EaveStrutSettings
+    {
+        public string strRoofName;
+        public string strStrutType;
+        public string strLocationOfStrut;
+        public double dMaxLength;
+        public double dLap;
     }
 }
 
