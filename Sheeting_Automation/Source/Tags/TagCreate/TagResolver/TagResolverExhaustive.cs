@@ -137,7 +137,7 @@ namespace Sheeting_Automation.Source.Tags.TagCreate.TagResolver
             var elementBoundingBox = BoundingBoxCollector.BoundingBoxesDict[tag.mElement.Id].FirstOrDefault();
 
             // boundary extending offset 
-            var offSet = 2.0;
+            var offSet = 2.5;
 
             // ratio is greater than 1 ( this will happen for elments like studs )
             if (TagUtils.GetBBRatio(tag) >= 1)
