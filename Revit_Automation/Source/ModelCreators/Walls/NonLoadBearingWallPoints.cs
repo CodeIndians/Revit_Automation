@@ -153,7 +153,7 @@ namespace Revit_Automation.Source.ModelCreators.Walls
                 else
                     intersectionPt = new XYZ(inputLine.startpoint.X, intersectionPt.Y, inputLine.startpoint.Z);
 
-                if (endRelation == LineRelations.EndTrimT && intersectLinePanelDirection == PanelDirection.R)
+                if (endRelation == LineRelations.EndTrimT && strWallType == "Ex" || ( endRelation == LineRelations.EndTrimT && intersectLinePanelDirection == PanelDirection.R))
                 {
                     XYZ lineDirection = inputLine.endpoint - inputLine.startpoint;
                     RemoveStudAtPoint(inputLine.endpoint, lineDirection);
@@ -203,7 +203,7 @@ namespace Revit_Automation.Source.ModelCreators.Walls
                 else
                     intersectionPt = new XYZ(inputLine.startpoint.X, intersectionPt.Y, inputLine.startpoint.Z);
 
-                if (startRelation == LineRelations.StartTrimT && intersectLinePanelDirection == PanelDirection.L)
+                if (startRelation == LineRelations.StartTrimT && strWallType == "Ex" || ( startRelation == LineRelations.StartTrimT && intersectLinePanelDirection == PanelDirection.L))
                 {
                     XYZ lineDirection = inputLine.endpoint - inputLine.startpoint;
                     RemoveStudAtPoint(inputLine.startpoint, lineDirection);
