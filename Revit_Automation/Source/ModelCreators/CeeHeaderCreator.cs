@@ -225,6 +225,8 @@ namespace Revit_Automation
 
                         Line bounds = Line.CreateBound(ceeHeaderStartPoint, ceeHeaderEndPoint);
                         FamilyInstance ceeHeaderInstance = doc.Create.NewFamilyInstance(bounds, ceeHeaderFamily, level, StructuralType.Beam);
+                        StructuralFramingUtils.DisallowJoinAtEnd(ceeHeaderInstance, 0);
+                        StructuralFramingUtils.DisallowJoinAtEnd(ceeHeaderInstance, 1);
 
                         // set the Post CL Offset parameter
                         if (dWebWitdth != 0.0)
@@ -238,6 +240,9 @@ namespace Revit_Automation
                             // set the Post CL Offset parameter
                             if (dWebWitdth != 0.0)
                                 ceeHeaderInstance2.LookupParameter("Post CL Face Offset").Set(dWebWitdth);
+
+                            StructuralFramingUtils.DisallowJoinAtEnd(ceeHeaderInstance2, 0);
+                            StructuralFramingUtils.DisallowJoinAtEnd(ceeHeaderInstance2, 1);
                         }
                     }
                 }
