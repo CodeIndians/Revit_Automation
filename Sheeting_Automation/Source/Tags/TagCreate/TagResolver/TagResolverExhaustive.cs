@@ -111,6 +111,8 @@ namespace Sheeting_Automation.Source.Tags.TagCreate.TagResolver
                     var iTag = tagsList[first];
 
                     UpdateTagsExhaustive(ref iTag, ref overlapTagsList);
+
+                    tagsList[first] = iTag;
                 }
             }
             return tagsList;
@@ -512,9 +514,14 @@ namespace Sheeting_Automation.Source.Tags.TagCreate.TagResolver
 
             int intersectionCount = 0;
 
-            foreach ( var testTag in tagList)
+            for ( int i = 0; i < tagList.Count; i++)
             {
-                if(TagUtils.AreBoundingBoxesIntersecting(tag.newBoundingBox, testTag.newBoundingBox))
+                // do not check the intersection for the same tag
+                if (i == index)
+                    continue;
+
+                //check for the intersection and increment the counter
+                if(TagUtils.AreBoundingBoxesIntersecting(tag.newBoundingBox, tagList[i].newBoundingBox))
                     intersectionCount++;
             }
 
