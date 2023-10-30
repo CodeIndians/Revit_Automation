@@ -134,7 +134,11 @@ namespace Revit_Automation.Source.ModelCreators
                 else
                     endPoint = new XYZ(refPoint.X , refPoint.Y + length, refPoint.Z);
 
-                Line newInputLine = Line.CreateBound(refPoint, endPoint);
+
+                XYZ awp1 = null, awp2 = null;
+                RoundDownToNearestInch(lineType, refPoint, endPoint, out awp1, out awp2);
+
+                Line newInputLine = Line.CreateBound(awp1, awp2);
 
                 FamilySymbol symbol = GetBottomTrackSymbol(inputLine);
 
@@ -159,6 +163,64 @@ namespace Revit_Automation.Source.ModelCreators
 
                 refPoint = endPoint;
             }
+        }
+
+        private void RoundDownToNearestInch(LineType lineType, XYZ wp1, XYZ wp2, out XYZ awp1, out XYZ awp2)
+        {
+            awp1 = wp1; awp2 = wp2;
+
+            //return;
+            if (lineType == LineType.Horizontal)
+            {
+                double fraction = Math.Abs(wp2.X - wp1.X) % 1;
+                if (!MathUtils.ApproximatelyEqual(fraction, 0))
+                {
+                    double roundedFraction = RoundInches(fraction);
+                    awp1 = wp1;
+                    awp2 = wp2 - new XYZ(fraction - roundedFraction , 0, 0);
+                }
+            }
+            else
+            {
+                double fraction = Math.Abs(wp2.Y - wp1.Y) % 1;
+
+                if (!MathUtils.ApproximatelyEqual(fraction, 0))
+                {
+                    double roundedFraction = RoundInches(fraction);
+                    awp1 = wp1;
+                    awp2 = wp2 - new XYZ(0, roundedFraction - fraction, 0);
+                }
+            }
+        }
+
+        private double RoundInches(double fraction)
+        {
+            if (0.00 < fraction && (fraction < 0.0833333 || MathUtils.ApproximatelyEqual(0.0833333, fraction)))
+                return 0.0;
+            else if (0.0833333 < fraction && (fraction <= 0.166666 || MathUtils.ApproximatelyEqual(0.166666, fraction)))
+                return 0.0833333;
+            else if (0.166666 < fraction && (fraction <= 0.25 || MathUtils.ApproximatelyEqual(0.25, fraction)))
+                return 0.166666;
+            else if (0.25 < fraction && (fraction <= 0.333333 || MathUtils.ApproximatelyEqual(0.333333, fraction)))
+                return 0.25;
+            else if (0.333333 < fraction && (fraction <= 0.416666 || MathUtils.ApproximatelyEqual(0.416666, fraction)))
+                return 0.333333;
+            else if (0.416666 < fraction && (fraction <= 0.5 || MathUtils.ApproximatelyEqual(0.5, fraction)))
+                return 0.416666;
+            else if (0.5 < fraction && (fraction <= 0.583333 || MathUtils.ApproximatelyEqual(0.583333, fraction)))
+                return 0.5;
+            else if (0.583333 < fraction && (fraction <= 0.666666 || MathUtils.ApproximatelyEqual(0.666666, fraction)))
+                return 0.583333;
+            else if (0.666666 < fraction && (fraction <= 0.75 || MathUtils.ApproximatelyEqual(0.75, fraction)))
+                return 0.666666;
+            else if (0.75 < fraction && (fraction <= 0.833333 || MathUtils.ApproximatelyEqual(0.833333, fraction)))
+                return 0.75;
+            else if (0.833333 < fraction && (fraction <= 0.916666 || MathUtils.ApproximatelyEqual(0.916666, fraction)))
+                return 0.833333;
+            else if (0.916666 < fraction && (fraction < 1.0 || MathUtils.ApproximatelyEqual(1.0, fraction)))
+                return 0.916666;
+
+            return 0.0;
         }
 
         private FamilySymbol GetBottomTrackSymbol(InputLine inputLine)
