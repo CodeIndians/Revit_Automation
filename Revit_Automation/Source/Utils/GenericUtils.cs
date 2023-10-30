@@ -762,5 +762,25 @@ namespace Revit_Automation.Source.Utils
             else
                 return LineType.Inclined;
         }
+
+        public static XYZ GetUNOPanelDirectionForPosts(LineType slopeLineType)
+        {
+            XYZ panelDirection = new XYZ(0, 0, 0);
+
+            PanelTypeGlobalParams pg = GlobalSettings.lstPanelParams.Find(panelParams => panelParams.bIsUNO == true);
+
+            string strPanelDirection = slopeLineType == LineType.vertical? pg.strPanelVerticalDirection : pg.strPanelHorizontalDirection;
+
+            if (strPanelDirection == "U")
+                panelDirection = new XYZ(0, 1, 0);
+            else if (strPanelDirection == "D")
+                panelDirection = new XYZ(0, -1, 0);
+            else if (strPanelDirection == "R")
+                panelDirection = new XYZ(1, 0, 0);
+            else if (strPanelDirection == "L")
+                panelDirection = new XYZ(-1, 0, 0);
+
+            return panelDirection;
+        }
     }
 }
