@@ -21,19 +21,6 @@ namespace Sheeting_Automation.Source.Tags.TagCreate.TagResolver
             public double distanceTag2;
             public BoundingBoxXYZ computedBoundingBoxTag1;
             public BoundingBoxXYZ computedBoundingBoxTag2;
-            //public Tag mTag1;
-            //public Tag mTag2;
-
-            public MoveDataEx(double dist1, BoundingBoxXYZ computedBoundingBox1, Tag tag1,
-                                double dist2, BoundingBoxXYZ computedBoundingBox2,Tag tag2)
-            {
-                this.distanceTag1 = dist1;
-                this.distanceTag2 = dist2;
-                this.computedBoundingBoxTag1 = computedBoundingBox1;
-                this.computedBoundingBoxTag2 = computedBoundingBox2;
-                //this.mTag1 = tag1;
-                //this.mTag2 = tag2;
-            }
         }
 
         protected class DistanceComparerEx : IComparer<MoveDataEx>
@@ -42,6 +29,21 @@ namespace Sheeting_Automation.Source.Tags.TagCreate.TagResolver
             public int Compare(MoveDataEx x, MoveDataEx y)
             {
                 return (x.distanceTag1 + x.distanceTag2).CompareTo((y.distanceTag1 + y.distanceTag2));
+            }
+        }
+
+        protected struct MoveDataExSingle
+        {
+            public double distanceTag1;
+            public BoundingBoxXYZ computedBoundingBoxTag1;
+        }
+
+        protected class DistanceComparerExSingle : IComparer<MoveDataExSingle>
+        {
+            // compare the combined distances 
+            public int Compare(MoveDataExSingle x, MoveDataExSingle y)
+            {
+                return (x.distanceTag1).CompareTo((y.distanceTag1));
             }
         }
 
@@ -62,30 +64,53 @@ namespace Sheeting_Automation.Source.Tags.TagCreate.TagResolver
         }
 
         protected List<MoveDataEx> mMoveDataExList;
+        protected List<MoveDataExSingle> mMoveDataExSingleList;
 
         protected override List<Tag> ResolveTagList(List<Tag> tagsList, ref List<List<Tag>> overlapTagsList)
         {
             //only try to resolve up to 5 overlaps 
             if (tagsList.Count <= 5)
             {
+                int first = -1;
+                int second = -1;
                 for (int i = 0; i < tagsList.Count - 1; i++)
                 {
-                    for (int j = i + 1; j < tagsList.Count; j++)
+                    //capture only single intersections
+                    if(GetNoOfIntersections(i,ref tagsList) == 1)
                     {
-                        if (TagUtils.AreBoundingBoxesIntersecting(tagsList[i].newBoundingBox, tagsList[j].newBoundingBox))
-                        {
-                            // assign to temporary tags to pass them by reference 
-                            var iTag = tagsList[i];
-                            var jTag = tagsList[j];
-
-                            // update th tag positions parallel to the element 
-                            UpdateTagsExhaustive(ref iTag, ref jTag, ref overlapTagsList);
-
-                            // update the tag elements 
-                            tagsList[i] = iTag;
-                            tagsList[j] = jTag;
-                        }
+                        // update the indexes
+                        if (first == -1)
+                            first = i;
+                        else if (second == -1)
+                            second = i;
                     }
+
+                    // check if both the intersctions are found 
+                    if ( first != -1 && second != -1)
+                    {
+                        // assign to temporary tags to pass them by reference 
+                        var iTag = tagsList[first];
+                        var jTag = tagsList[second];
+
+                        // update th tag positions parallel to the element 
+                        UpdateTagsExhaustive(ref iTag, ref jTag, ref overlapTagsList);
+
+                        // update the tag elements 
+                        tagsList[first] = iTag;
+                        tagsList[second] = jTag;
+
+                        //reset the stored indexes 
+                        first = -1;
+                        second = -1;
+                    }
+                }
+
+                // it is possible that one tag can be left out without resolving 
+                if(first != -1)
+                {
+                    var iTag = tagsList[first];
+
+                    UpdateTagsExhaustive(ref iTag, ref overlapTagsList);
                 }
             }
             return tagsList;
@@ -117,6 +142,31 @@ namespace Sheeting_Automation.Source.Tags.TagCreate.TagResolver
             /// //////////////////////////////////////////////////////
         }
 
+        private void UpdateTagsExhaustive(ref Tag tag1, ref List<List<Tag>> overlapTagsList)
+        {
+            // clear the move data list / re - initialize
+            mMoveDataExSingleList = new List<MoveDataExSingle>();
+
+            //Move tags exhaustive
+            MoveTagsExhaustive(ref tag1, ref overlapTagsList);
+
+            /// Update the final tag positions from the move data list
+            /// //////////////////////////////////////////////////////
+            if (mMoveDataExSingleList.Count > 0)
+            {
+                //sort the move data ex list by distance
+                mMoveDataExSingleList.Sort(new DistanceComparerExSingle());
+
+                // get the shortest best bounding boxes 
+                var closestValidMoveData = mMoveDataExSingleList.FirstOrDefault();
+
+                // assign the new bounding boxes to tags 
+                tag1.newBoundingBox = closestValidMoveData.computedBoundingBoxTag1;
+            }
+            /// //////////////////////////////////////////////////////
+            /// //////////////////////////////////////////////////////
+        }
+
         private void MoveTagsExhaustive(ref Tag tag1, ref Tag tag2, ref List<List<Tag>> overlapTagsList)
         {
             // initialize the tag boundaries for both the tags
@@ -128,6 +178,17 @@ namespace Sheeting_Automation.Source.Tags.TagCreate.TagResolver
             UpdateTagBoundaries(ref tag2, ref tagBoundary2 );
 
             MoveTagsExhaustiveInternal(ref tag1, ref tag2, ref tagBoundary1, ref tagBoundary2,ref overlapTagsList);
+        }
+
+        private void MoveTagsExhaustive(ref Tag tag1, ref List<List<Tag>> overlapTagsList)
+        {
+            // initialize the tag boundaries for both the tags
+            TagBoundary tagBoundary1 = new TagBoundary();
+
+            // update the tag boundaries of both the tags 
+            UpdateTagBoundaries(ref tag1, ref tagBoundary1);
+
+            MoveTagsExhaustiveInternal(ref tag1, ref tagBoundary1, ref overlapTagsList);
         }
 
         private void UpdateTagBoundaries(ref Tag tag, ref TagBoundary tagBoundary)
@@ -234,8 +295,56 @@ namespace Sheeting_Automation.Source.Tags.TagCreate.TagResolver
             /// ///////////////////////////////////////////////////////
         }
 
+        /// <summary>
+        /// Final move logic 
+        /// </summary>
+        /// <param name="tag1">first tag in the overlap tag list </param>
+        /// <param name="tagBoundary1">tag 1 boundary struct</param>
+        /// <param name="overlapTagsList">complete overlap tags list </param>
+        private void MoveTagsExhaustiveInternal(ref Tag tag1,
+                                                ref TagBoundary tagBoundary1,
+                                                ref List<List<Tag>> overlapTagsList)
+        {
+            /// capture width and height of tag1 
+            /// /////////////////////////////////////////
+            var widthTag1 = Math.Abs(tag1.newBoundingBox.Min.X - tag1.newBoundingBox.Max.X);
+            var heightTag1 = Math.Abs(tag1.newBoundingBox.Min.Y - tag1.newBoundingBox.Max.Y);
+            /// /////////////////////////////////////////
+            /// /////////////////////////////////////////
+
+            /// capture width and height of tagBoundary1
+            /// /////////////////////////////////////////
+            var widthTagBoundary1 = Math.Abs(tagBoundary1.MaxX - tagBoundary1.MinX);
+            var heightTagBoundary1 = Math.Abs(tagBoundary1.MaxY - tagBoundary1.MinY);
+            /// /////////////////////////////////////////
+            /// /////////////////////////////////////////
+
+            // compute the bounding boxes for both the 
+            var computedBoundingBox1 = GetTopLeftBoundingBox(ref tag1, tagBoundary1, widthTag1, heightTag1);
+
+            /// Algorithm start ///////////////////////////////////////
+            /// ///////////////////////////////////////////////////////
+            var possibleBoundingBoxes1 = GetPossibleBoundingBoxes(computedBoundingBox1, widthTagBoundary1, heightTagBoundary1, widthTag1, heightTag1);
+
+            foreach (var possibleBoundingBox1 in possibleBoundingBoxes1)
+            {
+               AddMoveDataExSingle(possibleBoundingBox1, ref tag1, overlapTagsList);
+            }
+
+            /// ///////////////////////////////////////////////////////
+            /// ///////////////////////////////////////////////////////
+        }
+
         private void AddMoveDataEx(BoundingBoxXYZ possibleBoundingBox1, BoundingBoxXYZ possibleBoundingBox2, ref Tag tag1, ref Tag tag2, List<List<Tag>> overlapTagsList)
         {
+            //check element intersection 
+            if (TagUtils.AreBoundingBoxesIntersecting(possibleBoundingBox1, BoundingBoxCollector.BoundingBoxesDict[tag1.mElement.Id].FirstOrDefault()))
+                return;
+
+            //check element intersection 
+            if (TagUtils.AreBoundingBoxesIntersecting(possibleBoundingBox2, BoundingBoxCollector.BoundingBoxesDict[tag2.mElement.Id].FirstOrDefault()))
+                return;
+
             // check if the given bounding boxes are intersecting first
             if (TagUtils.AreBoundingBoxesIntersecting(possibleBoundingBox1, possibleBoundingBox2))
                 return;
@@ -261,6 +370,32 @@ namespace Sheeting_Automation.Source.Tags.TagCreate.TagResolver
 
                 // add the move data to the list
                 mMoveDataExList.Add(moveDataEx);
+            }
+
+        }
+
+        private void AddMoveDataExSingle(BoundingBoxXYZ possibleBoundingBox1, ref Tag tag1, List<List<Tag>> overlapTagsList)
+        {
+            //check element intersection 
+            if (TagUtils.AreBoundingBoxesIntersecting(possibleBoundingBox1, BoundingBoxCollector.BoundingBoxesDict[tag1.mElement.Id].FirstOrDefault()))
+                return;
+
+            //check if the given bounding boxes intersect with the elements
+            if (TagUtils.AreBoundingBoxesIntersecting(possibleBoundingBox1, tag1.nearestElementBoundingBoxes))
+                return;
+            
+
+            if (TagUtils.AreBoundingBoxesIntersecting(possibleBoundingBox1, tag1.mElement.Id, overlapTagsList))
+                return;
+            else
+            {
+                //create the move data
+                MoveDataExSingle moveDataEx = new MoveDataExSingle();
+                moveDataEx.computedBoundingBoxTag1 = possibleBoundingBox1;
+                moveDataEx.distanceTag1 = TagUtils.GetDistanceFromElement(possibleBoundingBox1, BoundingBoxCollector.BoundingBoxesDict[tag1.mElement.Id].FirstOrDefault());
+
+                // add the move data to the list
+                mMoveDataExSingleList.Add(moveDataEx);
             }
 
         }
@@ -293,6 +428,15 @@ namespace Sheeting_Automation.Source.Tags.TagCreate.TagResolver
             return topLeftBoundingBox;
         }
 
+        /// <summary>
+        /// Get all the possible tag boundary boxes that could fit in the given boundary box 
+        /// </summary>
+        /// <param name="boundingBox">bounding box of the tag which is set to top left</param>
+        /// <param name="widthTagBoundary">width of the bigger boundary box</param>
+        /// <param name="heightTagBoundary">height of the bigger boundary box</param>
+        /// <param name="widthTag">width of the tag</param>
+        /// <param name="heightTag">height of the tag</param>
+        /// <returns></returns>
         private List<BoundingBoxXYZ> GetPossibleBoundingBoxes(BoundingBoxXYZ boundingBox,
                                                               double widthTagBoundary, double heightTagBoundary,
                                                               double widthTag, double heightTag)
@@ -351,6 +495,30 @@ namespace Sheeting_Automation.Source.Tags.TagCreate.TagResolver
             newBoundingBox.Max = boundingBox.Max + offsetVector;
 
             return newBoundingBox;
+        }
+    
+        /// <summary>
+        /// Get the no of intersections for a tag specified by the index in the list of tags
+        /// </summary>
+        /// <param name="index">index for which intersections are required</param>
+        /// <param name="tagList">list of tags</param>
+        /// <returns>no of intersections</returns>
+        private int GetNoOfIntersections(int index,ref List<Tag> tagList)
+        {
+            if (index < 0 || index >= tagList.Count)
+                return 0;
+
+            var tag = tagList[index];
+
+            int intersectionCount = 0;
+
+            foreach ( var testTag in tagList)
+            {
+                if(TagUtils.AreBoundingBoxesIntersecting(tag.newBoundingBox, testTag.newBoundingBox))
+                    intersectionCount++;
+            }
+
+            return intersectionCount;
         }
     }
 }
