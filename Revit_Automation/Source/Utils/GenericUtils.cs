@@ -5,6 +5,7 @@ using Revit_Automation.CustomTypes;
 using Sheeting_Automation.Source.Tags;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -781,6 +782,22 @@ namespace Revit_Automation.Source.Utils
                 panelDirection = new XYZ(-1, 0, 0);
 
             return panelDirection;
+        }
+        public static string GetPartitionPanelGauge(InputLine iLine)
+        {
+            string partitionPanelGauge = string.Empty;
+
+            if (string.IsNullOrEmpty(iLine.strPartitionPanelGuage))
+            {
+                PanelTypeGlobalParams pg = string.IsNullOrEmpty(iLine.strPanelType) ?
+                          GlobalSettings.lstPanelParams.Find(panelParams => panelParams.bIsUNO == true) :
+                          GlobalSettings.lstPanelParams.Find(panelParams => panelParams.strWallName == iLine.strPanelType);
+                partitionPanelGauge = pg.iPanelGuage.ToString();
+            }
+            else
+                partitionPanelGauge = iLine.strPartitionPanelGuage;
+
+            return partitionPanelGauge;
         }
     }
 }

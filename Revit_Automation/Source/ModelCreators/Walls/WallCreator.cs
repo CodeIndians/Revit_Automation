@@ -192,6 +192,14 @@ namespace Revit_Automation.Source.ModelCreators
                 WallUtils.DisallowWallJoinAtEnd(wall, 0);
                 WallUtils.DisallowWallJoinAtEnd(wall, 1);
 
+                // Set the Panel gauge property
+                Parameter guageParam = wall.LookupParameter("Gauge");
+                if (guageParam != null)
+                {
+                    string strGauge = GenericUtils.GetPartitionPanelGauge(inputLine);
+                    guageParam.Set(strGauge);
+                }
+
                 i++;
             }  
         }
