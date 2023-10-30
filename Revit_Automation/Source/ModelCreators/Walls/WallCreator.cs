@@ -757,11 +757,18 @@ namespace Revit_Automation.Source.ModelCreators
                     dOffset = thicknessParam.AsDouble();
                 }
             }
+
+            // First Check for Height Offset in the Inputline, if not availble then go to UNO
+            if (line.dPanelOffsetHeight == 0.0)
+            {
                 PanelTypeGlobalParams pg = string.IsNullOrEmpty(line.strPanelType) ?
                             GlobalSettings.lstPanelParams.Find(panelParams => panelParams.bIsUNO == true) :
                             GlobalSettings.lstPanelParams.Find(panelParams => panelParams.strWallName == line.strPanelType);
 
-            dOffset += pg.iPanelHeightOffset;
+                dOffset += pg.iPanelHeightOffset;
+            }
+            else
+                dOffset += (line.dPanelOffsetHeight * -1); // Usually the offset is entered in negative values in the line 
 
             return dOffset;
         }
