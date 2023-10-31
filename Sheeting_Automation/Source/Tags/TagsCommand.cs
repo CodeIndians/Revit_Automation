@@ -30,6 +30,15 @@ namespace Sheeting_Automation.Source.Tags
 
             SheetUtils.m_ActiveViewId = doc.ActiveView.Id;
 
+            // assign the selection
+            SheetUtils.m_Selection = uidoc.Selection;
+
+            // Clear the current selection
+            SheetUtils.m_Selection.SetElementIds(new List<ElementId>());
+
+            // assign the UI Document
+            SheetUtils.m_UIDocument = uidoc;
+
             // check if the current view is view plan 
             if (!TagUtils.IsCurrentViewPlan())
             {

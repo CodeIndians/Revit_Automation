@@ -1,4 +1,5 @@
 ﻿using Sheeting_Automation.Source.Tags.TagCreator;
+using Sheeting_Automation.Source.Tags.TagOverlapChecker;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -223,14 +224,22 @@ namespace Sheeting_Automation.Source.Tags
             TagAdjust.AdjustTagsBasedOnElementsOnly();
             LogStatus("Completed adjusting the tags based on elements");
 
-
             // resolve the tags
             var tagResolveManager = new TagResolverManager(this);
             tagResolveManager.ResolveTags();
 
-            LogStatus("Starting the final transaction");
+            LogStatus("Placing the tags");
             TagAdjust.UpdateTagLocation();
-            LogStatus("Completed the final transaction");
+            LogStatus("Tags placement completed");
+
+            LogStatus("Checking Tag Overlaps");
+            TagOverlapManager manager = new TagOverlapManager();
+
+            LogStatus("Highlighting tags");
+            manager.HighlightTags();
+
+            LogStatus("Cleaning up temporary tags");
+            manager.CleanupTempTags();
 
             // close the create form
             this.Close();
