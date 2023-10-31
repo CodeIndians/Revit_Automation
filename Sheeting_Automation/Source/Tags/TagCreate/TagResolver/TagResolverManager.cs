@@ -35,8 +35,9 @@ namespace Sheeting_Automation.Source.Tags.TagCreator
             {
                 new TagResolverGeneric(),
                 new TagResolverParallel(),
-                //new TagResolverPerpendicular()
-                new TagResolverExhaustive(),
+                new TagResolverExhaustiveSingle(2.5,true),
+                new TagResolverExhaustiveSingle(3,true),
+                new TagResolverExhaustiveSingle(4,false)
             };
         }
 
