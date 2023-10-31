@@ -436,6 +436,12 @@ namespace Revit_Automation.Source
                     iLine.dHourrate = HourrateParameter.AsDouble();
                 }
 
+                Parameter commentsParameter = locCurve.LookupParameter("Comments");
+                if (commentsParameter != null)
+                {
+                    iLine.strComments = commentsParameter.AsString();
+                }
+
                 // For Trim and extend we do not need grid intersection points and Direction wrt roof slope
                 if (bComputeRoofSlope)
                 {
