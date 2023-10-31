@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Media.Converters;
+
 namespace Revit_Automation.Source.ModelCreators.Walls
 {
     public class FireWallPoints : IWallPointsGenerator
@@ -624,21 +626,29 @@ namespace Revit_Automation.Source.ModelCreators.Walls
         // For normal panels we take as per the X-Y table
         private double GetHourRate(InputLine inputLine)
         {
-            PanelTypeGlobalParams pg = string.IsNullOrEmpty(inputLine.strPanelType) ?
-                            GlobalSettings.lstPanelParams.Find(panelParams => panelParams.bIsUNO == true) :
-                            GlobalSettings.lstPanelParams.Find(panelParams => panelParams.strWallName == inputLine.strPanelType);
+            double dHourrate = 0.0;
 
-            return pg.iPanelHourRate == 0 ? 1 : pg.iPanelHourRate;
+            // Check if the hour rate is present on the line. If not check the project settings
+            if (inputLine.dHourrate == 0)
+            {
+                PanelTypeGlobalParams pg = string.IsNullOrEmpty(inputLine.strPanelType) ?
+                                GlobalSettings.lstPanelParams.Find(panelParams => panelParams.bIsUNO == true) :
+                                GlobalSettings.lstPanelParams.Find(panelParams => panelParams.strWallName == inputLine.strPanelType);
+
+                dHourrate = pg.iPanelHourRate;
+            }
+            else
+                dHourrate += inputLine.dHourrate;
+
+            return dHourrate == 0 ? 1 : dHourrate;
         }
 
         // For firewall we take it as HourRate * (5/8)"
         private double ComputeFireWallHourRate(InputLine line)
         {
-            PanelTypeGlobalParams pg = string.IsNullOrEmpty(line.strPanelType) ?
-                            GlobalSettings.lstPanelParams.Find(panelParams => panelParams.bIsUNO == true) :
-                            GlobalSettings.lstPanelParams.Find(panelParams => panelParams.strWallName == line.strPanelType);
+            double dHourRate = GetHourRate(line);
 
-            double hourrate = (pg.iPanelHourRate == 0 ? 1 : pg.iPanelHourRate) * (5.0 / 96.0);
+            double hourrate = dHourRate * (5.0 / 96.0);
 
             return hourrate;
         }

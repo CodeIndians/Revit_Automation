@@ -222,17 +222,27 @@ namespace Revit_Automation.Source.Preprocessors
                     return 0.0;
             }
 
-            
+
             //Panel Thickness and direction based on the Panel type parameter
             // if empty - Take the values from UNO row
             // else take the values from the corresponding row in the global settings
 
-            PanelTypeGlobalParams pg = string.IsNullOrEmpty(lineToRemain.strPanelType) ?
-                                        GlobalSettings.lstPanelParams.Find(panelParams => panelParams.bIsUNO == true) :
-                                        GlobalSettings.lstPanelParams.Find(panelParams => panelParams.strWallName == lineToRemain.strPanelType);
+            double dHourrate = 0.0;
+
+            // Check if the hour rate is present on the line. If not check the project settings
+            if (lineToRemain.dHourrate == 0)
+            {
+                PanelTypeGlobalParams pg = string.IsNullOrEmpty(lineToRemain.strPanelType) ?
+                                GlobalSettings.lstPanelParams.Find(panelParams => panelParams.bIsUNO == true) :
+                                GlobalSettings.lstPanelParams.Find(panelParams => panelParams.strWallName == lineToRemain.strPanelType);
+
+                dHourrate = pg.iPanelHourRate;
+            }
+            else
+                dHourrate += lineToRemain.dHourrate;
             
             // Panel Thickness
-            dPanelThickness = GetThickness(pg.iPanelHourRate);
+            dPanelThickness = GetThickness(dHourrate);
 
 
             // Panel Direction - Line > Automatic/ Manual > Project Properties

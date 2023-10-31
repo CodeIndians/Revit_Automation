@@ -430,6 +430,12 @@ namespace Revit_Automation.Source
                     iLine.strMaterialType = MaterialTypeParameter.AsString();
                 }
 
+                Parameter HourrateParameter = locCurve.LookupParameter("Hour rate");
+                if (HourrateParameter != null)
+                {
+                    iLine.dHourrate = HourrateParameter.AsDouble();
+                }
+
                 // For Trim and extend we do not need grid intersection points and Direction wrt roof slope
                 if (bComputeRoofSlope)
                 {

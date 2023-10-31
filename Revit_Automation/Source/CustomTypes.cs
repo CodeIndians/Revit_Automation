@@ -53,6 +53,7 @@ namespace Revit_Automation.CustomTypes
         public double dMaterialHeight { get; set; }
         public double dHSSHeight { get; set; }
         public double dParapetHeight { get; set; }
+        public double dHourrate { get; set; }
         public DirectionWithRespectToRoofSlope dirWRTRoofSlope { get; set; }
         public List<XYZ> gridIntersectionPoints { get; set; }
         public List<XYZ> mainGridIntersectionPoints { get; set; }
