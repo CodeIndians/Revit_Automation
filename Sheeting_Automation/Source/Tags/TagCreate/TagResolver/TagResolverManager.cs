@@ -14,12 +14,15 @@ namespace Sheeting_Automation.Source.Tags.TagCreator
         private List<List<Tag>> mOverlappingTagLists; 
 
         private List<TagResolverBase> mTagResolverList;
+
+        private readonly TagCreationForm mForm; 
         
         /// <summary>
         /// Constructor
         /// </summary>
-        public TagResolverManager() 
+        public TagResolverManager(TagCreationForm form) 
         {
+            mForm = form;
             // compute the overlapping tag lists
             mOverlappingTagLists = GetOverlappingTagLists(BoundingBoxCollector.IndependentTags);
 
@@ -39,6 +42,8 @@ namespace Sheeting_Automation.Source.Tags.TagCreator
 
         public void ResolveTags()
         {
+            mForm.LogStatus("Start Tag Resolver");
+
             foreach (var resolver in mTagResolverList) 
             {
                 // run each resolver logic 
@@ -50,6 +55,8 @@ namespace Sheeting_Automation.Source.Tags.TagCreator
                 //re-collect overlapping tags list from the tags 
                 mOverlappingTagLists = GetOverlappingTagLists(BoundingBoxCollector.IndependentTags);
             }
+
+            mForm.LogStatus("Completed Resolving the tags");
         }
 
         /// <summary>

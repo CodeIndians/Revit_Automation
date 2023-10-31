@@ -30,6 +30,21 @@ namespace Sheeting_Automation.Source.Tags
             worker.RunWorkerAsync();
         }
 
+        public void LogStatus(string message)
+        {
+            if (richTextBox1.InvokeRequired)
+            {
+                richTextBox1.Invoke(new Action(() => LogStatus(message)));
+            }
+            else
+            {
+                richTextBox1.AppendText($"{DateTime.Now}: {message}{Environment.NewLine}");
+                // refresh the rich text box
+                richTextBox1.Refresh();
+            }
+        }
+            
+
         /// <summary>
         ///  Do the back ground work
         ///  Collect the bounding boxes
@@ -40,6 +55,7 @@ namespace Sheeting_Automation.Source.Tags
         {
             createButton.Enabled = false;
             BoundingBoxCollector.Initialize();
+            LogStatus("Started Collecting the Bounding boxes in the View");
         }
 
         private void Worker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
@@ -47,6 +63,7 @@ namespace Sheeting_Automation.Source.Tags
             createButton.Enabled = true;
             //var count = BoundingBoxCollector.BoundingBoxesDict.Count;
             //Console.WriteLine(count);
+            LogStatus($"Collected {BoundingBoxCollector.BoundingBoxesDict.Count} Bounding Boxes from the view");
         }
 
         /// <summary>
@@ -191,20 +208,29 @@ namespace Sheeting_Automation.Source.Tags
 
             var tagCreator = new TagCreator.TagCreator(formDataList);
 
+            LogStatus("Creating Tags at the default location");
             //create tags at the default location
             tagCreator.CreateTags();
+            LogStatus($"Created {BoundingBoxCollector.IndependentTags.Count} tags");
 
+            LogStatus("Updating tag bounding boxes");
             // update the tag bounding box data structure
             BoundingBoxCollector.UpdateTagBoundingBoxes();
+            LogStatus("Tag Bounding boxes updated");
 
+            LogStatus("Started adjusting tags based on elements only");
             //adjust the tags
             TagAdjust.AdjustTagsBasedOnElementsOnly();
+            LogStatus("Completed adjusting the tags based on elements");
+
 
             // resolve the tags
-            var tagResolveManager = new TagResolverManager();
+            var tagResolveManager = new TagResolverManager(this);
             tagResolveManager.ResolveTags();
 
+            LogStatus("Starting the final transaction");
             TagAdjust.UpdateTagLocation();
+            LogStatus("Completed the final transaction");
 
             // close the create form
             this.Close();
