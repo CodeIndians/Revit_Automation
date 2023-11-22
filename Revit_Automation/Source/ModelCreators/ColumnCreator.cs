@@ -288,7 +288,7 @@ namespace Revit_Automation.Source.ModelCreators
                     _ = TaskDialog.Show(string.Format("The Family {0} couldn't be loaded or found"), inputLine.strStudGuage);
                 }
 
-                // This method is used by both DoubleStuds and 
+                // This method is used by both DoubleStuds and normal studs 
                 if (!bDoubleStudOnCenter)
                 {
 
@@ -663,20 +663,24 @@ namespace Revit_Automation.Source.ModelCreators
                 {
                     XYZ slopingDirection = RoofUtility.GetRoofSlopeDirection(pt1);
 
-                    Revit_Automation.LineType slopeLineType = Revit_Automation.LineType.vertical;
-
-                    if (slopingDirection.X != 0 && slopingDirection.Y == 0)
-                        slopeLineType = Revit_Automation.LineType.Horizontal;
-
-                    XYZ panelDirection = GenericUtils.GetUNOPanelDirectionForPosts(slopeLineType);
-
-                    // The web outward normal should be in a direction of slope
-                    if (MathUtils.IsParallel(panelDirection, newOrientation))
+                    // if sloping direction is null dont attemp to update the orientation 
+                    if (slopingDirection != null)
                     {
-                        if (MathUtils.CompareVectors(panelDirection, newOrientation) == "Anti-Parallel")
+                        Revit_Automation.LineType slopeLineType = Revit_Automation.LineType.vertical;
+
+                        if (slopingDirection.X != 0 && slopingDirection.Y == 0)
+                            slopeLineType = Revit_Automation.LineType.Horizontal;
+
+                        XYZ panelDirection = GenericUtils.GetUNOPanelDirectionForPosts(slopeLineType);
+
+                        // The web outward normal should be in a direction of slope
+                        if (MathUtils.IsParallel(panelDirection, newOrientation))
                         {
-                            Logger.logMessage("UpdateOrientation - Open C should point to high eve");
-                            ElementTransformUtils.RotateElement(m_Document, columnID, axis, Math.PI);
+                            if (MathUtils.CompareVectors(panelDirection, newOrientation) == "Anti-Parallel")
+                            {
+                                Logger.logMessage("UpdateOrientation - Open C should point to high eve");
+                                ElementTransformUtils.RotateElement(m_Document, columnID, axis, Math.PI);
+                            }
                         }
                     }
                 }
