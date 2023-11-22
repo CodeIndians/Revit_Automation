@@ -216,6 +216,9 @@ namespace Revit_Automation.Source.Preprocessors
                     lineToTrim.strWallType == "Ex w/ Insulation")
                     )
             {
+                // if there is a T intersection, then we additionally do a Panel trim,
+                // Previousl at T Intersections we wanted to turn the panels like L on both sides _| |_
+                // But later it was changed continue the panel and not be like L. So we need panel trim in this case
                 bTintersection = CheckPanelsForTIntersection(lineToTrim, lineToRemain);
 
                 if (!bTintersection)
@@ -278,14 +281,15 @@ namespace Revit_Automation.Source.Preprocessors
             // Get the line type
             LineType TrimLineType = MathUtils.ApproximatelyEqual(trimlineStart.X , trimlineEnd.X) ? LineType.vertical : LineType.Horizontal;
 
+            // A given relation is end Intersection or a T Intersection is decided on the basis of the distance of the
             if (TrimLineType == LineType.vertical)
             {
-                if (Math.Abs(trimlineStart.X - RemainLineStart.X) > 1.0 && Math.Abs(trimlineStart.X - RemainLineEnd.X) > 1.0)
+                if (Math.Abs(trimlineStart.X - RemainLineStart.X) > 0.3333 && Math.Abs(trimlineStart.X - RemainLineEnd.X) > 0.3333)
                     return true;
             }
             else
             {
-                if (Math.Abs(trimlineStart.Y - RemainLineStart.Y) > 1.0 && Math.Abs(trimlineStart.Y - RemainLineEnd.Y) > 1.0)
+                if (Math.Abs(trimlineStart.Y - RemainLineStart.Y) > 0.3333 && Math.Abs(trimlineStart.Y - RemainLineEnd.Y) > 0.3333)
                     return true;
             }
             return false;

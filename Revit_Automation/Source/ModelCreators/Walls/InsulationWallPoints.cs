@@ -497,11 +497,11 @@ namespace Revit_Automation.Source.ModelCreators.Walls
                         }
                         else
                         {
-                            if ((intersectPt.Y > startPt.Y) && (intersectPt.Y - startPt.Y < 1.0))
+                            if ((intersectPt.Y > startPt.Y) && (intersectPt.Y - startPt.Y < 0.3333))
                                 startReleation = LineRelations.StartTrimLeft;
-                            if ((intersectPt.Y < startPt.Y) && (startPt.Y - intersectPt.Y < 1.0))
+                            if ((intersectPt.Y < startPt.Y) && (startPt.Y - intersectPt.Y < 0.3333))
                                 startReleation = LineRelations.StartTrimRight;
-                            if (((intersectPt.Y > startPt.Y) && (intersectPt.Y - startPt.Y > 1.0)) || ((intersectPt.Y < startPt.Y) && (startPt.Y - intersectPt.Y > 1.0)))
+                            if (((intersectPt.Y > startPt.Y) && (intersectPt.Y - startPt.Y > 0.3333)) || ((intersectPt.Y < startPt.Y) && (startPt.Y - intersectPt.Y > 0.3333)))
                                 startReleation = LineRelations.StartTrimT;
                         }
                     }
@@ -516,11 +516,11 @@ namespace Revit_Automation.Source.ModelCreators.Walls
                         }
                         else
                         {
-                            if ((intersectPt.Y > endPoint.Y) && (intersectPt.Y - endPoint.Y < 1.0))
+                            if ((intersectPt.Y > endPoint.Y) && (intersectPt.Y - endPoint.Y < 0.3333))
                                 endRelation = LineRelations.EndTrimLeft;
-                            if ((intersectPt.Y < endPoint.Y) && (endPoint.Y - intersectPt.Y < 1.0))
+                            if ((intersectPt.Y < endPoint.Y) && (endPoint.Y - intersectPt.Y < 0.3333))
                                 endRelation = LineRelations.EndTrimRight;
-                            if (((intersectPt.Y > endPoint.Y) && (intersectPt.Y - endPoint.Y > 1.0)) || ((intersectPt.Y < endPoint.Y) && (endPoint.Y - intersectPt.Y > 1.0)))
+                            if (((intersectPt.Y > endPoint.Y) && (intersectPt.Y - endPoint.Y > 0.3333)) || ((intersectPt.Y < endPoint.Y) && (endPoint.Y - intersectPt.Y > 0.3333)))
                                 endRelation = LineRelations.EndTrimT;
                         }
                     }
@@ -551,11 +551,11 @@ namespace Revit_Automation.Source.ModelCreators.Walls
                         }
                         else
                         {
-                            if ((intersectPt.X > startPt.X) && (intersectPt.X - startPt.X < 1.0))
+                            if ((intersectPt.X > startPt.X) && (intersectPt.X - startPt.X < 0.3333))
                                 startReleation = LineRelations.StartTrimLeft;
-                            if ((intersectPt.X < startPt.X) && (startPt.X - intersectPt.X < 1.0))
+                            if ((intersectPt.X < startPt.X) && (startPt.X - intersectPt.X < 0.3333))
                                 startReleation = LineRelations.StartTrimRight;
-                            if (((startPt.X > intersectPt.X) && (startPt.X - intersectPt.X > 1.0)) || ((startPt.X < intersectPt.X) && (intersectPt.X - startPt.X > 1.0)))
+                            if (((startPt.X > intersectPt.X) && (startPt.X - intersectPt.X > 0.3333)) || ((startPt.X < intersectPt.X) && (intersectPt.X - startPt.X > 0.3333)))
                                 startReleation = LineRelations.StartTrimT;
                         }
                     }
@@ -570,11 +570,11 @@ namespace Revit_Automation.Source.ModelCreators.Walls
                         }
                         else
                         {
-                            if ((intersectPt.X > endPoint.X) && (intersectPt.X - endPoint.X < 1.0))
+                            if ((intersectPt.X > endPoint.X) && (intersectPt.X - endPoint.X < 0.3333))
                                 endRelation = LineRelations.EndTrimLeft;
-                            if ((intersectPt.X < endPoint.X) && (endPoint.X - intersectPt.X < 1.0))
+                            if ((intersectPt.X < endPoint.X) && (endPoint.X - intersectPt.X < 0.3333))
                                 endRelation = LineRelations.EndTrimRight;
-                            if (((endPoint.X > intersectPt.X) && (endPoint.X - intersectPt.X > 1.0)) || ((endPoint.X < intersectPt.X) && (intersectPt.X - endPoint.X > 1.0)))
+                            if (((endPoint.X > intersectPt.X) && (endPoint.X - intersectPt.X > 0.3333)) || ((endPoint.X < intersectPt.X) && (intersectPt.X - endPoint.X > 0.3333)))
                                 endRelation = LineRelations.EndTrimT;
                         }
                     }
