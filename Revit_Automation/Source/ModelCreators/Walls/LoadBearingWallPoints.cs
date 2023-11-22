@@ -68,60 +68,76 @@ namespace Revit_Automation.Source.ModelCreators.Walls
             LineType linetype = MathUtils.ApproximatelyEqual(inputLine.startpoint.X, inputLine.endpoint.X) ? LineType.vertical : LineType.Horizontal;
             double dWebwidth = GenericUtils.WebWidth(inputLine.strStudType);
 
-            startpt = ComputeStartPoint(startReleation, inputLine, endPanelIntersections);
+            // Take a backup of the original panel direction
+            PanelDirection originalPanelDirection = panelDirection;
 
-            if (linetype == LineType.Horizontal)
+            for (int i = 0; i < 2; i++)
             {
-                startpt = (panelDirection == PanelDirection.R) ? new XYZ(startpt.X, startpt.Y + dWebwidth / 2, startpt.Z)
-                                 : new XYZ(startpt.X, startpt.Y - dWebwidth / 2, startpt.Z);
+                if (originalPanelDirection == PanelDirection.B && i == 0)
+                    panelDirection = PanelDirection.R;
+                if (originalPanelDirection == PanelDirection.B && i == 1)
+                    panelDirection = PanelDirection.L;
 
-                if (startStudPt != null)
-                    startStudPt = (panelDirection == PanelDirection.R) ? new XYZ(startStudPt.X, startStudPt.Y + dWebwidth / 2, startStudPt.Z)
-                                 : new XYZ(startStudPt.X, startStudPt.Y - dWebwidth / 2, startStudPt.Z);
+                startpt = ComputeStartPoint(startReleation, inputLine, endPanelIntersections);
+
+                if (linetype == LineType.Horizontal)
+                {
+                    startpt = (panelDirection == PanelDirection.R) ? new XYZ(startpt.X, startpt.Y + dWebwidth / 2, startpt.Z)
+                                     : new XYZ(startpt.X, startpt.Y - dWebwidth / 2, startpt.Z);
+
+                    if (startStudPt != null)
+                        startStudPt = (panelDirection == PanelDirection.R) ? new XYZ(startStudPt.X, startStudPt.Y + dWebwidth / 2, startStudPt.Z)
+                                     : new XYZ(startStudPt.X, startStudPt.Y - dWebwidth / 2, startStudPt.Z);
+                }
+                else
+                {
+                    startpt = (panelDirection == PanelDirection.R) ? new XYZ(startpt.X + dWebwidth / 2, startpt.Y, startpt.Z)
+                                         : new XYZ(startpt.X - dWebwidth / 2, startpt.Y, startpt.Z);
+
+                    if (startStudPt != null)
+                        startStudPt = (panelDirection == PanelDirection.R) ? new XYZ(startStudPt.X + dWebwidth / 2, startStudPt.Y, startStudPt.Z)
+                                         : new XYZ(startStudPt.X - dWebwidth / 2, startStudPt.Y, startStudPt.Z);
+                }
+
+                endPt = ComputeEndPoint(endRelation, inputLine, endPanelIntersections);
+
+                if (linetype == LineType.Horizontal)
+                {
+
+                    endPt = (panelDirection == PanelDirection.R) ? new XYZ(endPt.X, endPt.Y + dWebwidth / 2, endPt.Z)
+                                     : new XYZ(endPt.X, endPt.Y - dWebwidth / 2, endPt.Z);
+
+                    if (endStudPt != null)
+                        endStudPt = (panelDirection == PanelDirection.R) ? new XYZ(endStudPt.X, endStudPt.Y + dWebwidth / 2, endStudPt.Z)
+                                     : new XYZ(endStudPt.X, endStudPt.Y - dWebwidth / 2, endStudPt.Z);
+
+                }
+                else
+                {
+                    endPt = (panelDirection == PanelDirection.R) ? new XYZ(endPt.X + dWebwidth / 2, endPt.Y, endPt.Z)
+                                         : new XYZ(endPt.X - dWebwidth / 2, endPt.Y, endPt.Z);
+
+                    if (endStudPt != null)
+                        endStudPt = (panelDirection == PanelDirection.R) ? new XYZ(endStudPt.X + dWebwidth / 2, endStudPt.Y, endStudPt.Z)
+                                         : new XYZ(endStudPt.X - dWebwidth / 2, endStudPt.Y, endStudPt.Z);
+
+                }
+            
+                // For firewall T Intersections, Continue the boards. Do not stop at the intersection. 
+                PanelUtils panelUtils = new PanelUtils(doc);
+                intermediatePts = panelUtils.ComputeMiddleIntersectionPts(inputLine, rightPanelIntersection.Count > 0 ? rightPanelIntersection : leftPanelIntersections, startpt, endPt);
+
+                GenericUtils.AdjustWallEndPoints(inputLine, ref startpt, ref intermediatePts, ref endPt, linetype, panelDirection);
+
+                wallEndPointsCollection.Add(startpt);
+                wallEndPointsCollection.AddRange(intermediatePts);
+                wallEndPointsCollection.Add(endPt);
+                
+                if (originalPanelDirection != PanelDirection.B)
+                    break;
             }
-            else
-            {
-                startpt = (panelDirection == PanelDirection.R) ? new XYZ(startpt.X + dWebwidth / 2, startpt.Y, startpt.Z)
-                                     : new XYZ(startpt.X - dWebwidth / 2, startpt.Y, startpt.Z);
-
-                if (startStudPt != null)
-                    startStudPt = (panelDirection == PanelDirection.R) ? new XYZ(startStudPt.X + dWebwidth / 2, startStudPt.Y, startStudPt.Z)
-                                     : new XYZ(startStudPt.X - dWebwidth / 2, startStudPt.Y, startStudPt.Z);
-            }
-
-            endPt = ComputeEndPoint(endRelation, inputLine, endPanelIntersections);
-
-            if (linetype == LineType.Horizontal)
-            {
-
-                endPt = (panelDirection == PanelDirection.R) ? new XYZ(endPt.X, endPt.Y + dWebwidth / 2, endPt.Z)
-                                 : new XYZ(endPt.X, endPt.Y - dWebwidth / 2, endPt.Z);
-
-                if (endStudPt != null)
-                    endStudPt = (panelDirection == PanelDirection.R) ? new XYZ(endStudPt.X, endStudPt.Y + dWebwidth / 2, endStudPt.Z)
-                                 : new XYZ(endStudPt.X, endStudPt.Y - dWebwidth / 2, endStudPt.Z);
-
-            }
-            else
-            {
-                endPt = (panelDirection == PanelDirection.R) ? new XYZ(endPt.X + dWebwidth / 2, endPt.Y, endPt.Z)
-                                     : new XYZ(endPt.X - dWebwidth / 2, endPt.Y, endPt.Z);
-
-                if (endStudPt != null)
-                    endStudPt = (panelDirection == PanelDirection.R) ? new XYZ(endStudPt.X + dWebwidth / 2, endStudPt.Y, endStudPt.Z)
-                                     : new XYZ(endStudPt.X - dWebwidth / 2, endStudPt.Y, endStudPt.Z);
-
-            }
-
-            // For firewall T Intersections, Continue the boards. Do not stop at the intersection. 
-            PanelUtils panelUtils = new PanelUtils(doc);
-            intermediatePts = panelUtils.ComputeMiddleIntersectionPts(inputLine, rightPanelIntersection.Count > 0 ? rightPanelIntersection : leftPanelIntersections, startpt, endPt);
-
-            GenericUtils.AdjustWallEndPoints(inputLine, ref startpt, ref intermediatePts, ref endPt, linetype, panelDirection);
-
-            wallEndPointsCollection.Add(startpt);
-            wallEndPointsCollection.AddRange(intermediatePts);
-            wallEndPointsCollection.Add(endPt);
+            // reset it back
+            panelDirection = originalPanelDirection;
 
             AddStudsIfNeeded();
         }
