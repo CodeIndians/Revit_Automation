@@ -33,6 +33,7 @@ namespace Revit_Automation
         private XYZ m_endPoint;
         private SlopeDirection m_direction;
         private double m_DeckSpan;
+        private Level m_inputLineElevationLevel;
         public CeeHeaderCreator(Document doc, Form1 form)
         {
             this.doc = doc;
@@ -63,6 +64,9 @@ namespace Revit_Automation
 
                 // Compute the start point for CeeHeader computation
                 ComputeStartPoint(colInputLines);
+
+                // Compute the level for the given Input line collection and store it in the class variable
+                ComputeFloorLevel(colInputLines[0], levels);
 
                 foreach (KeyValuePair<double, List<InputLine>> kvp in sortedInputLineCollection)
                 {
@@ -101,6 +105,36 @@ namespace Revit_Automation
                 tx.Commit();
             }
         }
+
+        private void ComputeFloorLevel(InputLine inputLine, IOrderedEnumerable<Level> levels)
+        {
+            Level level = null;
+
+            // Filter levels based on buldings to use
+            List<Level> filteredLevels = new List<Level>();
+            foreach (Level filteredlevel in levels)
+            {
+                if (filteredlevel.Name.Contains(inputLine.strBuildingName))
+                {
+                    filteredLevels.Add(filteredlevel);
+                }
+            }
+
+            for (int i = 0; i < filteredLevels.Count() - 1; i++)
+            {
+                Level tempLevel = filteredLevels.ElementAt(i);
+
+                if ((inputLine.startpoint.Z < (tempLevel.Elevation + 1)) && (inputLine.startpoint.Z > (tempLevel.Elevation - 1)))
+                {
+                    level = filteredLevels.ElementAt(i);
+                }
+            }
+
+            m_inputLineElevationLevel =  level;
+
+            return;
+        }
+    
 
         private void ComputeStartPoint(List<InputLine> colInputLines)
         {
@@ -414,12 +448,12 @@ namespace Revit_Automation
 
         }
 
-        private List<string> GetEndPoints(Outline outline, List<InputLine> inputlineList, LineType spanLineType, XYZ startPoint, double elevation, double dCeeHeaderCoordinate )
+        private List<string> GetEndPoints(Outline outline, List<InputLine> inputlineList, LineType spanLineType, XYZ startPoint, double elevation, double dCeeHeaderCoordinate)
         {
 
             // If span line is vertical, we want to get the Y coordinates of the two extremities of the exterior
             // if Horizontal, we need X coordinates of extremities of the exterior
-            
+
             double min = 100000.0, max = 0.0;
 
             string startWallType = "";
@@ -454,10 +488,10 @@ namespace Revit_Automation
                         if (temp > max)
                         {
                             max = temp;
-                            endWallType = "EndStud" ;
+                            endWallType = "EndStud";
                             dEndAdjustment = GenericUtils.WebWidth(input.strStudType) / 2.0;
-                        } 
-                    } 
+                        }
+                    }
                 }
             }
 
@@ -468,6 +502,9 @@ namespace Revit_Automation
             // Collect CMU walls in the range that are parallel to span grid
             foreach (Wall wall in wallElements)
             {
+                if (!wall.Name.Contains("Masonry"))
+                    continue;
+
                 XYZ startPt = null, endPt = null;
                 GenericUtils.GetlineStartAndEndPoints(wall, out startPt, out endPt);
 
@@ -490,7 +527,26 @@ namespace Revit_Automation
                     }
                 }
             }
-            
+
+
+            // Even after looking for CMU and Ex Lines if we did not find them, use the floor boundary to compute the Min, Max
+            XYZ probePoint = new XYZ();
+            foreach (Element genModelElems in GenericModelElems)
+            {
+                InputLine input = inputlineList.FirstOrDefault(il => il.id == genModelElems.Id && (il.strWallType == "LB" || il.strWallType == "LBS"));
+                if (input.id != null)
+                {
+                    probePoint = input.startpoint;
+                    break;
+                }
+            }
+
+            if (min == 100000.0)
+                min = ComputeExtremitiesFromFloorBoundaries(probePoint,elevation, dCeeHeaderCoordinate, spanLineType, false);
+
+            if (max == 0)
+                max = ComputeExtremitiesFromFloorBoundaries(probePoint, elevation, dCeeHeaderCoordinate, spanLineType, true);
+
             List<string> points = new List<string>();
 
             List<XYZ> endPts = new List<XYZ>();
@@ -518,6 +574,76 @@ namespace Revit_Automation
                         + "|" + end.Z.ToString()
                          + "|" + endWallType + ";" + dEndAdjustment.ToString() + ";");
             return points;
+        }
+
+        private double ComputeExtremitiesFromFloorBoundaries(XYZ probePoint, double elevation, double dCeeHeaderCoordinate, LineType spanLineType, bool bMax)
+        {
+            // Get Floor Boundaries - we will get a collection of loops.
+
+            Element floorElement = GenericUtils.GetNearestFloorOrRoof(m_inputLineElevationLevel, probePoint, doc);
+
+            Options opt = doc.Application.Create.NewGeometryOptions();
+            List<List<XYZ>> floorCurves = GenericUtils.GetFloorCurves(floorElement, opt);
+
+            List<double> floorCoordinates  = new List<double>();
+            foreach (List<XYZ> cureveLoop in floorCurves)
+            {
+                // collect all those curves which are horizontal and within the range of the ceeheader coordinate
+                for (int i = 0; i < cureveLoop.Count; i++)
+                {
+
+                    XYZ startPt = null, endPt = null;
+
+                    Curve line = null;
+                    if (i == cureveLoop.Count - 1)
+                    {
+                        startPt = cureveLoop[i];
+                        endPt = cureveLoop[0];
+                    }
+                    else
+                    {
+                        startPt = cureveLoop[i];
+                        endPt = cureveLoop[i + 1];
+                    }
+
+                    LineType curevetype = MathUtils.ApproximatelyEqual(startPt.X, endPt.X) ? LineType.vertical : LineType.Horizontal;
+
+                    if (spanLineType != curevetype)
+                    {
+                        // We come here when we have horizontal curves. Check if ceeHeader Coordinate is in between Start and end.
+                        // if yes collect its Y coordinate into a list;
+                        if (curevetype == LineType.Horizontal)
+                        {
+                            //Coordinates may be inverted
+                            if ((startPt.X < dCeeHeaderCoordinate && endPt.X > dCeeHeaderCoordinate) ||
+                                (startPt.X > dCeeHeaderCoordinate && endPt.X < dCeeHeaderCoordinate))
+                                floorCoordinates.Add(startPt.Y);
+                        }
+                        // We come here when we have vertical curves. Check if ceeHeader Coordinate is in between Start and end.
+                        // if yes collect its Y coordinate into a list;
+                        else
+                        {
+                            if ((startPt.Y < dCeeHeaderCoordinate && endPt.Y > dCeeHeaderCoordinate) ||
+                                (startPt.Y > dCeeHeaderCoordinate && endPt.Y < dCeeHeaderCoordinate))
+                                floorCoordinates.Add(startPt.X);
+                        }
+                    }
+                }
+            }
+            floorCoordinates.Sort();
+
+            if (floorCoordinates.Count > 0)
+            {
+                if (bMax)
+                    return floorCoordinates.ElementAt(floorCoordinates.Count - 1);
+                else
+                    return floorCoordinates.ElementAt(0);
+            }
+
+            if (bMax)
+                return 0.0;
+            else
+                return 100000.0;
         }
 
         private List<string> GetCMUWallPoints(Outline outline,LineType spanLineType, double dCeeHeaderCoordinate)
