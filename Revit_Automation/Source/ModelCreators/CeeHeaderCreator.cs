@@ -87,8 +87,17 @@ namespace Revit_Automation
 
                         if (SlabElement == null)
                         {
-                            Element roofElement = GenericUtils.GetRoofAtPoint(temp.startpoint, doc);
-                            thicknessParam = roofElement.get_Parameter(BuiltInParameter.ROOF_ATTR_THICKNESS_PARAM);
+                            // keep checking for the lines till we find a roof
+                            foreach (InputLine il in colInputLines)
+                            {
+                                Element roofElement = GenericUtils.GetRoofAtPoint(il.startpoint, doc);
+                                if (roofElement != null)
+                                {
+                                    thicknessParam = roofElement.get_Parameter(BuiltInParameter.ROOF_ATTR_THICKNESS_PARAM);
+                                    break;
+                                }
+                            }
+                                
                         }
                         if (thicknessParam != null)
                         {

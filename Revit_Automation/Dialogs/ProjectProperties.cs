@@ -401,7 +401,7 @@ namespace Revit_Automation
                 textBox14.Text = settings[22].ToString();
 
                 // Floor Deck Type
-                comboBox5.SelectedIndex = int.Parse(settings[23]);
+                comboBox5.Text = settings[23];
 
                 // Floor Deck overlap
                 textBox16.Text = settings[24].ToString();
@@ -876,7 +876,7 @@ namespace Revit_Automation
             strProjectSettings += "|";
 
             // Settings [23] - Floor Deck Type
-            strProjectSettings += comboBox4.SelectedIndex.ToString();
+            strProjectSettings += comboBox5.Text.ToString();
             strProjectSettings += "|";
 
             //Settings [24] - Floor Deck Overlap
@@ -892,7 +892,7 @@ namespace Revit_Automation
             strProjectSettings += "|";
 
             // Settings [27] - Roof Deck type
-            strProjectSettings += comboBox5.SelectedIndex.ToString();
+            strProjectSettings += comboBox4.SelectedIndex.ToString();
             strProjectSettings += "|";
 
             //Settings [28] - Roof  Deck Overlap
