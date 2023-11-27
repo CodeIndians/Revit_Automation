@@ -799,5 +799,42 @@ namespace Revit_Automation.Source.Utils
 
             return partitionPanelGauge;
         }
+
+        internal static double WebWidthForTrimExtend(string strStudType)
+        {
+            double width = 0;
+            string token = "x";
+            string[] result = strStudType.Split(new string[] { token }, StringSplitOptions.None);
+
+            if (result[0].Contains("2 1/2\""))
+            {
+                return 0.21;
+            }
+            else if (result[0].Contains("3 5/8\""))
+            {
+                return 0.302083;
+            }
+            if (result[0].Contains("4\""))
+            {
+                return 0.333333;
+            }
+            else if (result[0].Contains("6\""))
+            {
+                return 0.5;
+            }
+            else if (result[0].Contains("8\""))
+            {
+                return 0.666666;
+            }
+            else if (result[0].Contains("10\""))
+            {
+                return 0.833333;
+            }
+            else if (result[0].Contains("12\""))
+            {
+                return 1;
+            }
+            return width;
+        }
     }
 }

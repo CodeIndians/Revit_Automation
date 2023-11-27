@@ -124,7 +124,7 @@ namespace Revit_Automation.Source.Preprocessors
             m_LineProcessing.LineExtendingMessage(string.Format("Extending Line {0} as it has higher priority among {1} , {2} \n", lineToExtend.id, lineToExtend.strWallType, lineToRemain.strWallType), 4);
                 
             // Get web width of non-Extending line 
-            double dWebWidth =  GenericUtils.WebWidth(lineToRemain.strStudType) / 2;
+            double dWebWidth =  GenericUtils.WebWidthForTrimExtend(lineToRemain.strStudType) / 2;
 
             // Get the Element
             FamilyInstance lineElement = m_Document.GetElement(lineToExtend.id) as FamilyInstance;

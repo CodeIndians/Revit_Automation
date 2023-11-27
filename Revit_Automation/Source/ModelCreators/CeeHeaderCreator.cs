@@ -318,7 +318,8 @@ namespace Revit_Automation
             // if we are having double studs, we have to make sure the Cee headers extend upto flange width
             // If we are having CMU walls, the cee headers should terminate at the wall end
 
-            // We also need to get the floor thickness and subtract it from the elevation of the cee header.
+            // We also need to get the floor thickness and subtract it from the elevation of the cee header
+
             Dictionary<XYZ, double> ceeHeaderPointsDict = new Dictionary<XYZ, double>();
 
             if (lstceeHeaderPoints.Count % 2 == 1)
@@ -337,6 +338,39 @@ namespace Revit_Automation
                     lstceeHeaderPoints.RemoveAt(lstceeHeaderPoints.Count - 1);
                     lstceeHeaderPoints.RemoveAt(0);
                 }
+            }
+
+            // Preprocessing
+            // One more condition, when we have the last end points either stud or CMU  try to align the point with the adjacent point for straight placement
+            // else it will be inclined. Refer- RA-19 in the bugs and improvements Doc.
+            for (int k = 0; k < 2; k++)
+            {
+                string str = k == 0 ? lstceeHeaderPoints[0]: lstceeHeaderPoints[lstceeHeaderPoints.Count - 1];
+                string[] tokens = str.Split('|');
+                string dFlangeWidth = tokens[3];
+                XYZ startCMUpoint = new XYZ(double.Parse(tokens[0]), double.Parse(tokens[1]), double.Parse(tokens[2]));
+
+                string str2 = k == 0 ? lstceeHeaderPoints[1] : lstceeHeaderPoints[lstceeHeaderPoints.Count - 2]; ;
+                string[] tokens2 = str2.Split('|');
+                XYZ startSecondPoint = new XYZ(double.Parse(tokens2[0]), double.Parse(tokens2[1]), double.Parse(tokens2[2]));
+
+                if ((spanDirection == LineType.vertical && startCMUpoint.X != startSecondPoint.X) ||
+                    (spanDirection == LineType.Horizontal && startCMUpoint.Y != startSecondPoint.Y))
+                {
+                    XYZ newStartCMUPoint = new XYZ(startSecondPoint.X, startCMUpoint.Y, startCMUpoint.Z);
+                    {
+                        string updatedString = newStartCMUPoint.X.ToString() + "|"
+                                                    + newStartCMUPoint.Y.ToString() + "|"
+                                                    + newStartCMUPoint.Z.ToString() + "|"
+                                                    + dFlangeWidth;
+
+                        if (k==0)
+                            lstceeHeaderPoints[0] = updatedString;
+                        else
+                            lstceeHeaderPoints[lstceeHeaderPoints.Count - 1] = updatedString;
+                    }
+
+                    }
             }
             Dictionary<XYZ, string> ceeHeaderValues = new Dictionary<XYZ, string>();
             
@@ -448,7 +482,7 @@ namespace Revit_Automation
             points.AddRange(GetEndPoints(outline, inputlineList, spanLineType, startPt, elevation, dCeeHeaderCoordinate));
             
             // Get the CMU wall endpoints in a given bounding box
-            points.AddRange(GetCMUWallPoints(outline, spanLineType, dCeeHeaderCoordinate));
+            points.AddRange(GetCMUWallPoints(outline, spanLineType, dCeeHeaderCoordinate, elevation));
 
             // Sort the points according to Span Grid type
             ceeHeaderPts = (spanLineType == LineType.vertical) ? points.OrderBy(elem => double.Parse(elem.Split('|')[1])).ToList() : points.OrderBy(elem => double.Parse(elem.Split('|')[0])).ToList();
@@ -655,7 +689,7 @@ namespace Revit_Automation
                 return 100000.0;
         }
 
-        private List<string> GetCMUWallPoints(Outline outline,LineType spanLineType, double dCeeHeaderCoordinate)
+        private List<string> GetCMUWallPoints(Outline outline, LineType spanLineType, double dCeeHeaderCoordinate, double dElevation)
         {
             List<string> CMUPoints = new List<string>();
 
@@ -698,7 +732,7 @@ namespace Revit_Automation
                 {
                     startString = dCeeHeaderCoordinate.ToString()
                                            + "|" + startPt.Y.ToString()
-                                           + "|" + startPt.Z.ToString()
+                                           + "|" + dElevation.ToString()
                                             + "|" + "CMU" + ";" + halfWidth.ToString() + ";";
 
                 }
@@ -706,7 +740,7 @@ namespace Revit_Automation
                 {
                     startString = dCeeHeaderCoordinate.ToString()
                        + "|" + startPt.Y.ToString()
-                       + "|" + startPt.Z.ToString()
+                       + "|" + dElevation.ToString()
                         + "|" + "CMU" + ";" + halfWidth.ToString() + ";";
                 }
 

@@ -129,7 +129,7 @@ namespace Revit_Automation.Source.Preprocessors
             double dTrimDistance = 0.0;
 
             // Get web width of non-Trimming line 
-            double dWebWidth = GenericUtils.WebWidth(lineToRemain.strStudType) / 2;
+            double dWebWidth = GenericUtils.WebWidthForTrimExtend(lineToRemain.strStudType) / 2;
 
             // Get Panel Trim Distance
             double dPanelTrim = GetPanelTrimDistance(lineToTrim,  lineToRemain, intersectionPT);

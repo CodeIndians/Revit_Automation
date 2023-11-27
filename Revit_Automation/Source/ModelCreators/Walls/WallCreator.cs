@@ -175,8 +175,12 @@ namespace Revit_Automation.Source.ModelCreators
                     bEndingPoint = true;
 
                 XYZ awp1 = null, awp2 = null;
-                RoundoffToNearestInch(lineType, wp1, wp2, out awp1, out awp2, bStartingPoint, bEndingPoint);
+                double dPanelClearance = GetPanelClearance(inputLine);
 
+                if (dPanelClearance != 0)
+                    RoundoffToNearestInch(lineType, wp1, wp2, out awp1, out awp2, bStartingPoint, bEndingPoint);
+                else
+                    RoundDownToNearestInch(lineType, wp1, wp2, out awp1, out awp2, bStartingPoint, bEndingPoint);
                 // Panel Clearance - only for single panels
                 if (dLineLength < 25.0)
                     AddPanelClearance(inputLine, ref awp1, ref awp2);
@@ -279,6 +283,50 @@ namespace Revit_Automation.Source.ModelCreators
                     else
                     {
                         awp1 = wp1 - new XYZ(0, roundedFraction - fraction, 0);
+                        awp2 = wp2;
+                    }
+                }
+            }
+        }
+
+        private void RoundDownToNearestInch(LineType lineType, XYZ wp1, XYZ wp2, out XYZ awp1, out XYZ awp2, bool bStartingPoint, bool bEndingPoint)
+        {
+            awp1 = wp1; awp2 = wp2;
+
+            //return;
+            if (lineType == LineType.Horizontal)
+            {
+                double fraction = Math.Abs(wp2.X - wp1.X) % 1;
+                double roundedFraction = RoundInches(fraction) - 1.0/12.0; //RoundInches will give the next inch. so substract 1-Inch
+                double roundDownFactor = fraction - roundedFraction;
+                if (!bEndingPoint)
+                {
+                    awp1 = wp1;
+                    awp2 = wp2 - new XYZ(roundDownFactor, 0, 0);
+                }
+                else
+                {
+                    awp1 = wp1 + new XYZ(roundDownFactor, 0, 0);
+                    awp2 = wp2;
+                }
+            }
+            else
+            {
+                double fraction = Math.Abs(wp2.Y - wp1.Y) % 1;
+                double roundedFraction = RoundInches(fraction) - 1.0/12.0;//RoundInches will give the next inch. so substract 1-Inch
+                double roundDownFactor = fraction - roundedFraction;
+                if (!MathUtils.ApproximatelyEqual(fraction, 0))
+                {
+                   
+
+                    if (!bEndingPoint)
+                    {
+                        awp1 = wp1;
+                        awp2 = wp2 - new XYZ(0, roundDownFactor, 0);
+                    }
+                    else
+                    {
+                        awp1 = wp1 + new XYZ(0, roundDownFactor, 0);
                         awp2 = wp2;
                     }
                 }
