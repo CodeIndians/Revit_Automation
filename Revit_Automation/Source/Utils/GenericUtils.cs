@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Controls;
 using static Revit_Automation.Source.Utils.WarningSwallowers;
 
 namespace Revit_Automation.Source.Utils
@@ -835,6 +836,102 @@ namespace Revit_Automation.Source.Utils
                 return 1;
             }
             return width;
+        }
+
+        internal static List<ElementId> CreateInputLinesAlongFloorBoundary(List<Element> floors, Document doc, Level deckElevation)
+        {
+            List<ElementId> lines = new List<ElementId>();
+
+            // Get the floor curves
+            foreach (Element floor in floors)
+            {
+                Options opt = doc.Application.Create.NewGeometryOptions();
+                List<List<XYZ>> floorCurves = GenericUtils.GetFloorCurves(floor, opt);
+
+                // create a void family along the line
+                FamilySymbol genericModel = SymbolCollector.GetInputLineSymbol();
+
+                if (genericModel != null && !genericModel.IsActive)
+                    genericModel.Activate();
+
+                foreach (List<XYZ> cureveLoop in floorCurves)
+                {
+                    for (int i = 0; i < cureveLoop.Count; i++)
+                    {
+
+                        XYZ startPt = null, endPt = null;
+
+                        Curve line = null;
+                        if (i == cureveLoop.Count - 1)
+                        {
+                            startPt = cureveLoop[i];
+                            endPt = cureveLoop[0];
+                        }
+                        else
+                        {
+                            startPt = cureveLoop[i];
+                            endPt = cureveLoop[i + 1];
+                        }
+
+                        Curve curve = Line.CreateBound(startPt, endPt) as Curve;
+
+                        if (genericModel != null)
+                        {
+                            FamilyInstance voidInstance = doc.Create.NewFamilyInstance(curve, genericModel, deckElevation, StructuralType.NonStructural);
+
+                            if (voidInstance != null)
+                                lines.Add(voidInstance.Id);
+
+                            voidInstance.LookupParameter("Wall Type")?.Set("Floor");
+                        }
+                    }
+                }
+            }
+            return lines;
+        }
+
+        internal static List<Element> GetFloorsAtElevation(Level level, Document m_Document)
+        {
+            List<Element> floors = new List<Element>();
+
+            if (level == null)
+                return null;
+
+            Logger.logMessage("Method : GetNearestFloorOrRoof");
+
+            List<FloorObject> floorObjects = FloorHelper.colFloors;
+
+            Element elemID = null;
+
+            // match the building name as the level
+            List<FloorObject> filteredFloors = new List<FloorObject>();
+
+            foreach (FloorObject floorObject in floorObjects)
+            {
+                if (level.Name.Contains(floorObject.strBuildingName))
+                {
+                    filteredFloors.Add(floorObject);
+                }
+            }
+
+
+            foreach (FloorObject floor in filteredFloors)
+            {
+                if (floor.min == null || floor.max == null)
+                {
+                    continue;
+                }
+                Element levelElement = m_Document.GetElement(floor.levelID);
+                Parameter elevationParam = levelElement.get_Parameter(BuiltInParameter.LEVEL_ELEV);
+                if (elevationParam != null)
+                {
+                    if (MathUtils.IsWithInRange(elevationParam.AsDouble(), level.Elevation + 3, level.Elevation - 3))
+                    {
+                       floors.Add(m_Document.GetElement(floor.elemID));
+                    }
+                }
+            }
+            return floors;
         }
     }
 }

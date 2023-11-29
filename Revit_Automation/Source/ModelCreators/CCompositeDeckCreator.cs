@@ -23,6 +23,7 @@ namespace Revit_Automation
         private double m_CompositeDeckMaxLength;
         private double m_CompositeDeckOverlap;
         private Transaction m_Transaction;
+        List<ElementId> m_genericModels = new List<ElementId>();
         public CCompositeDeckCreator(Document doc, Form1 form)
         {
             this.doc = doc;
@@ -30,20 +31,32 @@ namespace Revit_Automation
             m_CompositeDeckType = GlobalSettings.framingSettings.strFloorDeckType;
             m_CompositeDeckSpans = GlobalSettings.framingSettings.dFloorDeckMaxSpan;
             m_CompositeDeckMaxLength = GlobalSettings.framingSettings.dFloorDeckMaxLength;
-            m_CompositeDeckOverlap = GlobalSettings.framingSettings.dFloorDeckOverlap;
+            m_CompositeDeckOverlap = GlobalSettings.framingSettings.dFloorDeckOverlap; 
         }
 
         internal void CreateModel(List<InputLine> colInputLines, IOrderedEnumerable<Level> levels)
         {
+            using (Transaction stx = new Transaction(doc))
+            {
+                stx.Start("Creating Generic Models at floor ");
+                Level deckElevation = GetDeckElevation(colInputLines[0], levels);
+
+                // Create Input Lines along the floor
+                List<Element> floorElements = GenericUtils.GetFloorsAtElevation(deckElevation, doc);
+
+                m_genericModels = GenericUtils.CreateInputLinesAlongFloorBoundary(floorElements, doc, deckElevation);
+                stx.Commit();
+
+            }
             using (Transaction tx = new Transaction(doc))
             {
                 form.PostMessage("");
                 form.PostMessage("\n Placing composite Decks");
-                m_Transaction = tx; 
+                m_Transaction = tx;
                 tx.Start("Placing Composite Decks");
 
                 Level deckElevation = GetDeckElevation(colInputLines[0], levels);
-                
+
                 // Intervals at which decks should be placed. with the given overlap value
                 List<double> spanIntervals = ComputeSpanIntervals(colInputLines);
 
@@ -177,283 +190,292 @@ namespace Revit_Automation
         }
         private void PlaceFloorDecks(List<InputLine> colInputLines, LineType deckingDirection, List<double> spanIntervals, Level deckElevation)
         {
-            double dInputLineElevation = colInputLines[0].startpoint.Z;
-            
-            // if the span grid is horizontal we have a horizontal LBs and if the span grid is vertical we have vertical LBs
-            Grid northBoundary = lstBoundaries[0];
-            Grid southBoundary = lstBoundaries[1];
-            Grid eastBoundary = lstBoundaries[2];
-            Grid westBoudary = lstBoundaries[3];
-            Grid SpanStartingGrid = lstBoundaries[4];
-
-            XYZ northGridStartPt = null, northGridEndPt = null;
-            GenericUtils.GetlineStartAndEndPoints(northBoundary.Curve, out northGridStartPt, out northGridEndPt);
-
-            XYZ SouthGridStartPt = null, SouthGridEndPt = null;
-            GenericUtils.GetlineStartAndEndPoints(southBoundary.Curve, out SouthGridStartPt, out SouthGridEndPt);
-
-            XYZ EastGridStartPt = null, EastGridEndPt = null;
-            GenericUtils.GetlineStartAndEndPoints(eastBoundary.Curve, out EastGridStartPt, out EastGridEndPt);
-
-            XYZ WestGridStartPt = null, WestGridEndPt = null;
-            GenericUtils.GetlineStartAndEndPoints(westBoudary.Curve, out WestGridStartPt, out WestGridEndPt);
-
-            if (deckingDirection == LineType.Horizontal)
+            try
             {
-                // TODO : Get the family type parameter of given typestart point is south grid and end point is north grid
-                double dWidth = GetDeckWidth(m_CompositeDeckType);
 
-                // Couldn't retrieve the deck width. For now hardcoding it to 3.0 feet
-                if (dWidth == 0)
-                    dWidth = 3.0;
+                double dInputLineElevation = colInputLines[0].startpoint.Z;
 
+                // if the span grid is horizontal we have a horizontal LBs and if the span grid is vertical we have vertical LBs
+                Grid northBoundary = lstBoundaries[0];
+                Grid southBoundary = lstBoundaries[1];
+                Grid eastBoundary = lstBoundaries[2];
+                Grid westBoudary = lstBoundaries[3];
+                Grid SpanStartingGrid = lstBoundaries[4];
 
-                XYZ currentPoint = SouthGridStartPt;
-                while (currentPoint.Y < northGridStartPt.Y)
+                XYZ northGridStartPt = null, northGridEndPt = null;
+                GenericUtils.GetlineStartAndEndPoints(northBoundary.Curve, out northGridStartPt, out northGridEndPt);
+
+                XYZ SouthGridStartPt = null, SouthGridEndPt = null;
+                GenericUtils.GetlineStartAndEndPoints(southBoundary.Curve, out SouthGridStartPt, out SouthGridEndPt);
+
+                XYZ EastGridStartPt = null, EastGridEndPt = null;
+                GenericUtils.GetlineStartAndEndPoints(eastBoundary.Curve, out EastGridStartPt, out EastGridEndPt);
+
+                XYZ WestGridStartPt = null, WestGridEndPt = null;
+                GenericUtils.GetlineStartAndEndPoints(westBoudary.Curve, out WestGridStartPt, out WestGridEndPt);
+
+                if (deckingDirection == LineType.Horizontal)
                 {
-                    double minX = 10000, maxX = -100000;
-                    XYZ min = new XYZ(WestGridStartPt.X, currentPoint.Y, dInputLineElevation - 0.5);
-                    XYZ max = new XYZ(EastGridStartPt.X, currentPoint.Y + 3, dInputLineElevation + 0.5);
+                    // TODO : Get the family type parameter of given typestart point is south grid and end point is north grid
+                    double dWidth = GetDeckWidth(m_CompositeDeckType);
 
-                    Outline outline = new Outline(min, max);
+                    // Couldn't retrieve the deck width. For now hardcoding it to 3.0 feet
+                    if (dWidth == 0)
+                        dWidth = 3.0;
 
-                    BoundingBoxIntersectsFilter filter = new BoundingBoxIntersectsFilter(outline);
 
-                    FilteredElementCollector collector = new FilteredElementCollector(doc, doc.ActiveView.Id).WherePasses(filter).OfCategory(BuiltInCategory.OST_GenericModel);
-
-                    ICollection<Element> inputLineElems = collector.ToElements();
-
-                    foreach (Element elem in inputLineElems)
+                    XYZ currentPoint = SouthGridStartPt;
+                    while (currentPoint.Y < northGridStartPt.Y)
                     {
-                        Parameter param = elem.LookupParameter("Wall Type" );
-                        if (param != null)
+                        double minX = 10000, maxX = -100000;
+                        XYZ min = new XYZ(WestGridStartPt.X, currentPoint.Y, deckElevation.Elevation - 1.0);
+                        XYZ max = new XYZ(EastGridStartPt.X, currentPoint.Y + 3, deckElevation.Elevation + 1.0);
+
+                        Outline outline = new Outline(min, max);
+
+                        BoundingBoxIntersectsFilter filter = new BoundingBoxIntersectsFilter(outline);
+
+                        FilteredElementCollector collector = new FilteredElementCollector(doc).WherePasses(filter).OfCategory(BuiltInCategory.OST_GenericModel);
+
+                        ICollection<Element> inputLineElems = collector.ToElements();
+
+                        foreach (Element elem in inputLineElems)
                         {
-                            string strWalltype = param.AsString();
-                            if (strWalltype == "Ex" || strWalltype == "Ex Opening" || strWalltype == "Ex w/ Insulation")
+                            Parameter param = elem.LookupParameter("Wall Type");
+                            if (param != null)
                             {
-                                XYZ startPt = null, endPt = null;
-                                GenericUtils.GetlineStartAndEndPoints(elem, out startPt, out endPt);
-
-                                LineType linetype = GenericUtils.GetLineType(elem);
-
-                                if (linetype == deckingDirection)
-                                    continue; 
-                                // if the line is inclined then intersect the line with the range bottom line and top line and take them as start and end
-
-                                if (!(MathUtils.ApproximatelyEqual(startPt.X, endPt.X) || MathUtils.ApproximatelyEqual(startPt.Y, endPt.Y)))
+                                string strWalltype = param.AsString();
+                                if (strWalltype == "Floor" || strWalltype == "Ex" || strWalltype == "Ex Opening" || strWalltype == "Ex w/ Insulation")
                                 {
-                                    Line exLine = Line.CreateBound (startPt, endPt);
+                                    XYZ startPt = null, endPt = null;
+                                    GenericUtils.GetlineStartAndEndPoints(elem, out startPt, out endPt);
 
-                                    // We have inclined lines intersect with range lines
-                                    XYZ min1 = new XYZ (min.X, min.Y, startPt.Z);
-                                    XYZ min2 = new  XYZ(max.X, min.Y, startPt.Z); 
-                                    Line minLine = Line.CreateBound(min1, min2);
+                                    LineType linetype = GenericUtils.GetLineType(elem);
 
-                                    XYZ max1 = new XYZ(min.X, max.Y, startPt.Z);
-                                    XYZ max2 = new XYZ (max.X, max.Y, startPt.Z);
-                                    Line maxLine = Line.CreateBound(max1, max2);
+                                    if (linetype == deckingDirection)
+                                        continue;
+                                    // if the line is inclined then intersect the line with the range bottom line and top line and take them as start and end
 
-                                    for (int i = 0; i < 2; i++)
+                                    if (!(MathUtils.ApproximatelyEqual(startPt.X, endPt.X) || MathUtils.ApproximatelyEqual(startPt.Y, endPt.Y)))
                                     {
-                                        Line temp = i == 0 ? minLine : maxLine;
-                                        IntersectionResultArray intersectionResults = new IntersectionResultArray();
-                                        SetComparisonResult result = exLine.Intersect(temp, out intersectionResults);
-                                        if (result == SetComparisonResult.Overlap)
+                                        Line exLine = Line.CreateBound(startPt, endPt);
+
+                                        // We have inclined lines intersect with range lines
+                                        XYZ min1 = new XYZ(min.X, min.Y, startPt.Z);
+                                        XYZ min2 = new XYZ(max.X, min.Y, startPt.Z);
+                                        Line minLine = Line.CreateBound(min1, min2);
+
+                                        XYZ max1 = new XYZ(min.X, max.Y, startPt.Z);
+                                        XYZ max2 = new XYZ(max.X, max.Y, startPt.Z);
+                                        Line maxLine = Line.CreateBound(max1, max2);
+
+                                        for (int i = 0; i < 2; i++)
                                         {
-                                            foreach (IntersectionResult intersectionResult in intersectionResults)
-                                            { 
-                                                if (i == 0)
-                                                    startPt = intersectionResult.XYZPoint;
-                                                else
-                                                    endPt = intersectionResult.XYZPoint;
-                                            }
-                                        }
-                                    }
-                                }
-
-                                if (minX > startPt.X)
-                                    minX = startPt.X;
-                                if (maxX < endPt.X)
-                                    maxX = endPt.X;
-                            }
-                        }
-                    }
-
-                    double startlocation = minX < WestGridStartPt.X ? WestGridStartPt.X : minX;
-                    maxX = Math.Min (maxX, EastGridEndPt.X);
-
-                    while (startlocation < maxX)
-                    {
-                        // Get nearest span point for overlap
-                        double endLocation = Math.Min(spanIntervals.Find(value => value > startlocation), maxX);
-                        if (endLocation == 0)
-                            endLocation = maxX;
-
-                        // Deck get placed from top to bottom, so we need to give the top 2 points
-                        XYZ startPoint = new XYZ(startlocation - m_CompositeDeckOverlap / 2.0, currentPoint.Y + 3, deckElevation.Elevation);
-                        XYZ endPoint = new XYZ(endLocation + m_CompositeDeckOverlap / 2.0, currentPoint.Y + 3, deckElevation.Elevation);
-
-                        bool bCanPlaceDeck = CheckIfDeckCanBePlaced(startPoint, endPoint, deckingDirection);
-                        
-                        if (bCanPlaceDeck)
-                        {
-                            if (Math.Abs(startPoint.X - endPoint.X) < 0.5)
-                                continue;
-
-                            Line newInputLine = Line.CreateBound(startPoint, endPoint);
-
-                            FamilySymbol symbol = SymbolCollector.GetCompositeDeckSymbol(m_CompositeDeckType, "Composite Deck");
-
-                            if (symbol != null && !symbol.IsActive)
-                                symbol.Activate();
-
-
-                            FamilyInstance compositeDeckInstance = doc.Create.NewFamilyInstance(newInputLine, symbol, deckElevation, StructuralType.Beam);
-
-                            StructuralFramingUtils.DisallowJoinAtEnd(compositeDeckInstance, 0);
-
-                            StructuralFramingUtils.DisallowJoinAtEnd(compositeDeckInstance, 1);
-
-                            // Trim the deck as per the slab boundary
-                            //TrimDeckPanel(startPoint, endPoint, compositeDeckInstance);
-
-                            //form.PostMessage(string.Format(" Placing Composite Deck ID : {0} \n", compositeDeckInstance.Id));
-
-                        }
-                        
-                        startlocation = endLocation;
-
-                    }
-
-                    // We have the composite deck starting and ending points - move to the next location
-                    currentPoint = new XYZ(currentPoint.X, currentPoint.Y + 3, currentPoint.Z);
-                }
-            }
-            else
-            {
-                // TODO : Get the family type parameter of given typestart point is south grid and end point is north grid
-                double dWidth = GetDeckWidth(m_CompositeDeckType);
-
-                // Couldn't retrieve the deck width. For now hardcoding it to 3.0 feet
-                if (dWidth == 0)
-                    dWidth = 3.0;
-
-
-                XYZ currentPoint = WestGridStartPt;
-                while (currentPoint.X < EastGridStartPt.X)
-                {
-                    double minY = 10000, maxY = -100000;
-                    XYZ min = new XYZ(currentPoint.X, SouthGridStartPt.Y, SouthGridStartPt.Z - 0.5);
-                    XYZ max = new XYZ(currentPoint.X + 3, northGridStartPt.Y, northGridStartPt.Z + 0.5);
-
-                    Outline outline = new Outline(min, max);
-
-                    BoundingBoxIntersectsFilter filter = new BoundingBoxIntersectsFilter(outline);
-
-                    FilteredElementCollector collector = new FilteredElementCollector(doc, doc.ActiveView.Id).WherePasses(filter).OfCategory(BuiltInCategory.OST_GenericModel);
-
-                    ICollection<Element> inputLineElems = collector.ToElements();
-
-                    foreach (Element elem in inputLineElems)
-                    {
-                        Parameter param = elem.LookupParameter("Wall Type");
-                        if (param != null)
-                        {
-                            string strWalltype = param.AsString();
-                            if (strWalltype == "Ex" || strWalltype == "Ex Opening" || strWalltype == "Ex w/ Insulation")
-                            {
-                                XYZ startPt = null, endPt = null;
-                                GenericUtils.GetlineStartAndEndPoints(elem, out startPt, out endPt);
-
-                                LineType linetype = GenericUtils.GetLineType(elem);
-
-                                if (linetype == deckingDirection)
-                                    continue;
-                                // if the line is inclined then intersect the line with the range bottom line and top line and take them as start and end
-
-                                if (!(MathUtils.ApproximatelyEqual(startPt.X, endPt.X) || MathUtils.ApproximatelyEqual(startPt.Y, endPt.Y)))
-                                {
-                                    Line exLine = Line.CreateBound(startPt, endPt);
-
-                                    // We have inclined lines intersect with range lines
-                                    XYZ min1 = new XYZ(min.X, min.Y, startPt.Z);
-                                    XYZ min2 = new XYZ(max.X, min.Y, startPt.Z);
-                                    Line minLine = Line.CreateBound(min1, min2);
-
-                                    XYZ max1 = new XYZ(min.X, max.Y, startPt.Z);
-                                    XYZ max2 = new XYZ(max.X, max.Y, startPt.Z);
-                                    Line maxLine = Line.CreateBound(max1, max2);
-
-                                    for (int i = 0; i < 2; i++)
-                                    {
-                                        Line temp = i == 0 ? minLine : maxLine;
-                                        IntersectionResultArray intersectionResults = new IntersectionResultArray();
-                                        SetComparisonResult result = exLine.Intersect(temp, out intersectionResults);
-                                        if (result == SetComparisonResult.Overlap)
-                                        {
-                                            foreach (IntersectionResult intersectionResult in intersectionResults)
+                                            Line temp = i == 0 ? minLine : maxLine;
+                                            IntersectionResultArray intersectionResults = new IntersectionResultArray();
+                                            SetComparisonResult result = exLine.Intersect(temp, out intersectionResults);
+                                            if (result == SetComparisonResult.Overlap)
                                             {
-                                                if (i == 0)
-                                                    startPt = intersectionResult.XYZPoint;
-                                                else
-                                                    endPt = intersectionResult.XYZPoint;
+                                                foreach (IntersectionResult intersectionResult in intersectionResults)
+                                                {
+                                                    if (i == 0)
+                                                        startPt = intersectionResult.XYZPoint;
+                                                    else
+                                                        endPt = intersectionResult.XYZPoint;
+                                                }
                                             }
                                         }
                                     }
-                                }
 
-                                if (minY > startPt.Y)
-                                    minY = startPt.Y;
-                                if (maxY < endPt.Y)
-                                    maxY = endPt.Y;
+                                    if (minX > startPt.X)
+                                        minX = startPt.X;
+                                    if (maxX < endPt.X)
+                                        maxX = endPt.X;
+                                }
                             }
                         }
-                    }
 
-                    double startlocation = minY < SouthGridStartPt.Y ? SouthGridStartPt.Y : minY;
-                    maxY = Math.Min(maxY, northGridEndPt.Y);
+                        double startlocation = minX < WestGridStartPt.X ? WestGridStartPt.X : minX;
+                        maxX = Math.Min(maxX, EastGridEndPt.X);
 
-                    while (startlocation < maxY)
-                    {
-                        // Get nearest span point for overlap
-                        double endLocation = Math.Min(spanIntervals.Find(value => value > startlocation), maxY);
-                        if (endLocation == 0)
-                            endLocation = maxY;
-
-                        // Deck get placed from top to bottom, so we need to give the top 2 points
-                        XYZ startPoint = new XYZ(currentPoint.X , startlocation - m_CompositeDeckOverlap / 2.0,  deckElevation.Elevation);
-                        XYZ endPoint = new XYZ(currentPoint.X, endLocation + m_CompositeDeckOverlap / 2.0, deckElevation.Elevation);
-
-                        bool bCanPlaceDeck = CheckIfDeckCanBePlaced(startPoint, endPoint, deckingDirection);
-
-                        if (bCanPlaceDeck)
+                        while (startlocation < maxX)
                         {
-                            if (Math.Abs(startPoint.Y - endPoint.Y) < 0.5)
-                                continue;
+                            // Get nearest span point for overlap
+                            double endLocation = Math.Min(spanIntervals.Find(value => value > startlocation), maxX);
+                            if (endLocation == 0)
+                                endLocation = maxX;
 
-                            Line newInputLine = Line.CreateBound(startPoint, endPoint);
+                            // Deck get placed from top to bottom, so we need to give the top 2 points
+                            XYZ startPoint = new XYZ(startlocation - m_CompositeDeckOverlap / 2.0, currentPoint.Y + 3, deckElevation.Elevation);
+                            XYZ endPoint = new XYZ(endLocation + m_CompositeDeckOverlap / 2.0, currentPoint.Y + 3, deckElevation.Elevation);
 
-                            FamilySymbol symbol = SymbolCollector.GetCompositeDeckSymbol(m_CompositeDeckType, "Composite Deck");
+                            bool bCanPlaceDeck = CheckIfDeckCanBePlaced(startPoint, endPoint, deckingDirection);
 
-                            if (symbol != null && !symbol.IsActive)
-                                symbol.Activate();
+                            if (bCanPlaceDeck)
+                            {
+                                if (Math.Abs(startPoint.X - endPoint.X) < 0.5)
+                                    continue;
+
+                                Line newInputLine = Line.CreateBound(startPoint, endPoint);
+
+                                FamilySymbol symbol = SymbolCollector.GetCompositeDeckSymbol(m_CompositeDeckType, "Composite Deck");
+
+                                if (symbol != null && !symbol.IsActive)
+                                    symbol.Activate();
 
 
-                            FamilyInstance compositeDeckInstance = doc.Create.NewFamilyInstance(newInputLine, symbol, deckElevation, StructuralType.Beam);
+                                FamilyInstance compositeDeckInstance = doc.Create.NewFamilyInstance(newInputLine, symbol, deckElevation, StructuralType.Beam);
 
-                            StructuralFramingUtils.DisallowJoinAtEnd(compositeDeckInstance, 0);
+                                StructuralFramingUtils.DisallowJoinAtEnd(compositeDeckInstance, 0);
 
-                            StructuralFramingUtils.DisallowJoinAtEnd(compositeDeckInstance, 1);
+                                StructuralFramingUtils.DisallowJoinAtEnd(compositeDeckInstance, 1);
+
+                                // Trim the deck as per the slab boundary
+                                //TrimDeckPanel(startPoint, endPoint, compositeDeckInstance);
+
+                                //form.PostMessage(string.Format(" Placing Composite Deck ID : {0} \n", compositeDeckInstance.Id));
+
+                            }
+
+                            startlocation = endLocation;
 
                         }
 
-                        startlocation = endLocation;
-
+                        // We have the composite deck starting and ending points - move to the next location
+                        currentPoint = new XYZ(currentPoint.X, currentPoint.Y + 3, currentPoint.Z);
                     }
-
-                    // We have the composite deck starting and ending points - move to the next location
-                    currentPoint = new XYZ(currentPoint.X + 3, currentPoint.Y, currentPoint.Z);
                 }
+
+                else
+                {
+                    // TODO : Get the family type parameter of given typestart point is south grid and end point is north grid
+                    double dWidth = GetDeckWidth(m_CompositeDeckType);
+
+                    // Couldn't retrieve the deck width. For now hardcoding it to 3.0 feet
+                    if (dWidth == 0)
+                        dWidth = 3.0;
+
+
+                    XYZ currentPoint = WestGridStartPt;
+                    while (currentPoint.X < EastGridStartPt.X)
+                    {
+                        double minY = 10000, maxY = -100000;
+                        XYZ min = new XYZ(currentPoint.X, SouthGridStartPt.Y, SouthGridStartPt.Z - 1.0);
+                        XYZ max = new XYZ(currentPoint.X + 3, northGridStartPt.Y, northGridStartPt.Z + 1.0);
+
+                        Outline outline = new Outline(min, max);
+
+                        BoundingBoxIntersectsFilter filter = new BoundingBoxIntersectsFilter(outline);
+
+                        FilteredElementCollector collector = new FilteredElementCollector(doc, doc.ActiveView.Id).WherePasses(filter).OfCategory(BuiltInCategory.OST_GenericModel);
+
+                        ICollection<Element> inputLineElems = collector.ToElements();
+
+                        foreach (Element elem in inputLineElems)
+                        {
+                            Parameter param = elem.LookupParameter("Wall Type");
+                            if (param != null)
+                            {
+                                string strWalltype = param.AsString();
+                                if (strWalltype == "Floor" || strWalltype == "Ex" || strWalltype == "Ex Opening" || strWalltype == "Ex w/ Insulation")
+                                {
+                                    XYZ startPt = null, endPt = null;
+                                    GenericUtils.GetlineStartAndEndPoints(elem, out startPt, out endPt);
+
+                                    LineType linetype = GenericUtils.GetLineType(elem);
+
+                                    if (linetype == deckingDirection)
+                                        continue;
+                                    // if the line is inclined then intersect the line with the range bottom line and top line and take them as start and end
+
+                                    if (!(MathUtils.ApproximatelyEqual(startPt.X, endPt.X) || MathUtils.ApproximatelyEqual(startPt.Y, endPt.Y)))
+                                    {
+                                        Line exLine = Line.CreateBound(startPt, endPt);
+
+                                        // We have inclined lines intersect with range lines
+                                        XYZ min1 = new XYZ(min.X, min.Y, startPt.Z);
+                                        XYZ min2 = new XYZ(max.X, min.Y, startPt.Z);
+                                        Line minLine = Line.CreateBound(min1, min2);
+
+                                        XYZ max1 = new XYZ(min.X, max.Y, startPt.Z);
+                                        XYZ max2 = new XYZ(max.X, max.Y, startPt.Z);
+                                        Line maxLine = Line.CreateBound(max1, max2);
+
+                                        for (int i = 0; i < 2; i++)
+                                        {
+                                            Line temp = i == 0 ? minLine : maxLine;
+                                            IntersectionResultArray intersectionResults = new IntersectionResultArray();
+                                            SetComparisonResult result = exLine.Intersect(temp, out intersectionResults);
+                                            if (result == SetComparisonResult.Overlap)
+                                            {
+                                                foreach (IntersectionResult intersectionResult in intersectionResults)
+                                                {
+                                                    if (i == 0)
+                                                        startPt = intersectionResult.XYZPoint;
+                                                    else
+                                                        endPt = intersectionResult.XYZPoint;
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    if (minY > startPt.Y)
+                                        minY = startPt.Y;
+                                    if (maxY < endPt.Y)
+                                        maxY = endPt.Y;
+                                }
+                            }
+                        }
+
+                        double startlocation = minY < SouthGridStartPt.Y ? SouthGridStartPt.Y : minY;
+                        maxY = Math.Min(maxY, northGridEndPt.Y);
+
+                        while (startlocation < maxY)
+                        {
+                            // Get nearest span point for overlap
+                            double endLocation = Math.Min(spanIntervals.Find(value => value > startlocation), maxY);
+                            if (endLocation == 0)
+                                endLocation = maxY;
+
+                            // Deck get placed from top to bottom, so we need to give the top 2 points
+                            XYZ startPoint = new XYZ(currentPoint.X, startlocation - m_CompositeDeckOverlap / 2.0, deckElevation.Elevation);
+                            XYZ endPoint = new XYZ(currentPoint.X, endLocation + m_CompositeDeckOverlap / 2.0, deckElevation.Elevation);
+
+                            bool bCanPlaceDeck = CheckIfDeckCanBePlaced(startPoint, endPoint, deckingDirection);
+
+                            if (bCanPlaceDeck)
+                            {
+                                if (Math.Abs(startPoint.Y - endPoint.Y) < 0.5)
+                                    continue;
+
+                                Line newInputLine = Line.CreateBound(startPoint, endPoint);
+
+                                FamilySymbol symbol = SymbolCollector.GetCompositeDeckSymbol(m_CompositeDeckType, "Composite Deck");
+
+                                if (symbol != null && !symbol.IsActive)
+                                    symbol.Activate();
+
+
+                                FamilyInstance compositeDeckInstance = doc.Create.NewFamilyInstance(newInputLine, symbol, deckElevation, StructuralType.Beam);
+
+                                StructuralFramingUtils.DisallowJoinAtEnd(compositeDeckInstance, 0);
+
+                                StructuralFramingUtils.DisallowJoinAtEnd(compositeDeckInstance, 1);
+
+                            }
+
+                            startlocation = endLocation;
+
+                        }
+
+                        // We have the composite deck starting and ending points - move to the next location
+                        currentPoint =  new XYZ(currentPoint.X + 3, currentPoint.Y, currentPoint.Z);
+                    }
+                }
+
+            }
+            catch (Exception)
+            {
             }
         }
 
