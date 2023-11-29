@@ -17,6 +17,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Media.Animation;
+using System.Xml.Schema;
 using static Autodesk.Revit.DB.SpecTypeId;
 
 namespace Revit_Automation.Source.ModelCreators
@@ -95,9 +96,22 @@ namespace Revit_Automation.Source.ModelCreators
             m_Form.PostMessage(string.Format("\n Completed Placement of walls in {0} seconds", seconds));
         }
 
+        private double GetPanelMaxLength(InputLine line)
+        {
+            PanelTypeGlobalParams pg = string.IsNullOrEmpty(line.strPanelType) ?
+                            GlobalSettings.lstPanelParams.Find(panelParams => panelParams.bIsUNO == true) :
+                            GlobalSettings.lstPanelParams.Find(panelParams => panelParams.strWallName == line.strPanelType);
+
+            double dPanelPreferredLength = pg.iPanelMaxLength;
+
+            return dPanelPreferredLength;
+        }
+
         private void  PlaceWall(InputLine inputLine, IOrderedEnumerable<Level> levels)
         {
             double dPanelHeighOffset = GetPanelHeightOffsetValue(inputLine, levels);
+
+            double dMaxLength = GetPanelMaxLength(inputLine);
 
             Logger.logMessage("Method - PlaceWall");
 
@@ -179,10 +193,12 @@ namespace Revit_Automation.Source.ModelCreators
 
                 if (dPanelClearance != 0)
                     RoundoffToNearestInch(lineType, wp1, wp2, out awp1, out awp2, bStartingPoint, bEndingPoint);
-                else
+                
+                if (dPanelClearance == 0 && dLineLength < dMaxLength)
                     RoundDownToNearestInch(lineType, wp1, wp2, out awp1, out awp2, bStartingPoint, bEndingPoint);
+                
                 // Panel Clearance - only for single panels
-                if (dLineLength < 25.0)
+                if (dLineLength < dMaxLength)
                     AddPanelClearance(inputLine, ref awp1, ref awp2);
 
                 // Create Wall Curve
@@ -297,7 +313,12 @@ namespace Revit_Automation.Source.ModelCreators
             if (lineType == LineType.Horizontal)
             {
                 double fraction = Math.Abs(wp2.X - wp1.X) % 1;
-                double roundedFraction = RoundInches(fraction) - 1.0/12.0; //RoundInches will give the next inch. so substract 1-Inch
+                double roundedFraction = RoundInches(fraction);
+
+                //RoundInches will give zero or the next inch. so substract 1-Inch when round incges is non-zero
+                if (!MathUtils.ApproximatelyEqual(fraction, roundedFraction))
+                    roundedFraction -= 1.0 / 12.0;
+
                 double roundDownFactor = fraction - roundedFraction;
                 if (!bEndingPoint)
                 {
