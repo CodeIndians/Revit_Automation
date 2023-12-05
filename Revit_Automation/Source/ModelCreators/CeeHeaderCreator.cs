@@ -324,10 +324,10 @@ namespace Revit_Automation
 
             if (lstceeHeaderPoints.Count % 2 == 1)
             {
-                if (lstceeHeaderPoints[lstceeHeaderPoints.Count - 2].Contains("CMU"))
+                if (lstceeHeaderPoints[lstceeHeaderPoints.Count - 2].Contains("CMU") && lstceeHeaderPoints[lstceeHeaderPoints.Count - 1].Contains("CMU"))
                     lstceeHeaderPoints.RemoveAt(lstceeHeaderPoints.Count - 1);
 
-                if (lstceeHeaderPoints[1].Contains("CMU"))
+                if (lstceeHeaderPoints[1].Contains("CMU") && lstceeHeaderPoints[0].Contains("CMU"))
                     lstceeHeaderPoints.RemoveAt(0);
             }
             else
