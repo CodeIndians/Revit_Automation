@@ -40,17 +40,17 @@ namespace Revit_Automation
                 a.CreateRibbonTab(tabName);
 
 
-                string tabName2 = "Structural Design";
+                string tabName2 = "Dev Commands";
                 a.CreateRibbonTab(tabName2);
 
-                RibbonPanel settingsRB1 = a.CreateRibbonPanel(tabName2, "Analysis");
+                RibbonPanel settingsRB1 = a.CreateRibbonPanel(tabName2, "Debug Commands");
 
                 AddRevitCommand(settingsRB1,
                 "ProjectSettingsCMD",
-                "Launch \n SBTiltup",
-                "Revit_Automation.ProjectSettings",
+                " Get Range",
+                "Revit_Automation.GetRangeCommand",
                 "Project Settings",
-                "tiltup.png");
+                "Debug.png");
 
                 // Create Ribbon Panels
                 RibbonPanel settingsRB = a.CreateRibbonPanel(tabName, "Settings");

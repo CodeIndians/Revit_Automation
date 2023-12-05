@@ -562,6 +562,38 @@ namespace Revit_Automation
     }
 
     [Transaction(TransactionMode.Manual)]
+    public class GetRangeCommand : IExternalCommand
+    {
+        public Result Execute(
+          ExternalCommandData commandData,
+          ref string message,
+          ElementSet elements)
+        {
+            UIApplication uiapp = commandData.Application;
+            UIDocument uidoc = uiapp.ActiveUIDocument;
+            Document doc = uidoc.Document;
+            Selection selection = uidoc.Selection;
+            
+            ICollection<ElementId> selectedIDs = selection.GetElementIds();
+
+            foreach (var sel in selectedIDs)
+            {
+                Element elem = doc.GetElement(sel);
+                if (elem != null)
+                {
+                    BoundingBoxXYZ boundingBoxXYZ = elem.get_BoundingBox(doc.ActiveView);
+                    if (boundingBoxXYZ != null) 
+                    {
+                        string Msg = $"ID : {elem.Id} Range : {boundingBoxXYZ.Min}, {boundingBoxXYZ.Max}";
+                        MessageBox.Show(Msg);
+                    }
+                }
+            }
+            return Result.Succeeded;
+        }
+    }
+
+    [Transaction(TransactionMode.Manual)]
     public class CeeHeaders : IExternalCommand
     {
 
