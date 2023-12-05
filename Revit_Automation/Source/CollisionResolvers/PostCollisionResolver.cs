@@ -34,8 +34,8 @@ namespace Revit_Automation.Source.CollisionDetectors
 
             BoundingBoxXYZ boundingBoxXYZ = column.get_BoundingBox(m_Document.ActiveView);
 
-            XYZ min = new XYZ(boundingBoxXYZ.Min.X + 0.05, boundingBoxXYZ.Min.Y + 0.05, boundingBoxXYZ.Min.Z);
-            XYZ max = new XYZ(boundingBoxXYZ.Max.X - 0.05, boundingBoxXYZ.Max.Y - 0.05, boundingBoxXYZ.Max.Z);
+            XYZ min = new XYZ(boundingBoxXYZ.Min.X + 0.05, boundingBoxXYZ.Min.Y + 0.05, boundingBoxXYZ.Min.Z + 2.5);
+            XYZ max = new XYZ(boundingBoxXYZ.Max.X - 0.05, boundingBoxXYZ.Max.Y - 0.05, boundingBoxXYZ.Max.Z - 2.5);
 
             Outline outline = new Outline(min, max);
 
