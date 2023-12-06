@@ -716,7 +716,10 @@ namespace Revit_Automation.Source.ModelCreators
                 Ymin = Math.Min(roof.max.Y, roof.min.Y);
                 Ymax = Math.Max(roof.max.Y, roof.min.Y);
 
-                if (pt1.X >= Xmin && pt1.X <= Xmax && pt1.Y >= Ymin && pt1.Y <= Ymax)
+                if ((pt1.X > Xmin || MathUtils.ApproximatelyEqual(pt1.X, Xmin)) && 
+                    (pt1.X < Xmax || MathUtils.ApproximatelyEqual(pt1.X, Xmax)) && 
+                    (pt1.Y > Ymin || MathUtils.ApproximatelyEqual(pt1.Y, Ymin)) && 
+                    (pt1.Y < Ymax || MathUtils.ApproximatelyEqual(pt1.Y, Ymax)))
                 {
                     targetRoof = roof;
                     break;
