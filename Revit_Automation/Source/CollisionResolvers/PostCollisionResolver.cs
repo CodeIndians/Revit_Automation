@@ -27,15 +27,15 @@ namespace Revit_Automation.Source.CollisionDetectors
         
         public PostCollisionResolver(Document doc) { m_Document = doc; }
 
-        public bool CheckStudCollisions(ElementId columnID)
+        public bool CheckStudCollisions(ElementId columnID, Level toplevel, Level baseLevel)
         {
             FamilyInstance column = m_Document.GetElement(columnID) as FamilyInstance;
             XYZ newOrientation = column.FacingOrientation;
 
             BoundingBoxXYZ boundingBoxXYZ = column.get_BoundingBox(m_Document.ActiveView);
 
-            XYZ min = new XYZ(boundingBoxXYZ.Min.X + 0.05, boundingBoxXYZ.Min.Y + 0.05, boundingBoxXYZ.Min.Z + 2.5);
-            XYZ max = new XYZ(boundingBoxXYZ.Max.X - 0.05, boundingBoxXYZ.Max.Y - 0.05, boundingBoxXYZ.Max.Z - 2.5);
+            XYZ min = new XYZ(boundingBoxXYZ.Min.X + 0.05, boundingBoxXYZ.Min.Y + 0.05, baseLevel.Elevation + 0.5);
+            XYZ max = new XYZ(boundingBoxXYZ.Max.X - 0.05, boundingBoxXYZ.Max.Y - 0.05, toplevel.Elevation - 0.5);
 
             Outline outline = new Outline(min, max);
 

@@ -549,7 +549,7 @@ namespace Revit_Automation.Source.ModelCreators
                                 collisionElementID = StudColumnID
                             };
                             Logger.logMessage("ProcessStudInputLine - Collision detection at On-Center");
-                            if (collider.CheckStudCollisions(StudColumnID)) 
+                            if (collider.CheckStudCollisions(StudColumnID, toplevel, baseLevel)) 
                                     DeleteColumn(StudColumnID);
                         }
 
