@@ -228,8 +228,8 @@ namespace Revit_Automation
                     while (currentPoint.Y < northGridStartPt.Y)
                     {
                         double minX = 10000, maxX = -100000;
-                        XYZ min = new XYZ(WestGridStartPt.X, currentPoint.Y, deckElevation.Elevation - 1.0);
-                        XYZ max = new XYZ(EastGridStartPt.X, currentPoint.Y + 3, deckElevation.Elevation + 1.0);
+                        XYZ min = new XYZ(WestGridStartPt.X - 1.0, currentPoint.Y, deckElevation.Elevation - 1.0);
+                        XYZ max = new XYZ(EastGridStartPt.X + 1.0, currentPoint.Y + 3, deckElevation.Elevation + 1.0);
 
                         Outline outline = new Outline(min, max);
 
@@ -330,11 +330,6 @@ namespace Revit_Automation
 
                                 StructuralFramingUtils.DisallowJoinAtEnd(compositeDeckInstance, 1);
 
-                                // Trim the deck as per the slab boundary
-                                //TrimDeckPanel(startPoint, endPoint, compositeDeckInstance);
-
-                                //form.PostMessage(string.Format(" Placing Composite Deck ID : {0} \n", compositeDeckInstance.Id));
-
                             }
 
                             startlocation = endLocation;
@@ -360,14 +355,14 @@ namespace Revit_Automation
                     while (currentPoint.X < EastGridStartPt.X)
                     {
                         double minY = 10000, maxY = -100000;
-                        XYZ min = new XYZ(currentPoint.X, SouthGridStartPt.Y, SouthGridStartPt.Z - 1.0);
-                        XYZ max = new XYZ(currentPoint.X + 3, northGridStartPt.Y, northGridStartPt.Z + 1.0);
+                        XYZ min = new XYZ(currentPoint.X, SouthGridStartPt.Y - 1.0, deckElevation.Elevation - 1.0);
+                        XYZ max = new XYZ(currentPoint.X + 3, northGridStartPt.Y + 1.0, deckElevation.Elevation + 1.0);
 
                         Outline outline = new Outline(min, max);
 
                         BoundingBoxIntersectsFilter filter = new BoundingBoxIntersectsFilter(outline);
 
-                        FilteredElementCollector collector = new FilteredElementCollector(doc, doc.ActiveView.Id).WherePasses(filter).OfCategory(BuiltInCategory.OST_GenericModel);
+                        FilteredElementCollector collector = new FilteredElementCollector(doc).WherePasses(filter).OfCategory(BuiltInCategory.OST_GenericModel);
 
                         ICollection<Element> inputLineElems = collector.ToElements();
 
