@@ -45,7 +45,7 @@ namespace Revit_Automation
             using (Transaction tx = new Transaction(doc))
             {
                 form.PostMessage("");
-                form.PostMessage("Starting creation of cee headers");
+                form.PostMessage("\n Starting creation of cee headers \n");
                 tx.Start("Placing Cee Headers");
                 Dictionary<double, List<InputLine>> sortedInputLineCollection = new Dictionary<double, List<InputLine>>();
                 sortedInputLineCollection = SortInputLinesByElevation(colInputLines);
@@ -110,7 +110,7 @@ namespace Revit_Automation
                         PlaceCeeHeaders(ceeHeaderSettings, list, level);
                     }
                 }
-                form.PostMessage("Finished creation of cee headers");
+                form.PostMessage(" \n Finished creation of cee headers");
                 tx.Commit();
             }
         }
@@ -240,7 +240,7 @@ namespace Revit_Automation
                         XYZ ceeHeaderStartPoint = kvp1.Key;
                         XYZ ceeHeaderEndPoint = kvp2.Key;
 
-                        form.PostMessage($" \nPlacing Cee-Headers at location {ceeHeaderStartPoint.X} , {ceeHeaderStartPoint.Y}, {ceeHeaderEndPoint.X} , {ceeHeaderEndPoint.Y}");
+                        
 
                         //form.PostMessage($" \nPlacing Cee-Headers at location {ceeHeaderStartPoint.X} , {ceeHeaderStartPoint.Y}, {ceeHeaderEndPoint.X} , {ceeHeaderEndPoint.Y}");
 
@@ -270,6 +270,8 @@ namespace Revit_Automation
                         FamilyInstance ceeHeaderInstance = doc.Create.NewFamilyInstance(bounds, ceeHeaderFamily, level, StructuralType.Beam);
                         StructuralFramingUtils.DisallowJoinAtEnd(ceeHeaderInstance, 0);
                         StructuralFramingUtils.DisallowJoinAtEnd(ceeHeaderInstance, 1);
+
+                        form.PostMessage($" \nPlacing Cee-Header {ceeHeaderInstance.Id} at location {ceeHeaderStartPoint.X} , {ceeHeaderStartPoint.Y}, {ceeHeaderEndPoint.X} , {ceeHeaderEndPoint.Y}");
 
                         // set the Post CL Offset parameter
                         if (dWebWitdth != 0.0)
@@ -589,6 +591,12 @@ namespace Revit_Automation
 
             if (max == 0)
                 max = ComputeExtremitiesFromFloorBoundaries(probePoint, elevation, dCeeHeaderCoordinate, spanLineType, true);
+
+            if (min == max)
+            {
+                min = ComputeExtremitiesFromFloorBoundaries(probePoint, elevation, dCeeHeaderCoordinate, spanLineType, false);
+                max = ComputeExtremitiesFromFloorBoundaries(probePoint, elevation, dCeeHeaderCoordinate, spanLineType, true);
+            }
 
             List<string> points = new List<string>();
 
