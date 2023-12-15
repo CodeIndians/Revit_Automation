@@ -845,7 +845,7 @@ namespace Revit_Automation.Source.ModelCreators
                 dOffset += pg.iPanelHeightOffset;
             }
             else
-                dOffset += (line.dPanelOffsetHeight * -1); // Usually the offset is entered in negative values in the line 
+                dOffset += (line.dPanelOffsetHeight); // Height offset will be eneterd as positive in both line and project settings 
 
             return dOffset;
         }
