@@ -188,7 +188,7 @@ namespace Revit_Automation.Source.ModelCreators
                 {
                     double roundedFraction = RoundInches(fraction);
                     awp1 = wp1;
-                    awp2 = wp2 - new XYZ(0, roundedFraction - fraction, 0);
+                    awp2 = wp2 - new XYZ(0, fraction - roundedFraction, 0);
                 }
             }
         }
