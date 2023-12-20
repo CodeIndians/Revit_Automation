@@ -17,6 +17,7 @@ using System.Reflection;
 using System.Windows.Forms;
 using System.Windows.Media.Imaging;
 using Sheeting_Automation;
+using System.Collections.Concurrent;
 
 #endregion
 
@@ -54,7 +55,13 @@ namespace Revit_Automation
 
                 // Create Ribbon Panels
                 RibbonPanel settingsRB = a.CreateRibbonPanel(tabName, "Settings");
-                RibbonPanel FullModellingRB = a.CreateRibbonPanel(tabName, "General Modelling");
+                RibbonPanel PreProcessingRB = a.CreateRibbonPanel(tabName, "Pre Processing");
+                RibbonPanel PostsRB = a.CreateRibbonPanel(tabName, "Structural Columns");
+                RibbonPanel PartitionRB = a.CreateRibbonPanel(tabName, "Partitions");
+                RibbonPanel DeckingRB = a.CreateRibbonPanel(tabName, "Decking");
+                RibbonPanel FramingRB = a.CreateRibbonPanel(tabName, "Framing");
+
+
                 //RibbonPanel HallWayRB = a.CreateRibbonPanel(tabName, "HallWays");
 
                 AddRevitCommand(settingsRB,
@@ -66,16 +73,8 @@ namespace Revit_Automation
 
                 #region GENERIC_MODELLING
 
-                //// PostHeight 
-                //AddRevitCommand(FullModellingRB,
-                //    "PostPropertiesCMD",
-                //    "Test Command",
-                //    "Revit_Automation.PostProperties",
-                //    "sasda",
-                //    "ProcessLines.png");
-
                 // Extend Lines 
-                AddRevitCommand(FullModellingRB,
+                AddRevitCommand(PreProcessingRB,
                     "ExtendLinesCMD",
                     "    Extend    ",
                     "Revit_Automation.ExtendLines",
@@ -83,7 +82,7 @@ namespace Revit_Automation
                     "ProcessLines.png");
 
                 // Trim Lines
-                AddRevitCommand(FullModellingRB,
+                AddRevitCommand(PreProcessingRB,
                     "TrimLinesCMD",
                     "     Trim     ",
                     "Revit_Automation.TrimLines",
@@ -91,7 +90,7 @@ namespace Revit_Automation
                     "ProcessLines.png");
 
                 // Posts - ALL
-                AddRevitCommand(FullModellingRB,
+                AddRevitCommand(PostsRB,
                     "PostsAtAlldLinesCMD",
                     "    Posts     ",
                     "Revit_Automation.PostsAtAllLines",
@@ -99,63 +98,31 @@ namespace Revit_Automation
                     "Posts.png");
 
                 // Bottom Tracks - ALL
-                AddRevitCommand(FullModellingRB,
+                AddRevitCommand(PostsRB,
                       "BTAtAllLinesCMD",
                       "Bottom Tracks",
                       "Revit_Automation.BTAtAllLines",
                       "Place Bottom Tracks at All Input Lines",
                       "BottomTrack.png");
 
+
+                AddRevitCommand(PartitionRB,
+                "ExPanelDirComp",
+                "Ex-Panel Dir",
+                "Revit_Automation.ExteriorPanelDirectionComputation",
+                "Place Panels at All Input Lines",
+                "ProcessLines.png");
+
                 // Panels - ALL
-                AddRevitCommand(FullModellingRB,
+                AddRevitCommand(PartitionRB,
                     "PanelsAtAllCMD",
                     "    Panels    ",
                     "Revit_Automation.PanelsAtAllLines",
                     "Place Panels at All Input Lines",
                     "Walls.png");
 
-                // Cee Headers
-                AddRevitCommand(FullModellingRB,
-                    "CeeHeadersCMD",
-                    "   C-Headers  ",
-                    "Revit_Automation.CeeHeaders",
-                    "Place C-Header at All Input Lines",
-                    "Header.png");
-
-                // Top Tracks
-                AddRevitCommand(FullModellingRB,
-                    "TopTracksCMD",
-                    "Top Tracks",
-                    "Revit_Automation.TopTracksCreator",
-                    "Place Top Tracks",
-                    "BottomTrack.png");
-
-                // Purlins
-                AddRevitCommand(FullModellingRB,
-                    "PurlinsCMD",
-                    "   Purlins    ",
-                    "Revit_Automation.PurlinsCreator",
-                    "Place Purlins",
-                    "Purlin.png");
-
-                // Drag Strut
-                AddRevitCommand(FullModellingRB,
-                    "DragStrutCMD",
-                    "  Drag Strut  ",
-                    "Revit_Automation.DragStrutCreator",
-                    "Place DragStruts",
-                    "Strut.png");
-
-                // Eave Strut
-                AddRevitCommand(FullModellingRB,
-                    "EaveStrutCMD",
-                    "  Eave Strut  ",
-                    "Revit_Automation.EaveStrutCreator",
-                    "Place EaveStruts",
-                    "Strut.png");
-
                 // Composite Deck
-                AddRevitCommand(FullModellingRB,
+                AddRevitCommand(DeckingRB,
                     "CompositeDeckCMD",
                     "  Composite  \n    Deck    ",
                     "Revit_Automation.CompositeDeckCreator",
@@ -163,7 +130,7 @@ namespace Revit_Automation
                     "Deck.png");
 
                 // Roof Deck
-                AddRevitCommand(FullModellingRB,
+                AddRevitCommand(DeckingRB,
                     "RoofDeckCMD",
                     "   Roof Deck  ",
                     "Revit_Automation.RoofDeckCreator",
@@ -171,12 +138,53 @@ namespace Revit_Automation
                     "Deck.png");
 
                 // Trim Composite / Roof Deck
-                AddRevitCommand(FullModellingRB,
+                AddRevitCommand(DeckingRB,
                     "TrimDeckCMD",
                     "   Trim Deck  ",
                     "Revit_Automation.TrimDecks",
                     "Trim Roof Deck",
                     "Deck.png");
+
+                // Cee Headers
+                AddRevitCommand(FramingRB,
+                    "CeeHeadersCMD",
+                    "   C-Headers  ",
+                    "Revit_Automation.CeeHeaders",
+                    "Place C-Header at All Input Lines",
+                    "Header.png");
+
+                // Top Tracks
+                AddRevitCommand(FramingRB,
+                    "TopTracksCMD",
+                    "Top Tracks",
+                    "Revit_Automation.TopTracksCreator",
+                    "Place Top Tracks",
+                    "BottomTrack.png");
+
+                // Purlins
+                AddRevitCommand(FramingRB,
+                    "PurlinsCMD",
+                    "   Purlins    ",
+                    "Revit_Automation.PurlinsCreator",
+                    "Place Purlins",
+                    "Purlin.png");
+
+                // Drag Strut
+                AddRevitCommand(FramingRB,
+                    "DragStrutCMD",
+                    "  Drag Strut  ",
+                    "Revit_Automation.DragStrutCreator",
+                    "Place DragStruts",
+                    "Strut.png");
+
+                // Eave Strut
+                AddRevitCommand(FramingRB,
+                    "EaveStrutCMD",
+                    "  Eave Strut  ",
+                    "Revit_Automation.EaveStrutCreator",
+                    "Place EaveStruts",
+                    "Strut.png");
+
                 // 
                 //AddRevitCommand(HallWayRB,
                 //   "HallWayCreateHatch",

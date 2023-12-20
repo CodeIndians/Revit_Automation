@@ -594,6 +594,31 @@ namespace Revit_Automation
     }
 
     [Transaction(TransactionMode.Manual)]
+    public class ExteriorPanelDirectionComputation : IExternalCommand
+    {
+        public Result Execute(
+          ExternalCommandData commandData,
+          ref string message,
+          ElementSet elements)
+        {
+            UIApplication uiapp = commandData.Application;
+            UIDocument uidoc = uiapp.ActiveUIDocument;
+            Document doc = uidoc.Document;
+            Selection selection = uidoc.Selection;
+            InputLineUtility.GatherInputLines(doc, selection, CommandCode.Walls, false, true);
+
+            SymbolCollector.CollectColumnSymbols(doc);
+            FloorHelper.GatherFloors(doc);
+
+            PanelUtils panelUtils = new PanelUtils(doc);
+            panelUtils.ComputePanelDirectionForExteriorPanels();
+
+           
+            return Result.Succeeded;
+        }
+    }
+
+    [Transaction(TransactionMode.Manual)]
     public class CeeHeaders : IExternalCommand
     {
 

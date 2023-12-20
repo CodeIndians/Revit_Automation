@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Data.Odbc;
 
 namespace Revit_Automation.Source.Utils
 {
@@ -65,11 +66,9 @@ namespace Revit_Automation.Source.Utils
 
                     using (Transaction stx = new Transaction(_document))
                     {
-
-
                         GenericUtils.SupressWarningsInTransaction(stx);
 
-                        stx.Start("Exterior Panel Direction Computation");
+                        stx.Start("Determining the Panel Direction");
 
                         if (rightcolumnID != null)
                             _document.Delete(rightcolumnID);
@@ -112,28 +111,41 @@ namespace Revit_Automation.Source.Utils
                     {
                         dLeftHeight = LeftHeightParam.AsDouble();
                     }
-                    if (dLeftHeight > dRightHeight)
-                    {
 
-                        if (linetype == LineType.Horizontal)
-                        {
-                            inputLine.strHorizontalPanelDirection = "L";
-                        }
-                        else
-                        {
-                            inputLine.strVerticalPanelDirection = "D";
-                        }
-                    }
-                    else
+                    using (Transaction stx2 = new Transaction(_document))
                     {
-                        if (linetype == LineType.Horizontal)
+                        stx2.Start("Adding Panel Direction to Input lines");
+                        // Set the value on the Input line revit element
+                        Element inputLineElement = _document.GetElement(inputLine.id);
+
+                        if (dLeftHeight > dRightHeight)
                         {
-                            inputLine.strHorizontalPanelDirection = "R";
+
+                            if (linetype == LineType.Horizontal)
+                            {
+                                inputLine.strHorizontalPanelDirection = "D";
+                                inputLineElement.LookupParameter("Horizontal Panel Direction")?.Set("D");
+                            }
+                            else
+                            {
+                                inputLine.strVerticalPanelDirection = "L";
+                                inputLineElement.LookupParameter("Vertical Panel Direction")?.Set("L");
+                            }
                         }
                         else
                         {
-                            inputLine.strVerticalPanelDirection = "U";
+                            if (linetype == LineType.Horizontal)
+                            {
+                                inputLine.strHorizontalPanelDirection = "U";
+                                inputLineElement.LookupParameter("Horizontal Panel Direction")?.Set("U");
+                            }
+                            else
+                            {
+                                inputLine.strVerticalPanelDirection = "R";
+                                inputLineElement.LookupParameter("Vertical Panel Direction")?.Set("R");
+                            }
                         }
+                        stx2.Commit();
                     }
                     lines[i] = inputLine;
                 }
@@ -142,7 +154,7 @@ namespace Revit_Automation.Source.Utils
 
             using (Transaction tx = new Transaction(_document))
             {
-                tx.Start("Cleanup");
+                tx.Start("Deleting Columns");
                 if (rightcolumnID != null)
                     _document.Delete(rightcolumnID);
                 if (leftColumnID != null)

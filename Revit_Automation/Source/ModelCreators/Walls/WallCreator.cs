@@ -36,12 +36,7 @@ namespace Revit_Automation.Source.ModelCreators
         }
 
         public void CreateModel(List<CustomTypes.InputLine> colInputLines, IOrderedEnumerable<Level> levels)
-        {
-            using (Transaction stx = new Transaction(m_Document))
-            {
-                PanelUtils panelUtils = new PanelUtils(m_Document);
-                panelUtils.ComputePanelDirectionForExteriorPanels();
-            }
+        { 
 
             using (Transaction tx = new Transaction(m_Document))
             {

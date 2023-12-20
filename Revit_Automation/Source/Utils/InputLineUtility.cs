@@ -59,10 +59,10 @@ namespace Revit_Automation.Source
         /// </summary>
         /// <param name="doc"> Pointer to the Active document</param>
         /// 
-        public static void GatherInputLines(Document doc, Selection selection, CommandCode commandcode, bool bComputeRoofSlope = true)
+        public static void GatherInputLines(Document doc, Selection selection, CommandCode commandcode, bool bComputeRoofSlope = true, bool bExInputLines = false)
         {
             colInputLines?.Clear();
-
+            string strWallType = string.Empty;
             FilteredElementCollector locationCurvedCol = null;
             
             if (commandcode == CommandCode.CeeHeaders || commandcode == CommandCode.CompositeDeck)
@@ -359,8 +359,10 @@ namespace Revit_Automation.Source
                 }
 
                 Parameter WallTypeParam = locCurve.LookupParameter("Wall Type");
+               
                 if (WallTypeParam != null)
                 {
+                    strWallType = WallTypeParam.AsString();
                     iLine.strWallType = WallTypeParam.AsString();
                 }
 
@@ -465,8 +467,16 @@ namespace Revit_Automation.Source
                     iLine.mainGridIntersectionPoints = GridCollectionHelper.computeIntersectionPoints(linecoords, true);
                 }
 
-                //Add the line to the collection 
-                _ = AddInputLine(iLine);
+                //Add the line to the collection
+                if (bExInputLines)
+                {
+                    if (strWallType == "Ex w/ Insulation")
+                    {
+                        _ = AddInputLine(iLine);
+                    }
+                }
+                else
+                    _ = AddInputLine(iLine);
             }
         }
 
