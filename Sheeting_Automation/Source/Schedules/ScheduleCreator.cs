@@ -104,11 +104,14 @@ namespace Sheeting_Automation.Source.Schedules
 
             int countIndex = -1;
 
+            var countField = ScheduleUtils.GetScheduleFieldFromName(viewSchedule, "Count");
+            var countFieldHeadingName = countField.ColumnHeading;
+
             // check for count 
             for (int i = 0; i < colums; i++)
             {
                 var cellText = viewSchedule.GetCellText(SectionType.Body, 0, i);
-                if (viewSchedule.GetCellText(SectionType.Body, 0, i) == "Count")
+                if (viewSchedule.GetCellText(SectionType.Body, 0, i) == countFieldHeadingName)
                 {
                     countIndex = i;
                     break;
