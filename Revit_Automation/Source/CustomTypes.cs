@@ -168,7 +168,8 @@ namespace Revit_Automation.CustomTypes
         EndTrimLeft,
         EndTrimT,
         NoStartIntersection,
-        NoEndIntersection
+        NoEndIntersection,
+        NotComputed
     }
 
     public enum Direction

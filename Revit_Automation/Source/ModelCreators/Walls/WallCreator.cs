@@ -329,7 +329,12 @@ namespace Revit_Automation.Source.ModelCreators
             else
             {
                 double fraction = Math.Abs(wp2.Y - wp1.Y) % 1;
-                double roundedFraction = RoundInches(fraction) - 1.0/12.0;//RoundInches will give the next inch. so substract 1-Inch
+                double roundedFraction = RoundInches(fraction);
+
+                //RoundInches will give zero or the next inch. so substract 1-Inch when round incges is non-zero
+                if (!MathUtils.ApproximatelyEqual(fraction, roundedFraction))
+                    roundedFraction -= 1.0 / 12.0;
+
                 double roundDownFactor = fraction - roundedFraction;
                 if (!MathUtils.ApproximatelyEqual(fraction, 0))
                 {

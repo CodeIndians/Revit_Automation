@@ -453,6 +453,8 @@ namespace Revit_Automation.Source.ModelCreators.Walls
 
         private void CheckStartAndEndIntersectRelationsForFireWall(InputLine inputLine, SortedDictionary<XYZ, string> endPanelIntersections, ref LineRelations startReleation, ref LineRelations endRelation)
         {
+            //startReleation = LineRelations.NotComputed; endRelation = LineRelations.NotComputed;
+
             LineType linetype = MathUtils.ApproximatelyEqual(inputLine.startpoint.Y, inputLine.endpoint.Y) ? LineType.Horizontal : LineType.vertical;
 
             XYZ startPt = null, endPoint = null;
@@ -478,11 +480,6 @@ namespace Revit_Automation.Source.ModelCreators.Walls
 
                     if (!(strWallType == "Insulation"))
                     {
-                        if (bAtStart)
-                            startReleation = LineRelations.NoStartIntersection;
-                        else
-                            endRelation = LineRelations.NoEndIntersection;
-
                         continue;
                     }
                     // Check if the given point is trim / intersection point
@@ -531,11 +528,6 @@ namespace Revit_Automation.Source.ModelCreators.Walls
 
                     if (!(strWallType == "Insulation"))
                     {
-                        if (bAtStart)
-                            startReleation = LineRelations.NoStartIntersection;
-                        else
-                            endRelation = LineRelations.NoEndIntersection;
-
                         continue;
                     }
 

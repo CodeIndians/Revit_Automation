@@ -297,6 +297,36 @@ namespace Revit_Automation.Source.Utils
                         ElementTransformUtils.RotateElement(doc, columnID, axis, Math.PI);
                     }
                 }
+
+                // For lines that are perpendicular to the slope, the orientation should be
+                // as per the UNO Panel direction
+                // For Vertical sloped roof - Horizontal lines should consider Vertical Panel Direction
+                // For Horizointal sloped roof - Vertical Lines should consider horizontal panel direction
+                else
+                {
+                    XYZ slopingDirection = RoofUtility.GetRoofSlopeDirection(pt1);
+
+                    // if sloping direction is null dont attemp to update the orientation 
+                    if (slopingDirection != null)
+                    {
+                        Revit_Automation.LineType slopeLineType = Revit_Automation.LineType.vertical;
+
+                        if (slopingDirection.X != 0 && slopingDirection.Y == 0)
+                            slopeLineType = Revit_Automation.LineType.Horizontal;
+
+                        XYZ panelDirection = GenericUtils.GetUNOPanelDirectionForPosts(slopeLineType);
+
+                        // The web outward normal should be in a direction of slope
+                        if (MathUtils.IsParallel(panelDirection, newOrientation))
+                        {
+                            if (MathUtils.CompareVectors(panelDirection, newOrientation) == "Anti-Parallel")
+                            {
+                                Logger.logMessage("UpdateOrientation - Open C should point to high eve");
+                                ElementTransformUtils.RotateElement(doc, columnID, axis, Math.PI);
+                            }
+                        }
+                    }
+                }
             }
         }
 
