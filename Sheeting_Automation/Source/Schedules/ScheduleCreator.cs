@@ -139,7 +139,13 @@ namespace Sheeting_Automation.Source.Schedules
             // update the counts array from the view schedule table data
             for (int i = 1; i < rows; i++)
             {
-                counts.Add(int.Parse(viewSchedule.GetCellText(SectionType.Body, i, countIndex)));
+                var value = viewSchedule.GetCellText(SectionType.Body, i, countIndex);
+
+                //set this for empty rows
+                if (value == "")
+                    value = "-1";
+
+                counts.Add(int.Parse(value));
             }
 
             // update the markers 
@@ -252,6 +258,12 @@ namespace Sheeting_Automation.Source.Schedules
                 // loop through the counts array 
                 foreach (var count in Counts)
                 {
+                    if (count == -1)
+                    {
+                        currentIndex++;
+                        continue;
+                    }
+
                     // update the mark value , based on start value 
                     string markValue = prefix + startValue.ToString() + suffix;
 
