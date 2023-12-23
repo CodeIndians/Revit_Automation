@@ -38,6 +38,9 @@ namespace Revit_Automation.Source.Utils
 
                     PostCreationUtils.ComputeTopAndBaseLevels(inputLine, levels, out toplevel, out baselevel);
 
+                    if (baselevel == null || toplevel == null)
+                        continue;
+                    
                     Element baseAttach = GenericUtils.GetNearestFloorOrRoof(baselevel, inputLine.startpoint, _document);
 
                     // Create columns on either side of the line and try to attach the base.
@@ -77,7 +80,12 @@ namespace Revit_Automation.Source.Utils
 
                         // Create the column instance at the point
                         FamilyInstance rightcolumn = _document.Create.NewFamilyInstance(rightpoint, columnType, baselevel, StructuralType.Column);
+                        if (rightcolumn != null)    
+                        _ = rightcolumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(toplevel.Id);
+
                         FamilyInstance leftcolumn = _document.Create.NewFamilyInstance(leftpoint, columnType, baselevel, StructuralType.Column);
+                        if (leftcolumn != null)
+                            _ = leftcolumn.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM).Set(toplevel.Id);
 
                         rightcolumn.get_Parameter(BuiltInParameter.FAMILY_BASE_LEVEL_OFFSET_PARAM).Set(2);
                         leftcolumn.get_Parameter(BuiltInParameter.FAMILY_BASE_LEVEL_OFFSET_PARAM).Set(2);
