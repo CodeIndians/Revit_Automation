@@ -265,7 +265,7 @@ namespace Sheeting_Automation.Source.Schedules
                     }
 
                     // update the mark value , based on start value 
-                    string markValue = prefix + startValue.ToString() + suffix;
+                    string markValue = prefix + startValue.ToString().PadLeft(start.Length,'0') + suffix;
 
                     for (int i = 0; i < count; i++)
                     {
