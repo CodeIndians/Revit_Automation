@@ -382,6 +382,7 @@ namespace Revit_Automation.Source.Preprocessors
                     InputLineElem.LookupParameter("Parapet Height")?.Set(iLine.dParapetHeight);
                     InputLineElem.LookupParameter("Double Stud")?.Set(iLine.strDoubleStudType);
                     InputLineElem.LookupParameter("Comments")?.Set(iLine.strComments);
+                    InputLineElem.LookupParameter("Hour rate")?.Set(iLine.dHourrate);
                 }
             }
         }
