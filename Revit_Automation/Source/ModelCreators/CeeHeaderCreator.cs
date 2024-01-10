@@ -483,9 +483,12 @@ namespace Revit_Automation
 
             // Get the building endpoints
             points.AddRange(GetEndPoints(outline, inputlineList, spanLineType, startPt, elevation, dCeeHeaderCoordinate));
-            
+
+            bool bCMUAtStart = points.Find(e => e.Contains("StartCMU")) != null;
+            bool bCMUAtEnd = points.Find(e => e.Contains("EndCMU")) != null; 
+
             // Get the CMU wall endpoints in a given bounding box
-            points.AddRange(GetCMUWallPoints(outline, spanLineType, dCeeHeaderCoordinate, elevation));
+            points.AddRange(GetCMUWallPoints(outline, spanLineType, dCeeHeaderCoordinate, elevation, bCMUAtStart, bCMUAtEnd));
 
             // Sort the points according to Span Grid type
             ceeHeaderPts = (spanLineType == LineType.vertical) ? points.OrderBy(elem => double.Parse(elem.Split('|')[1])).ToList() : points.OrderBy(elem => double.Parse(elem.Split('|')[0])).ToList();
@@ -703,21 +706,37 @@ namespace Revit_Automation
             return 0.0;
         }
 
-        private List<string> GetCMUWallPoints(Outline outline, LineType spanLineType, double dCeeHeaderCoordinate, double dElevation)
+        private List<string> GetCMUWallPoints(Outline outline, LineType spanLineType, double dCeeHeaderCoordinate, double dElevation, bool bCMUAtStart, bool bCMUAtEnd)
         {
             List<string> CMUPoints = new List<string>();
+
+            //Typically when we add CMU points, we are following below strategy
+            // If cee header placement direction is vetical and there is a vertical CMU wall, we are taking CMU points from the corresponding perpendicular walls so that the headers
+            // are properly terminated at CMU. In the process we are reducing the BB by 2 feet on each side to avoid double counting of CMU once in end points and once in CMU points
+
+            // Ine RA-35 is a unique case where we have room exactly matching the grid where CMU is placed + Exterior which is resulting in a combination of Ex Line and CMU wall exactly coinciding at the Cee header placement location
+
+            // In this case the Endpoints would be marked as - Start Stud / End Stud, and as a result of shrinking BB, only one among the 2 CMU perpendicular walls will be added resulting in incorrect placement.
+
+            // so we introduce 2 flags bCMUAtStart and bCMUAtEnd, the shrinking will happen at each end only of the boolean is set to true else no Shrinking
 
             // we donot want to double count exterior CMU Walls once in end points and once in this method
             // So, reduce the outline by 2 feet on either sides
             if (spanLineType == LineType.vertical)
             {
-                outline = new Outline(new XYZ(outline.MinimumPoint.X, outline.MinimumPoint.Y + 2.0, outline.MinimumPoint.Z),
-                                        new XYZ(outline.MaximumPoint.X, outline.MaximumPoint.Y - 2.0, outline.MaximumPoint.Z));
+                double YCoordinateAtStart = bCMUAtStart ? outline.MinimumPoint.Y + 2.0 : outline.MinimumPoint.Y;
+                double YCoordinateAtEnd = bCMUAtEnd ? outline.MaximumPoint.Y - 2.0 : outline.MaximumPoint.Y;
+
+                outline = new Outline(new XYZ(outline.MinimumPoint.X, YCoordinateAtStart, outline.MinimumPoint.Z),
+                                        new XYZ(outline.MaximumPoint.X, YCoordinateAtEnd, outline.MaximumPoint.Z));
             }
             else
             {
-                outline = new Outline(new XYZ(outline.MinimumPoint.X + 2.0, outline.MinimumPoint.Y , outline.MinimumPoint.Z),
-                                       new XYZ(outline.MaximumPoint.X - 2.0, outline.MaximumPoint.Y , outline.MaximumPoint.Z));
+                double XCoordinateAtStart = bCMUAtStart ? outline.MinimumPoint.X + 2.0 : outline.MinimumPoint.X;
+                double XCoordinateAtEnd = bCMUAtEnd ? outline.MaximumPoint.X - 2.0 : outline.MaximumPoint.X;
+
+                outline = new Outline(new XYZ(outline.MinimumPoint.X + 2.0, XCoordinateAtStart, outline.MinimumPoint.Z),
+                                       new XYZ(outline.MaximumPoint.X - 2.0, XCoordinateAtEnd, outline.MaximumPoint.Z));
             }
 
             // Construct a bounding box filter with the outline
