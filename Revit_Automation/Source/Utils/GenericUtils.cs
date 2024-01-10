@@ -284,7 +284,10 @@ namespace Revit_Automation.Source.Utils
                 Ymin = Math.Min(floor.max.Y, floor.min.Y);
                 Ymax = Math.Max(floor.max.Y, floor.min.Y);
 
-                if (pt1.X >= Xmin && pt1.X <= Xmax && pt1.Y >= Ymin && pt1.Y <= Ymax)
+                if ((pt1.X > Xmin || MathUtils.ApproximatelyEqual(pt1.X, Xmin))&& 
+                   (pt1.X < Xmax || MathUtils.ApproximatelyEqual(pt1.X, Xmax)) && 
+                   (pt1.Y > Ymin || MathUtils.ApproximatelyEqual(pt1.Y, Ymin)) && 
+                   (pt1.Y < Ymax || MathUtils.ApproximatelyEqual(pt1.Y, Ymax)))
                 {
                     Element levelElement = m_Document.GetElement(floor.levelID);
                     Parameter elevationParam = levelElement.get_Parameter(BuiltInParameter.LEVEL_ELEV);

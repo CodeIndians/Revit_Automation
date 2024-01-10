@@ -797,7 +797,7 @@ namespace Revit_Automation
             
             List<string> linePoints = new List<string>();
 
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < 4; i++)
             {
 
                 // Construct a bounding box filter with the outline

@@ -183,7 +183,7 @@ namespace Revit_Automation.Source.ModelCreators
                 else if (i == wallEndPtsCollection.Count - 2)
                     bEndingPoint = true;
 
-                XYZ awp1 = null, awp2 = null;
+                XYZ awp1 = wp1, awp2 = wp2;
                 double dPanelClearance = GetPanelClearance(inputLine);
 
                 if (dPanelClearance != 0)
