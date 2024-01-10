@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Runtime.Remoting;
 using System.Runtime.Remoting.Messaging;
 using System.Security.Cryptography;
 using System.Windows.Forms;
@@ -633,68 +634,73 @@ namespace Revit_Automation
 
             Element floorElement = GenericUtils.GetNearestFloorOrRoof(m_inputLineElevationLevel, probePoint, doc);
 
-            Options opt = doc.Application.Create.NewGeometryOptions();
-            List<List<XYZ>> floorCurves = GenericUtils.GetFloorCurves(floorElement, opt);
-
-            List<double> floorCoordinates  = new List<double>();
-            foreach (List<XYZ> cureveLoop in floorCurves)
+            if (floorElement != null)
             {
-                // collect all those curves which are horizontal and within the range of the ceeheader coordinate
-                for (int i = 0; i < cureveLoop.Count; i++)
+                Options opt = doc.Application.Create.NewGeometryOptions();
+                List<List<XYZ>> floorCurves = GenericUtils.GetFloorCurves(floorElement, opt);
+
+                List<double> floorCoordinates = new List<double>();
+                foreach (List<XYZ> cureveLoop in floorCurves)
                 {
-
-                    XYZ startPt = null, endPt = null;
-
-                    Curve line = null;
-                    if (i == cureveLoop.Count - 1)
+                    // collect all those curves which are horizontal and within the range of the ceeheader coordinate
+                    for (int i = 0; i < cureveLoop.Count; i++)
                     {
-                        startPt = cureveLoop[i];
-                        endPt = cureveLoop[0];
-                    }
-                    else
-                    {
-                        startPt = cureveLoop[i];
-                        endPt = cureveLoop[i + 1];
-                    }
 
-                    LineType curevetype = MathUtils.ApproximatelyEqual(startPt.X, endPt.X) ? LineType.vertical : LineType.Horizontal;
+                        XYZ startPt = null, endPt = null;
 
-                    if (spanLineType != curevetype)
-                    {
-                        // We come here when we have horizontal curves. Check if ceeHeader Coordinate is in between Start and end.
-                        // if yes collect its Y coordinate into a list;
-                        if (curevetype == LineType.Horizontal)
+                        Curve line = null;
+                        if (i == cureveLoop.Count - 1)
                         {
-                            //Coordinates may be inverted
-                            if ((startPt.X < dCeeHeaderCoordinate && endPt.X > dCeeHeaderCoordinate) ||
-                                (startPt.X > dCeeHeaderCoordinate && endPt.X < dCeeHeaderCoordinate))
-                                floorCoordinates.Add(startPt.Y);
+                            startPt = cureveLoop[i];
+                            endPt = cureveLoop[0];
                         }
-                        // We come here when we have vertical curves. Check if ceeHeader Coordinate is in between Start and end.
-                        // if yes collect its Y coordinate into a list;
                         else
                         {
-                            if ((startPt.Y < dCeeHeaderCoordinate && endPt.Y > dCeeHeaderCoordinate) ||
-                                (startPt.Y > dCeeHeaderCoordinate && endPt.Y < dCeeHeaderCoordinate))
-                                floorCoordinates.Add(startPt.X);
+                            startPt = cureveLoop[i];
+                            endPt = cureveLoop[i + 1];
+                        }
+
+                        LineType curevetype = MathUtils.ApproximatelyEqual(startPt.X, endPt.X) ? LineType.vertical : LineType.Horizontal;
+
+                        if (spanLineType != curevetype)
+                        {
+                            // We come here when we have horizontal curves. Check if ceeHeader Coordinate is in between Start and end.
+                            // if yes collect its Y coordinate into a list;
+                            if (curevetype == LineType.Horizontal)
+                            {
+                                //Coordinates may be inverted
+                                if ((startPt.X < dCeeHeaderCoordinate && endPt.X > dCeeHeaderCoordinate) ||
+                                    (startPt.X > dCeeHeaderCoordinate && endPt.X < dCeeHeaderCoordinate))
+                                    floorCoordinates.Add(startPt.Y);
+                            }
+                            // We come here when we have vertical curves. Check if ceeHeader Coordinate is in between Start and end.
+                            // if yes collect its Y coordinate into a list;
+                            else
+                            {
+                                if ((startPt.Y < dCeeHeaderCoordinate && endPt.Y > dCeeHeaderCoordinate) ||
+                                    (startPt.Y > dCeeHeaderCoordinate && endPt.Y < dCeeHeaderCoordinate))
+                                    floorCoordinates.Add(startPt.X);
+                            }
                         }
                     }
                 }
-            }
-            floorCoordinates.Sort();
+                floorCoordinates.Sort();
 
-            if (floorCoordinates.Count > 0)
-            {
+                if (floorCoordinates.Count > 0)
+                {
+                    if (bMax)
+                        return floorCoordinates.ElementAt(floorCoordinates.Count - 1);
+                    else
+                        return floorCoordinates.ElementAt(0);
+                }
+
                 if (bMax)
-                    return floorCoordinates.ElementAt(floorCoordinates.Count - 1);
+                    return 0.0;
                 else
-                    return floorCoordinates.ElementAt(0);
+                    return 100000.0;
             }
 
-            if (bMax)
-                return 0.0;
-            else
-                return 100000.0;
+            return 0.0;
         }
 
         private List<string> GetCMUWallPoints(Outline outline, LineType spanLineType, double dCeeHeaderCoordinate, double dElevation)
