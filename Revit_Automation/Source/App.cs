@@ -73,6 +73,14 @@ namespace Revit_Automation
 
                 #region GENERIC_MODELLING
 
+                // Compute Exterior panel direction
+                AddRevitCommand(PreProcessingRB,
+                "ExPanelDirComp",
+                "Ex-Panel Dir",
+                "Revit_Automation.ExteriorPanelDirectionComputation",
+                "Place Panels at All Input Lines",
+                "ProcessLines.png");
+
                 // Extend Lines 
                 AddRevitCommand(PreProcessingRB,
                     "ExtendLinesCMD",
@@ -104,14 +112,6 @@ namespace Revit_Automation
                       "Revit_Automation.BTAtAllLines",
                       "Place Bottom Tracks at All Input Lines",
                       "BottomTrack.png");
-
-
-                AddRevitCommand(PartitionRB,
-                "ExPanelDirComp",
-                "Ex-Panel Dir",
-                "Revit_Automation.ExteriorPanelDirectionComputation",
-                "Place Panels at All Input Lines",
-                "ProcessLines.png");
 
                 // Panels - ALL
                 AddRevitCommand(PartitionRB,
