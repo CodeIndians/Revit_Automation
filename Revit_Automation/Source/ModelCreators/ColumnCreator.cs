@@ -317,8 +317,8 @@ namespace Revit_Automation.Source.ModelCreators
                     {
                         topAttachElement = GetRoofAtPoint(pt1);
                     }
-
-                    if (topAttachElement != null)
+                    // For Parapets, we need not attach the top - RA #39
+                    if (topAttachElement != null && inputLine.dParapetHeight == 0)
                     {
                         ColumnAttachment.AddColumnAttachment(m_Document, startcolumn, topAttachElement, 1, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
                     }
@@ -358,8 +358,9 @@ namespace Revit_Automation.Source.ModelCreators
                     {
                         topAttachElement = GetRoofAtPoint(pt2);
                     }
-
-                    if (topAttachElement != null)
+                    
+                    // For Parapets, we need not attach the top - RA #39
+                    if (topAttachElement != null && inputLine.dParapetHeight == 0)
                     {
                         ColumnAttachment.AddColumnAttachment(m_Document, endColumn, topAttachElement, 1, ColumnAttachmentCutStyle.CutColumn, ColumnAttachmentJustification.Midpoint, 0);
                     }
