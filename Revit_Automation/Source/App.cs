@@ -135,7 +135,7 @@ namespace Revit_Automation
                     "   Roof Deck  ",
                     "Revit_Automation.RoofDeckCreator",
                     "Place Roof Deck",
-                    "Deck.png");
+                    "RoofDeck.png");
 
                 // Trim Composite / Roof Deck
                 AddRevitCommand(DeckingRB,
@@ -159,7 +159,7 @@ namespace Revit_Automation
                     "Top Tracks",
                     "Revit_Automation.TopTracksCreator",
                     "Place Top Tracks",
-                    "BottomTrack.png");
+                    "TopTrack.png");
 
                 // Purlins
                 AddRevitCommand(FramingRB,
@@ -175,7 +175,7 @@ namespace Revit_Automation
                     "  Drag Strut  ",
                     "Revit_Automation.DragStrutCreator",
                     "Place DragStruts",
-                    "Strut.png");
+                    "Strut.jpg");
 
                 // Eave Strut
                 AddRevitCommand(FramingRB,
@@ -183,7 +183,7 @@ namespace Revit_Automation
                     "  Eave Strut  ",
                     "Revit_Automation.EaveStrutCreator",
                     "Place EaveStruts",
-                    "Strut.png");
+                    "Strut.jpg");
 
                 // 
                 //AddRevitCommand(HallWayRB,
