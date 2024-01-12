@@ -118,14 +118,14 @@ namespace Revit_Automation.Source.ModelCreators.Walls
 
             if (linetype == LineType.Horizontal)
             {
-                if (inputLine.strHorizontalPanelDirection == "L")
+                if (inputLine.strHorizontalPanelDirection == "D")
                     return PanelDirection.L;
                 else
                     return PanelDirection.R;
             }
             else
             {
-                if (inputLine.strVerticalPanelDirection == "U")
+                if (inputLine.strVerticalPanelDirection == "R")
                     return PanelDirection.R;
                 else
                     return PanelDirection.L;
