@@ -230,6 +230,7 @@ namespace Revit_Automation.Source.Preprocessors
                     InputLineElem.LookupParameter("Flange Offset")?.Set(iLine.dFlangeOfset);
                     InputLineElem.LookupParameter("Stud O.C.")?.Set(iLine.dOnCenter);
                     InputLineElem.LookupParameter("Parapet Height")?.Set(iLine.dParapetHeight);
+                    InputLineElem.LookupParameter("Double Stud")?.Set(iLine.strDoubleStudType);
                     InputLineElem.LookupParameter("Comments")?.Set(iLine.strComments);
                     InputLineElem.LookupParameter("Hour rate")?.Set(iLine.dHourrate);
                 }
