@@ -81,8 +81,11 @@ namespace Revit_Automation
         }
 
         // To Debug a particular area, override the line collection logic -Instead of building BB at each
-        // Case 1 :- Self and Perpendicular; case 2 :- Multiple self with perpendicular in between
-        // Case 3:- Parallel ; case 4 - Parallel and divided by hallway
+        // Case 1 :- Self and Perpendicular; 
+        //case 2 :- Multiple self with perpendicular in between
+        // Case 3:- Parallel ;
+        // case 4 - Parallel and divided by hallway
+
         private void PlaceTopTracks(List<InputLine> colInputLines, IOrderedEnumerable<Level> levels)
         {
             Logger.logMessage("Method - PlaceTopTracks");
