@@ -551,7 +551,7 @@ namespace Revit_Automation
             // Collect CMU walls in the range that are parallel to span grid
             foreach (Wall wall in wallElements)
             {
-                if (!wall.Name.Contains("Masonry"))
+                if (!wall.Name.Contains("CMU"))
                     continue;
 
                 XYZ startPt = null, endPt = null;
@@ -750,7 +750,7 @@ namespace Revit_Automation
             // Collect CMU walls in the range that are parallel to span grid
             foreach (Wall wall in wallElements)
             {
-                if (!wall.Name.Contains("Masonry"))
+                if (!wall.Name.Contains("CMU"))
                     continue;
                 double halfWidth = wall.WallType.Width / 2.0;
 

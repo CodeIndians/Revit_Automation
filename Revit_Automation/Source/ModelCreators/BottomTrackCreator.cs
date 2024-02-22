@@ -195,29 +195,29 @@ namespace Revit_Automation.Source.ModelCreators
 
         private double RoundInches(double fraction)
         {
-            if (0.00 < fraction && (fraction < 0.0833333 ))
+            if (0.00 <= fraction && (fraction < 0.0833333 ))
                 return 0.0;
-            else if (0.0833333 < fraction && (fraction <= 0.166666 ))
+            else if (0.0833333 <= fraction && (fraction < 0.166666 ))
                 return 0.0833333;
-            else if (0.166666 < fraction && (fraction <= 0.25 ))
+            else if (0.166666 <= fraction && (fraction < 0.25 ))
                 return 0.166666;
-            else if (0.25 < fraction && (fraction <= 0.333333 ))
+            else if (0.25 <= fraction && (fraction < 0.333333 ))
                 return 0.25;
-            else if (0.333333 < fraction && (fraction <= 0.416666 ))
+            else if (0.333333 <= fraction && (fraction < 0.416666 ))
                 return 0.333333;
-            else if (0.416666 < fraction && (fraction <= 0.5 ))
+            else if (0.416666 <= fraction && (fraction < 0.5 ))
                 return 0.416666;
-            else if (0.5 < fraction && (fraction <= 0.583333 ))
+            else if (0.5 <= fraction && (fraction < 0.583333 ))
                 return 0.5;
-            else if (0.583333 < fraction && (fraction <= 0.666666 ))
+            else if (0.583333 <= fraction && (fraction < 0.666666 ))
                 return 0.583333;
-            else if (0.666666 < fraction && (fraction <= 0.75 ))
+            else if (0.666666 <= fraction && (fraction < 0.75 ))
                 return 0.666666;
-            else if (0.75 < fraction && (fraction <= 0.833333 ))
+            else if (0.75 <= fraction && (fraction < 0.833333 ))
                 return 0.75;
-            else if (0.833333 < fraction && (fraction <= 0.916666 ))
+            else if (0.833333 <= fraction && (fraction < 0.916666 ))
                 return 0.833333;
-            else if (0.916666 < fraction && (fraction < 1.0 ))
+            else if (0.916666 <= fraction && (fraction < 1.0 ))
                 return 0.916666;
 
             if (MathUtils.ApproximatelyEqual(0.0833333, fraction)
