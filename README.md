@@ -1,3 +1,5 @@
-# Revit_Automation
-Building Information Modelling Automation Project\
-update readme.md
+# Revit\_Automation
+
+Building Information Modelling Automation Project  
+update readme.md by Shruthi
+
